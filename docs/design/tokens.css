@@ -1,0 +1,62 @@
+/* 模擬考小幫手 design tokens（M1 定案）。沿用座位小幫手 v3.4.0，只加班級六色與標示色。只用十六進位色碼（匯出函式庫不吃 oklch）。 */
+:root{
+  --bg:#F5F2EA; --surface:#FFFDF8; --sunken:#F1EDE3;
+  --line:#E4DECF; --line-2:#CFC7B2;
+  --text:#22201B; --text-2:#4F493D; --text-3:#6F6858;
+  --accent:#274690; --accent-on:#FFFFFF; --accent-soft:#E8EDF8; --accent-ink:#1F3877; --accent-line:#B9C6E6;
+  --danger:#C81E45; --danger-soft:#FDECEF; --danger-ink:#9B1237; --danger-line:#F3B4C1;
+  --warn-soft:#FBF0D5; --warn-ink:#6B4300; --warn-line:#E3C07A; --warn-bar:#C98A12;
+  --ok-soft:#E3F2E0; --ok-ink:#1F5A1A; --ok-line:#A5D39D; --ok-bar:#3C8B34;
+  --att-fill:#22201B; --att-on:#FFFDF8;
+  --cut:#8E8670;
+  --c1-bg:#FBE7C6; --c1-line:#E0B365; --c1-ink:#6B4300;
+  --c2-bg:#D8EFD3; --c2-line:#8CC784; --c2-ink:#1F5A1A;
+  --c3-bg:#D6E6F8; --c3-line:#8DB4E2; --c3-ink:#1A4478;
+  --c4-bg:#E7DCF5; --c4-line:#B39DD9; --c4-ink:#4A2E80;
+  --c5-bg:#F6D6EC; --c5-line:#D98ABF; --c5-ink:#7A1C5E;
+  --c6-bg:#F9D5CA; --c6-line:#E58A70; --c6-ink:#7A2A12;
+  --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
+  --shadow-2:0 4px 14px rgba(34,32,27,.10);
+  --shadow-3:0 16px 40px rgba(34,32,27,.22);
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+  --f-ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-head:"Noto Serif TC","Noto Sans TC","PMingLiU",serif;
+  --f-no:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F;
+  --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-on:#FFFFFF; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --danger:#F0617F; --danger-soft:#3A1A22; --danger-ink:#F7B2C0; --danger-line:#6B2B3B;
+  --warn-soft:#3A2E12; --warn-ink:#F3D690; --warn-line:#6F5620; --warn-bar:#E0A832;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-line:#3B6B3C; --ok-bar:#5DB257;
+  --att-fill:#F1EDE2; --att-on:#13120E;
+  --cut:#7C755F;
+  --c1-bg:#3B2F14; --c1-line:#7A6125; --c1-ink:#F5DDA3;
+  --c2-bg:#1E3320; --c2-line:#3E6B41; --c2-ink:#BFE5BC;
+  --c3-bg:#1C2D45; --c3-line:#3D5F8E; --c3-ink:#BCD4F2;
+  --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
+  --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
+  --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F;
+  --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-on:#FFFFFF; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --danger:#F0617F; --danger-soft:#3A1A22; --danger-ink:#F7B2C0; --danger-line:#6B2B3B;
+  --warn-soft:#3A2E12; --warn-ink:#F3D690; --warn-line:#6F5620; --warn-bar:#E0A832;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-line:#3B6B3C; --ok-bar:#5DB257;
+  --att-fill:#F1EDE2; --att-on:#13120E;
+  --cut:#7C755F;
+  --c1-bg:#3B2F14; --c1-line:#7A6125; --c1-ink:#F5DDA3;
+  --c2-bg:#1E3320; --c2-line:#3E6B41; --c2-ink:#BFE5BC;
+  --c3-bg:#1C2D45; --c3-line:#3D5F8E; --c3-ink:#BCD4F2;
+  --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
+  --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
+  --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  color-scheme:dark}
+
