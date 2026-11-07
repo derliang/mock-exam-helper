@@ -1,0 +1,20 @@
+# 學生資料與考試成果一律不進版本庫（本儲存庫為公開 repo）
+data/
+*.xlsx
+*.xls
+*.csv
+*.docx
+*.pdf
+~$*
+
+# 本機設定與機密
+.env
+.env.*
+*.pem
+*.key
+
+# 系統與編輯器
+.DS_Store
+Thumbs.db
+node_modules/
+.vscode/
