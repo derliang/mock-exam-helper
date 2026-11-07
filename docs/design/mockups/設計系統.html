@@ -1,0 +1,595 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>模擬考設計系統</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+<style>
+/* 版面概念：左側目錄＋單欄章節；每章先給成品元件，再給規格小字。色彩全部沿用座位小幫手 v3.4.0（墨藍＋紙色），只新增班級六色與標示色。只用十六進位色碼。 */
+:root{
+  --bg:#F5F2EA; --surface:#FFFDF8; --sunken:#F1EDE3;
+  --line:#E4DECF; --line-2:#CFC7B2;
+  --text:#22201B; --text-2:#4F493D; --text-3:#6F6858;
+  --accent:#274690; --accent-on:#FFFFFF; --accent-soft:#E8EDF8; --accent-ink:#1F3877; --accent-line:#B9C6E6;
+  --danger:#C81E45; --danger-soft:#FDECEF; --danger-ink:#9B1237; --danger-line:#F3B4C1;
+  --warn-soft:#FBF0D5; --warn-ink:#6B4300; --warn-line:#E3C07A; --warn-bar:#C98A12;
+  --ok-soft:#E3F2E0; --ok-ink:#1F5A1A; --ok-line:#A5D39D; --ok-bar:#3C8B34;
+  --att-fill:#22201B; --att-on:#FFFDF8;
+  --cut:#8E8670;
+  --c1-bg:#FBE7C6; --c1-line:#E0B365; --c1-ink:#6B4300;
+  --c2-bg:#D8EFD3; --c2-line:#8CC784; --c2-ink:#1F5A1A;
+  --c3-bg:#D6E6F8; --c3-line:#8DB4E2; --c3-ink:#1A4478;
+  --c4-bg:#E7DCF5; --c4-line:#B39DD9; --c4-ink:#4A2E80;
+  --c5-bg:#F6D6EC; --c5-line:#D98ABF; --c5-ink:#7A1C5E;
+  --c6-bg:#F9D5CA; --c6-line:#E58A70; --c6-ink:#7A2A12;
+  --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
+  --shadow-2:0 4px 14px rgba(34,32,27,.10);
+  --shadow-3:0 16px 40px rgba(34,32,27,.22);
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
+  --f-ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-head:"Noto Serif TC","Noto Sans TC","PMingLiU",serif;
+  --f-no:"Noto Sans TC","Microsoft JhengHei",sans-serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F;
+  --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-on:#FFFFFF; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --danger:#F0617F; --danger-soft:#3A1A22; --danger-ink:#F7B2C0; --danger-line:#6B2B3B;
+  --warn-soft:#3A2E12; --warn-ink:#F3D690; --warn-line:#6F5620; --warn-bar:#E0A832;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-line:#3B6B3C; --ok-bar:#5DB257;
+  --att-fill:#F1EDE2; --att-on:#13120E;
+  --cut:#7C755F;
+  --c1-bg:#3B2F14; --c1-line:#7A6125; --c1-ink:#F5DDA3;
+  --c2-bg:#1E3320; --c2-line:#3E6B41; --c2-ink:#BFE5BC;
+  --c3-bg:#1C2D45; --c3-line:#3D5F8E; --c3-ink:#BCD4F2;
+  --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
+  --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
+  --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F;
+  --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-on:#FFFFFF; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --danger:#F0617F; --danger-soft:#3A1A22; --danger-ink:#F7B2C0; --danger-line:#6B2B3B;
+  --warn-soft:#3A2E12; --warn-ink:#F3D690; --warn-line:#6F5620; --warn-bar:#E0A832;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-line:#3B6B3C; --ok-bar:#5DB257;
+  --att-fill:#F1EDE2; --att-on:#13120E;
+  --cut:#7C755F;
+  --c1-bg:#3B2F14; --c1-line:#7A6125; --c1-ink:#F5DDA3;
+  --c2-bg:#1E3320; --c2-line:#3E6B41; --c2-ink:#BFE5BC;
+  --c3-bg:#1C2D45; --c3-line:#3D5F8E; --c3-ink:#BCD4F2;
+  --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
+  --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
+  --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f-ui);font-size:14px;line-height:1.65;
+  padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
+.wrap{max-width:1120px;margin:0 auto;padding-block:20px 80px}
+h1,h2,h3{font-family:var(--f-head);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em}
+h1{font-size:26px} h2{font-size:21px} h3{font-size:16px}
+p{margin:0}
+.muted{color:var(--text-3)} .small{font-size:12px}
+.num{font-variant-numeric:tabular-nums}
+code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--sunken);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
+
+/* 頁首 */
+.top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px));display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
+.top .brand{font-family:var(--f-head);font-weight:700;font-size:16px;margin-right:auto}
+.toc{display:flex;gap:4px;flex-wrap:wrap}
+.toc a{color:var(--text-2);text-decoration:none;padding:6px 10px;border-radius:var(--r-sm);font-weight:500}
+.toc a:hover{background:var(--sunken);color:var(--text)}
+.hero{padding-block:28px 8px;display:grid;gap:10px}
+.hero p{max-width:68ch;color:var(--text-2)}
+.facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:8px}
+.fact{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px}
+.fact b{display:block;font-size:12px;color:var(--text-3);font-weight:700;margin-bottom:2px}
+section{padding-top:48px;scroll-margin-top:64px}
+section>header{display:grid;gap:6px;margin-bottom:18px}
+section>header p{color:var(--text-2);max-width:72ch}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow-1);min-width:0}
+.grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
+.stack{display:grid;gap:16px;min-width:0}
+.grid2{display:grid;gap:16px;grid-template-columns:260px minmax(0,1fr)}
+@media (max-width:700px){.grid2{grid-template-columns:minmax(0,1fr)}.prev{overflow-x:auto;justify-items:start}}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.lab{font-size:12px;font-weight:700;color:var(--text-3);margin-bottom:8px;letter-spacing:.04em}
+.pending{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line);vertical-align:middle;margin-left:6px}
+.scroll{overflow-x:auto;max-width:100%}
+
+/* 色票 */
+.sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.swatch{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
+.swatch i{display:block;height:44px;border-bottom:1px solid var(--line)}
+.swatch div{padding:6px 10px;font-size:12px;line-height:1.4}
+.swatch b{display:block;font-size:12px}
+.swatch span{color:var(--text-3);font-family:ui-monospace,Consolas,monospace}
+
+/* 字型 */
+.fonts{display:grid;gap:12px}
+.fontrow{display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
+.fontrow:last-child{border-bottom:0}
+.fontrow .nm{font-size:12px;color:var(--text-3);font-weight:700}
+@media (max-width:640px){.fontrow{grid-template-columns:1fr}}
+.no-sample{display:flex;gap:18px;flex-wrap:wrap}
+.no-sample div{background:var(--sunken);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 16px;text-align:center;min-width:128px}
+.no-sample strong{display:block;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
+.no-sample small{display:block;font-size:12px;color:var(--text-3);margin-top:4px}
+table.t{border-collapse:collapse;width:100%;min-width:560px}
+.t th{text-align:left;font-size:12px;color:var(--text-3);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line-2);background:var(--sunken);white-space:nowrap}
+.t td{padding:8px 10px;border-bottom:1px solid var(--line)}
+.t tbody tr:hover{background:var(--accent-soft)}
+.t td.n{font-variant-numeric:tabular-nums}
+.t tr.gap td{color:var(--text-3);font-style:normal;background:repeating-linear-gradient(135deg,transparent 0 6px,var(--sunken) 6px 12px)}
+.dem{display:grid;gap:8px}
+.dem div{display:grid;grid-template-columns:90px 1fr;gap:12px;align-items:baseline}
+.space-demo{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
+.space-demo i{display:block;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:3px}
+.rad{display:flex;gap:14px;flex-wrap:wrap}
+.rad div{width:92px;height:62px;background:var(--surface);border:1px solid var(--line-2);display:grid;place-items:center;font-size:12px;color:var(--text-2)}
+
+/* 按鈕 */
+.btn{font:inherit;font-weight:700;min-height:40px;padding:0 16px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s}
+.btn:hover{background:var(--sunken);border-color:var(--text-3)}
+.btn:focus-visible,.input:focus-visible,.seg button:focus-visible,.cell:focus-visible,.step:focus-visible,.icon-btn:focus-visible,.sw input:focus-visible+span{outline:3px solid var(--accent);outline-offset:2px}
+.btn-primary{background:var(--accent);color:var(--accent-on);border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent);filter:brightness(1.12);border-color:var(--accent)}
+.btn-danger{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger-line)}
+.btn-danger:hover{background:var(--danger-soft);border-color:var(--danger)}
+.btn-ghost{background:transparent;border-color:transparent;color:var(--accent-ink)}
+.btn-ghost:hover{background:var(--accent-soft);border-color:transparent}
+.btn-sm{min-height:32px;padding:0 10px;font-size:12px}
+.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn[disabled]{opacity:1;background:var(--sunken);color:var(--text-3);border-color:var(--line);cursor:not-allowed}
+.icon-btn{width:40px;height:40px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:inherit;font-weight:700;font-size:18px;cursor:pointer}
+.icon-btn:hover{background:var(--sunken)}
+
+/* 表單 */
+.field{display:grid;gap:6px;min-width:0}
+.field label,.label{font-size:12px;font-weight:700;color:var(--text-2)}
+.input{font:inherit;min-height:40px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--sunken);color:var(--text);width:100%}
+.input:focus{border-color:var(--accent)}
+.hint{font-size:12px;color:var(--text-3)}
+.err .input{border-color:var(--danger)} .err .hint{color:var(--danger-ink)}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;background:var(--sunken)}
+.seg button{font:inherit;font-weight:700;min-height:36px;padding:0 14px;border:0;background:transparent;color:var(--text-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-on)}
+.seg button:disabled{color:var(--text-3);cursor:not-allowed;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 10px)}
+.sw{display:inline-flex;gap:10px;align-items:center;cursor:pointer;font-weight:500}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.sw span{width:42px;height:24px;border-radius:99px;background:var(--line-2);position:relative;transition:background .15s;flex:none}
+.sw span::after{content:"";position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:var(--surface);transition:transform .15s;box-shadow:var(--shadow-1)}
+.sw input:checked+span{background:var(--accent)}
+.sw input:checked+span::after{transform:translateX(18px)}
+.check{display:inline-flex;gap:8px;align-items:center;cursor:pointer}
+.check input{width:18px;height:18px;accent-color:var(--accent)}
+.stepper{display:inline-flex;align-items:center;gap:6px}
+.stepper output{min-width:44px;text-align:center;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
+
+/* 徽章、提示 */
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2)}
+.b-acc{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)}
+.b-ok{background:var(--ok-soft);color:var(--ok-ink);border-color:var(--ok-line)}
+.b-warn{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn-line)}
+.b-err{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger-line)}
+.b-soon{background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 10px);color:var(--text-2)}
+.alert{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:start;padding:12px 14px;border-radius:var(--r-md);border:1px solid;font-weight:500}
+.alert b{font-weight:700}
+.a-info{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)}
+.a-warn{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn-line)}
+.a-err{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger-line)}
+.a-ok{background:var(--ok-soft);color:var(--ok-ink);border-color:var(--ok-line)}
+.ico{font-weight:700;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:13px;background:currentColor;flex:none}
+.ico::before{content:attr(data-i);color:var(--surface)}
+.toast{display:inline-flex;gap:10px;align-items:center;background:var(--att-fill);color:var(--att-on);padding:10px 16px;border-radius:var(--r-md);box-shadow:var(--shadow-3);font-weight:700}
+.modal-frame{background:rgba(20,18,12,.45);border-radius:var(--r-lg);padding:28px 16px;display:grid;place-items:center}
+.modal{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--shadow-3);width:min(100%,460px);padding:22px;display:grid;gap:14px}
+.modal .acts{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.empty{border:1.5px dashed var(--line-2);border-radius:var(--r-lg);padding:28px 18px;text-align:center;display:grid;gap:8px;justify-items:center;background:var(--sunken)}
+
+/* 步驟導覽 */
+.shell{display:grid;grid-template-columns:220px minmax(0,1fr) 200px;gap:12px;min-height:150px}
+@media (max-width:760px){.shell{grid-template-columns:1fr}}
+.shell>div{border:1.5px dashed var(--line-2);border-radius:var(--r-md);padding:10px;background:var(--sunken);font-size:12px;color:var(--text-3);font-weight:700}
+.steps{display:grid;gap:4px;list-style:none;margin:0;padding:0}
+.step{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:var(--r-md);border:1px solid transparent;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%;min-height:44px}
+.step:hover{background:var(--sunken)}
+.step .no{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;border:1.5px solid var(--line-2);background:var(--surface);color:var(--text-2)}
+.step small{display:block;color:var(--text-3);font-size:12px;line-height:1.3}
+.step.cur{background:var(--accent-soft);border-color:var(--accent-line)}
+.step.cur .no{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}
+.step.done .no{background:var(--ok-soft);border-color:var(--ok-bar);color:var(--ok-ink)}
+.step.stale .no{background:var(--warn-soft);border-color:var(--warn-bar);color:var(--warn-ink)}
+
+/* 統計列 */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden}
+.stats>div{background:var(--surface);padding:10px 14px}
+.stats small{display:block;font-size:13px;font-weight:700;color:var(--text-3)}
+.stats strong{font-family:var(--f-no);font-size:32px;line-height:1.2;font-weight:700;font-variant-numeric:tabular-nums}
+#statTable td.n{font-size:18px;font-weight:700}
+.stats .bad strong{color:var(--danger-ink)}
+.bar{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--accent)}
+
+/* 步進器預覽 */
+.prev{display:grid;gap:8px;justify-items:center;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r-md);padding:14px}
+.pgrid{display:grid;gap:4px}
+.pc{width:40px;height:30px;border-radius:6px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;padding:0;font:inherit;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
+.pc:hover{border-color:var(--accent)}
+.pc.off{background:repeating-linear-gradient(135deg,var(--sunken) 0 4px,var(--line-2) 4px 8px);border-style:dashed;color:transparent}
+.podium{width:60%;text-align:center;font-size:12px;font-weight:700;color:var(--text-2);border:1px solid var(--line-2);border-radius:6px;padding:2px 0;background:var(--surface)}
+
+/* 座位格與標籤格（專案專屬） */
+.chart{--cw:96px;--ch:80px}
+.sheet{--cw:108px;--ch:116px}
+.chart.gray,.sheet.gray{filter:grayscale(1) contrast(1.05)}
+.cell{position:relative;width:var(--cw);height:var(--ch);display:grid;grid-template-rows:1fr auto auto;align-items:center;justify-items:center;padding:4px 2px 3px;row-gap:1px;border:1px solid var(--cut);margin:0;background:var(--surface);color:var(--text);font-family:var(--f-no);text-align:center;line-height:1.1;overflow:hidden}
+.cell[data-c="1"]{background:var(--c1-bg)} .cell[data-c="2"]{background:var(--c2-bg)} .cell[data-c="3"]{background:var(--c3-bg)}
+.cell[data-c="4"]{background:var(--c4-bg)} .cell[data-c="5"]{background:var(--c5-bg)} .cell[data-c="6"]{background:var(--c6-bg)}
+.cell[data-c="1"] .meta{color:var(--c1-ink)} .cell[data-c="2"] .meta{color:var(--c2-ink)} .cell[data-c="3"] .meta{color:var(--c3-ink)}
+.cell[data-c="4"] .meta{color:var(--c4-ink)} .cell[data-c="5"] .meta{color:var(--c5-ink)} .cell[data-c="6"] .meta{color:var(--c6-ink)}
+.cell .no{font-size:22px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;color:var(--text)}
+.cell .meta{font-size:12px;font-weight:500;white-space:nowrap}
+.cell .meta .tg{font-weight:700;margin-right:6px;padding-right:6px;border-right:1.5px solid currentColor}
+.cell .mk{font-size:11px;font-weight:700;padding:0 6px;line-height:16px;border-radius:3px;white-space:nowrap}
+.cell.mk-x .mk{background:var(--att-fill);color:var(--att-on);border:2px solid var(--att-fill)}
+.cell.mk-add .mk{background:var(--surface);color:var(--text);border:2px double var(--text)}
+.cell.mk-x,.cell.mk-add{box-shadow:inset 0 0 0 3px var(--text);padding:6px 4px 5px}
+.cell.mk-x .mk,.cell.mk-add .mk{margin-top:2px}
+.cell .co{position:absolute;right:4px;top:3px;font-size:11px;font-weight:700;color:var(--text-2);font-variant-numeric:tabular-nums;line-height:1}
+.cell.mk-x .co,.cell.mk-add .co{right:7px;top:6px}
+.cell.empty-seat{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,var(--line-2) 5px 10px);border-style:dashed}
+.cell.empty-seat .no,.cell.empty-seat .meta{visibility:hidden}
+.chart-wrap{display:grid;grid-template-columns:auto auto;gap:4px 8px;width:max-content;max-width:none;font-family:var(--f-ui)}
+.chart-title{grid-column:1/-1;text-align:center;font-family:var(--f-head);font-weight:700}
+.chart-title small{display:block;font-family:var(--f-ui);font-size:12px;font-weight:500;color:var(--text-2)}
+.axis-y{display:grid;align-items:center;justify-items:end;font-size:11px;font-weight:700;color:var(--text-2)}
+.axis-x{display:grid;justify-items:center;font-size:11px;font-weight:700;color:var(--text-2)}
+.cg{display:grid;border:2px solid var(--text)}
+.cg .cell{border-width:0 1px 1px 0}
+.podium-bar{grid-column:2;text-align:center;font-weight:700;border:2px solid var(--text);border-radius:4px;padding:3px;font-size:13px;letter-spacing:.3em}
+.legend{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text-2)}
+.legend .cell{width:auto;height:auto;display:inline-flex;padding:1px 8px;border-radius:3px}
+.sheet .cell{grid-template-rows:1fr auto auto;padding:4px 2px 5px}
+.sheet .cell .tag-c{font-size:14px;font-weight:700;color:var(--cx);margin-right:10px;padding-right:10px;border-right:1.5px solid var(--cx)}
+.sheet .cell .co{right:5px;top:4px;font-size:14px;color:var(--text)}
+.sheet .cell.mk-x .co,.sheet .cell.mk-add .co{right:8px;top:7px}
+.sheet .cell .no{font-size:32px;align-self:center;padding-top:16px}
+.sheet .cell .nm{font-size:17px;font-weight:700;color:var(--text);line-height:1.2}
+.sheet .cell .mk{margin-top:2px}
+.sheet-grid{display:grid;border-top:1px solid var(--cut);border-left:1px solid var(--cut);width:max-content}
+.sheet-grid .cell{border-width:0 1px 1px 0}
+.cls-pal{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px}
+.cls-pal .cp{border-radius:var(--r-md);padding:10px 12px;border:1px solid;display:grid;gap:2px}
+.cp .seg{display:grid;grid-template-columns:1fr 1fr;width:100%}
+.cp .seg button{padding:0 4px;min-height:32px;font-size:13px}
+.cp strong{font-size:18px;font-family:var(--f-head)} .cp span{font-size:12px;font-weight:500}
+.cp[data-c="1"]{background:var(--c1-bg);border-color:var(--c1-line);color:var(--c1-ink)}
+.cp[data-c="2"]{background:var(--c2-bg);border-color:var(--c2-line);color:var(--c2-ink)}
+.cp[data-c="3"]{background:var(--c3-bg);border-color:var(--c3-line);color:var(--c3-ink)}
+.cp[data-c="4"]{background:var(--c4-bg);border-color:var(--c4-line);color:var(--c4-ink)}
+.cp[data-c="5"]{background:var(--c5-bg);border-color:var(--c5-line);color:var(--c5-ink)}
+.cp[data-c="6"]{background:var(--c6-bg);border-color:var(--c6-line);color:var(--c6-ink)}
+.chip-class{display:inline-flex;gap:6px;align-items:center;padding:2px 10px 2px 6px;border-radius:99px;border:1px solid;font-weight:700;font-size:12px}
+.chip-class i{width:10px;height:10px;border-radius:50%;background:currentColor}
+.chip-class[data-c="1"]{background:var(--c1-bg);border-color:var(--c1-line);color:var(--c1-ink)}
+.chip-class[data-c="2"]{background:var(--c2-bg);border-color:var(--c2-line);color:var(--c2-ink)}
+.chip-class[data-c="3"]{background:var(--c3-bg);border-color:var(--c3-line);color:var(--c3-ink)}
+.chip-class[data-c="4"]{background:var(--c4-bg);border-color:var(--c4-line);color:var(--c4-ink)}
+.chip-class[data-c="5"]{background:var(--c5-bg);border-color:var(--c5-line);color:var(--c5-ink)}
+.chip-class[data-c="6"]{background:var(--c6-bg);border-color:var(--c6-line);color:var(--c6-ink)}
+.stale-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:var(--r-md);background:var(--warn-soft);border:1.5px dashed var(--warn-bar);color:var(--warn-ink);font-weight:700}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+
+<div class="top">
+  <span class="brand">模擬考小幫手 設計系統</span>
+  <nav class="toc" aria-label="目錄">
+    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#open">待確認</a>
+  </nav>
+  <div class="seg" role="group" aria-label="深淺色">
+    <button type="button" id="thSys" aria-pressed="true">跟隨系統</button>
+    <button type="button" id="thLight" aria-pressed="false">淺色</button>
+    <button type="button" id="thDark" aria-pressed="false">深色</button>
+  </div>
+</div>
+
+<main class="wrap">
+  <div class="hero">
+    <h1>M1 設計系統</h1>
+    <p>視覺沿用座位小幫手 v3.4.0（墨藍＋紙色、Noto 字型、四級圓角），兩個程式看起來是一家人，但不共用元件（D31）。以下新增的只有本專案才有的東西：班級六色、座位格、標籤格、個別考試標示、過期標示。頁面右上角可切換深淺色。</p>
+    <div class="facts">
+      <div class="fact"><b>色彩與 tokens 來源</b>座位小幫手 repo 的 <code>docs/design/DESIGN.md</code>（已讀到，直接沿用數值）</div>
+      <div class="fact"><b>對照決定記錄</b>D28 六色、D31 沿用、D39 標示、D40 統計、D43 字型、P12 裁切框線、P13 字型打包</div>
+      <div class="fact"><b>標「待使用者確認」的</b>是我的提案，不是已定案；假資料姓名皆為虛構</div>
+    </div>
+  </div>
+
+  <section id="color">
+    <header><h2>色彩</h2><p>十六進位色碼，沿用座位小幫手（匯出與列印用途，不使用 oklch）。強調色只有墨藍一個；綠、琥珀、紅只表示狀態。</p></header>
+    <div class="stack">
+      <div class="card"><div class="lab">基礎</div>
+        <div class="sw-grid" id="swBase"></div></div>
+      <div class="card"><div class="lab">主色與狀態</div>
+        <div class="sw-grid" id="swState"></div></div>
+    </div>
+  </section>
+
+  <section id="type">
+    <header><h2>字型</h2>
+      <p>全部是 Google Fonts 免費字型，授權為 SIL Open Font License 1.1，可商用、可內嵌、可散布（D43、P13）。介面與標題直接沿用座位小幫手；考生編號大字已定用 Noto Sans TC 700（使用者裁示 A）。</p></header>
+    <div class="grid">
+      <div class="card">
+        <div class="lab">各用途的建議</div>
+        <div class="fonts">
+          <div class="fontrow"><div class="nm">頁面與卡片標題<br>Noto Serif TC 700</div><div style="font-family:var(--f-head);font-weight:700;font-size:20px">【115學年第3次學測模擬考】座位表</div></div>
+          <div class="fontrow"><div class="nm">介面、按鈕、表格<br>Noto Sans TC 400／500／700</div><div style="font-size:14px">新增模擬考，匯入考試名單後比對差異。按鈕寫動作，例如「匯入並進行下一步」。</div></div>
+          <div class="fontrow"><div class="nm">姓名小字、班級小字<br>Noto Sans TC 500（9～11pt）</div><div style="font-size:12px;font-weight:500">溫　王小明　　良　李小華</div></div>
+          <div class="fontrow"><div class="nm">考生編號大字<br>Noto Sans TC 700（已定）</div><div style="font-family:var(--f-no);font-weight:700;font-size:32px;font-variant-numeric:tabular-nums">0101　0207　0535</div></div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="lab">考生編號（已定：Noto Sans TC 700）</div>
+        <div class="no-sample">
+          <div><strong>0207</strong><small>標籤 32px</small></div>
+          <div><strong style="font-size:22px">0207</strong><small>座位表格 22px</small></div>
+        </div>
+        <p class="small muted" style="margin-top:12px">與介面同源，標籤與 Word 只需內嵌一種字型。</p>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="lab">授權與施工注意</div>
+      <div class="scroll"><table class="t"><thead><tr><th>字型</th><th>用途</th><th>授權</th><th>備註</th></tr></thead><tbody>
+        <tr><td>Noto Sans TC</td><td>介面、姓名、編號、統計數字</td><td>OFL 1.1</td><td>與座位小幫手相同，兩邊視覺一致</td></tr>
+        <tr><td>Noto Serif TC</td><td>標題</td><td>OFL 1.1</td><td>與座位小幫手相同；只用 700</td></tr>
+      </tbody></table></div>
+      <p class="small muted" style="margin-top:10px">Noto TC 完整字型檔很大，打包時要縮減成常用字子集（Word 內嵌也一樣，D44 仍待施工前驗證）。這份設計稿用線上 Google Fonts 載入，正式程式是打包進專案（P13）。座位小幫手的字型怎麼載入，我沒有比對，已列入回報。</p>
+    </div>
+  </section>
+
+  <section id="base">
+    <header><h2>間距、圓角、陰影</h2><p>間距以 4px 為單位，圓角四級，陰影三級；動態只用 150ms 的互動，並尊重「減少動態」設定。</p></header>
+    <div class="grid">
+      <div class="card"><div class="lab">間距</div><div class="space-demo" id="spaceDemo"></div></div>
+      <div class="card"><div class="lab">圓角</div><div class="rad"><div style="border-radius:var(--r-sm)">sm 8</div><div style="border-radius:var(--r-md)">md 12</div><div style="border-radius:var(--r-lg)">lg 16</div><div style="border-radius:var(--r-xl)">xl 24</div></div></div>
+      <div class="card"><div class="lab">陰影</div><div class="rad"><div style="box-shadow:var(--shadow-1);border-radius:var(--r-sm)">1 卡片</div><div style="box-shadow:var(--shadow-2);border-radius:var(--r-sm)">2 座位表紙</div><div style="box-shadow:var(--shadow-3);border-radius:var(--r-sm)">3 對話框</div></div></div>
+    </div>
+  </section>
+
+  <section id="comp">
+    <header><h2>基本元件</h2><p>每個畫面只有一個主要按鈕。最小高度 40px，焦點外框 3px 墨藍。</p></header>
+    <div class="grid">
+      <div class="card"><div class="lab">按鈕</div>
+        <div class="stack">
+          <div class="row"><button class="btn btn-primary">下一步：學生名單</button><button class="btn">匯入考試名單</button><button class="btn btn-danger">刪除學生</button><button class="btn btn-ghost">取消</button></div>
+          <div class="row"><button class="btn btn-primary btn-lg">開始排座</button><button class="btn btn-sm">編輯</button><button class="btn" disabled>尚有差異未處理</button><button class="icon-btn" aria-label="更多">⋯</button></div>
+        </div></div>
+      <div class="card"><div class="lab">輸入、選單、切換</div>
+        <div class="stack">
+          <div class="field"><label for="f1">模擬考名稱</label><input class="input" id="f1" value="學測第三次"><span class="hint">資料夾名稱會用這個名稱</span></div>
+          <div class="field err"><label for="f2">座號</label><input class="input" id="f2" value="48"><span class="hint">這個班已有 47 位，座號不可超過 60</span></div>
+          <div class="field"><label for="f3">班級</label><select class="input" id="f3"><option>溫（01）</option><option>良（02）</option></select></div>
+          <div class="row"><label class="sw"><input type="checkbox" id="s1" checked><span></span>理組班</label><label class="check"><input type="checkbox" checked>全選</label>
+            <div class="seg" role="group" aria-label="類型"><button type="button" aria-pressed="true">學測</button><button type="button" aria-pressed="false" disabled title="即將推出">分科</button></div></div>
+        </div></div>
+      <div class="card"><div class="lab">徽章與提示</div>
+        <div class="stack">
+          <div class="row"><span class="badge b-acc">目前步驟</span><span class="badge b-ok">已完成</span><span class="badge b-warn">過期</span><span class="badge b-err">不符合規則</span><span class="badge b-soon">即將推出</span></div>
+          <div class="alert a-info"><span class="ico" data-i="i"></span><span>新增模擬考時，已帶入上一次的設定。</span><span></span></div>
+          <div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>理組社會：</b>考 68 人、不考 71 人，接近一半。請選要標哪一邊，選完會鎖定。</span><button class="btn btn-sm">選擇</button></div>
+          <div class="alert a-err"><span class="ico" data-i="×"></span><span><b>無法排座：</b>文組教室座位 130，文組考生 131。請增加 1 個座位。</span><button class="btn btn-sm">回教室設定</button></div>
+          <div class="alert a-ok"><span class="ico" data-i="✓"></span><span>驗證通過：7 項檢查全部符合。</span><span></span></div>
+          <div class="row"><span class="toast">已儲存到資料夾</span></div>
+        </div></div>
+      <div class="card"><div class="lab">對話框（桌機置中，窄視窗貼底）</div>
+        <div class="modal-frame"><div class="modal" role="dialog" aria-label="示範">
+          <h3>刪除這位學生？</h3>
+          <p class="muted">座號 12 會變成空號保留，不會自動補號。這個動作可以在儲存前取消。</p>
+          <div class="acts"><button class="btn">取消</button><button class="btn btn-danger">刪除</button></div>
+        </div></div></div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="lab">表格（學生名單的樣子）</div>
+      <div class="scroll"><table class="t"><thead><tr><th>班級</th><th>座號</th><th>考生編號</th><th>姓名</th><th>組別</th><th></th></tr></thead><tbody>
+        <tr><td><span class="chip-class" data-c="1"><i></i>溫</span></td><td class="n">1</td><td class="n">0101</td><td>王小明</td><td>0-全科</td><td><button class="btn btn-sm">編輯</button></td></tr>
+        <tr><td><span class="chip-class" data-c="1"><i></i>溫</span></td><td class="n">2</td><td class="n">0102</td><td>李小華</td><td>6-自然組</td><td><button class="btn btn-sm">編輯</button></td></tr>
+        <tr class="gap"><td>溫</td><td class="n">3</td><td class="n">——</td><td>空號（保留）</td><td></td><td><button class="btn btn-sm">填入學生</button></td></tr>
+        <tr><td><span class="chip-class" data-c="1"><i></i>溫</span></td><td class="n">4</td><td class="n">0104</td><td>張小美</td><td>8-社會B組</td><td><button class="btn btn-sm">編輯</button></td></tr>
+      </tbody></table></div>
+      <p class="small muted" style="margin-top:8px">空號用斜紋底表示，對應 D41「刪除後空號保留」。</p>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="lab">空狀態</div>
+      <div class="empty"><strong>還沒有模擬考</strong><span class="muted">按「新增模擬考」，會帶入上一次的設定。</span><button class="btn btn-primary">新增模擬考</button></div></div>
+  </section>
+
+  <section id="steps">
+    <header><h2>版面與步驟導覽</h2><p>桌機三欄：左側步驟導覽、中間工作區、右側詳細面板（D20）。步驟有四種狀態；名單或設定改了，已排好的結果標「過期」，不會自動重算（D22）。<span class="pending">待使用者確認：過期的呈現方式</span></p></header>
+    <div class="grid">
+      <div class="card"><div class="lab">三欄骨架</div>
+        <div class="shell"><div>步驟導覽<br>220px</div><div>工作區<br>彈性寬度</div><div>詳細面板<br>200～320px</div></div></div>
+      <div class="card"><div class="lab">步驟狀態</div>
+        <ol class="steps" id="stepList"></ol>
+        <p class="small muted" style="margin-top:10px">可點的步驟都能直接跳（我的假設，D20 未決議題 5 尚待使用者確認）。</p></div>
+      <div class="card"><div class="lab">過期標示</div>
+        <div class="stack">
+          <div class="stale-banner"><span class="badge b-warn">過期</span>名單在排座之後有修改，座位表是舊的。<button class="btn btn-sm btn-primary">重新排座</button></div>
+          <p class="small muted">虛線框＋「過期」字樣＋琥珀底。不靠顏色單獨表示，黑白也看得出。匯出按鈕在過期時停用。</p></div></div>
+    </div>
+  </section>
+
+  <section id="special">
+    <header><h2>本專案專屬元件</h2><p>以下全部用假資料。可按「黑白預覽」，確認黑白列印時班級仍分得出來、標示仍醒目（D39）。</p></header>
+    <div class="row" style="margin-bottom:16px"><button class="btn" id="grayBtn" aria-pressed="false">黑白預覽：關</button><span class="small muted">只影響下面的座位表與標籤</span></div>
+
+    <div class="card"><div class="lab">班級六色與文理組（溫良恭儉勤誠，設定頁可改，D28）<span class="pending">待使用者確認：班級清單版式</span></div>
+      <div class="cls-pal" id="clsPal"></div>
+      <p class="small muted" style="margin-top:10px">每個班級各有一個「理組／文組」切換，預設 01～03 理組、04～06 文組（可逐班更改；文理由班級決定，不是由學生決定）。六色色相相隔約 50°以上（琥珀、綠、藍、紫、洋紅、珊瑚），相鄰班與良／誠這類易混的班都分得開；淡底、深字，對比 ≥ 4.5:1。班級超過六個時另備更多色。每格另印班級小字，黑白也分得出班（D28）。</p></div>
+
+    <div class="card" style="margin-top:16px"><div class="lab">個別考試標示（D39：文字＋底色＋粗框）<span class="pending">待使用者確認：式樣</span></div>
+      <div class="row" id="markRow" style="align-items:flex-start;gap:24px"></div>
+      <div class="legend" style="margin-top:12px" id="markLegend"></div>
+      <p class="small muted" style="margin-top:10px">不考（X）＝實心黑底反白字＋粗外框，代表抽離自習；加考（＋）＝白底雙線框＋粗外框，代表抽離考試。顏色只在深淺上分，黑白列印也分得出。一般考生不加任何標示（標少數，D11）。</p></div>
+
+    <div class="card" style="margin-top:16px"><div class="lab">座位表縮圖（A4）<span class="pending">待使用者確認：統計排版</span><span class="pending">待使用者確認：座標順序</span></div>
+      <div class="scroll"><div id="seatChart" class="chart"></div></div>
+      <p class="small muted" style="margin-top:10px">講台在下。橫排＝左右：底部標「第1排、第2排…」；深位＝前後：左側只標數字 1、2、3…（1 最靠講台）。每格右上角是座位座標「排－深位」，例如 1-2＝第 1 排第 2 深位（順序是我的假設）。不標班級與編號起訖（D39）。格內：編號最大字、下方班級加姓名小字。<br>注意：這個方向定義（橫排＝左右、深位＝前後）與決定記錄 P1／D24 的寫法相反，已請調度員核對；示範資料暫時維持「每一排同班」。</p>
+      <div class="lab" style="margin-top:14px">座位表統計（依這間教室，D40）</div>
+      <div class="scroll"><table class="t" id="statTable" style="min-width:480px"></table></div></div>
+
+    <div class="card" style="margin-top:16px"><div class="lab">標籤（A3／B4，每格不留間距、細實線，P12）</div>
+      <div class="scroll"><div id="sheet" class="sheet"></div></div>
+      <p class="small muted" style="margin-top:10px">每格固定尺寸，框線是 1 條細實線，相鄰格共用，裁完大小一致。班級標在姓名前面（不放左上角，第一行才不亂）、右上角座位座標（排－深位，如 1-2）、中間編號大字（略往下）、下方姓名放大；有個別標示時，標示在姓名下方。標籤順序與座位表相同。</p></div>
+
+    <div class="card" style="margin-top:16px"><div class="lab">步進器加方格預覽（教室設定；點格子切換禁用＝空位）</div>
+      <div class="grid2">
+        <div class="stack">
+          <div class="field"><span class="label">橫排（左右）</span><div class="stepper"><button class="icon-btn" id="cm" aria-label="橫排減一">−</button><output id="co">6</output><button class="icon-btn" id="cp" aria-label="橫排加一">＋</button></div></div>
+          <div class="field"><span class="label">深位（前後）</span><div class="stepper"><button class="icon-btn" id="rm" aria-label="深位減一">−</button><output id="ro">5</output><button class="icon-btn" id="rp" aria-label="深位加一">＋</button></div></div>
+          <div class="stats" id="gridStats"></div>
+        </div>
+        <div class="prev"><div class="pgrid" id="pgrid"></div><div class="podium">講台</div><span class="hint">點格子切換禁用（空位不可排入學生）</span></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:16px"><div class="lab">頂部統計列（排座與預覽用）</div>
+      <div class="stats">
+        <div><small>考生</small><strong>139</strong></div><div><small>座位</small><strong>139</strong></div><div><small>禁用</small><strong>11</strong></div>
+        <div><small>班級教室</small><strong>4 間</strong></div><div><small>預備教室</small><strong>2 間</strong></div><div><small>驗證</small><strong style="color:var(--ok-ink)">通過</strong><div class="bar"><i style="width:100%;background:var(--ok-bar)"></i></div></div>
+      </div></div>
+  </section>
+
+  <section id="open">
+    <header><h2>待使用者確認的提案</h2></header>
+    <div class="card"><ol style="margin:0;padding-left:20px;display:grid;gap:8px">
+      <li><b>座位座標與方向命名</b>：橫排＝左右、深位＝前後（依使用者留言），座標寫「排－深位」；順序待確認，且與決定記錄 P1／D24 相反，已請調度員核對。</li>
+      <li><b>班級六色的色相</b>：琥珀、綠、藍、紫、洋紅、珊瑚（已把易混的良／誠拉開）。設定頁可改，這是預設。</li>
+      <li><b>班級清單版式</b>：每班一個理組／文組切換，預設 01～03 理、04～06 文。</li>
+      <li><b>個別考試標示式樣</b>：不考＝實心黑底，加考＝雙線空心，外加粗框。</li>
+      <li><b>過期標示</b>：琥珀底、虛線框、「過期」字樣，匯出按鈕停用。</li>
+      <li><b>座位表統計排版</b>：表格列出每班人數、教室總數、各科考試人數，放在座位表下方。</li>
+      <li><b>步驟是否可跳</b>：假設可直接點任一步；尚未完成的前置步驟以「未完成」提示。</li>
+    </ol></div>
+  </section>
+</main>
+
+<script>
+(function(){
+  /* 主題切換 */
+  var root=document.documentElement, btns={sys:document.getElementById('thSys'),light:document.getElementById('thLight'),dark:document.getElementById('thDark')};
+  function setTheme(m){
+    if(m==='sys'){root.removeAttribute('data-theme')}else{root.setAttribute('data-theme',m)}
+    for(var k in btns){btns[k].setAttribute('aria-pressed',String(k===m))}
+    setTimeout(drawSwatches,30);
+  }
+  btns.sys.onclick=function(){setTheme('sys')};btns.light.onclick=function(){setTheme('light')};btns.dark.onclick=function(){setTheme('dark')};
+
+  /* 色票（從 CSS 變數讀值，淺深色都正確） */
+  function v(n){return getComputedStyle(root).getPropertyValue(n).trim()}
+  function sw(el,list){el.innerHTML='';list.forEach(function(x){var d=document.createElement('div');d.className='swatch';d.innerHTML='<i style="background:var('+x[0]+')"></i><div><b>'+x[1]+'</b><span>'+x[0]+' '+v(x[0])+'</span></div>';el.appendChild(d)})}
+  function drawSwatches(){
+    sw(document.getElementById('swBase'),[['--bg','頁面底'],['--surface','卡片、座位表紙面'],['--sunken','凹陷底'],['--line','分隔線'],['--line-2','控制項邊框'],['--text','主要文字'],['--text-2','次要文字'],['--text-3','輔助文字'],['--cut','標籤裁切線']]);
+    sw(document.getElementById('swState'),[['--accent','主色（墨藍）'],['--accent-soft','主色淡底'],['--ok-bar','完成'],['--warn-bar','過期、提醒'],['--danger','錯誤、禁排'],['--att-fill','不考標示（黑白章）']]);
+  }
+  drawSwatches();
+
+  /* 間距 */
+  var sd=document.getElementById('spaceDemo');[4,8,12,16,20,24,32].forEach(function(n){var w=document.createElement('div');w.style.textAlign='center';w.innerHTML='<i style="width:'+n+'px;height:'+n+'px;margin:0 auto 4px"></i><span class="small muted num">'+n+'</span>';sd.appendChild(w)});
+
+  /* 步驟 */
+  var S=[['考試設定','類型、名稱、考科','cur'],['學生名單','新增、刪除、編輯','done'],['教室設定','橫排、深位、預備教室','done'],['標示與抽離規則','組別對照表','stale'],['排座與預覽','結果過期，需重排','stale'],['匯出','Word、PDF','']];
+  var sl=document.getElementById('stepList');
+  S.forEach(function(s,i){var li=document.createElement('li');var st=s[2];
+    var tag=st==='done'?'<span class="badge b-ok">已完成</span>':st==='stale'?'<span class="badge b-warn">過期</span>':st==='cur'?'<span class="badge b-acc">目前</span>':'<span></span>';
+    li.innerHTML='<button class="step '+st+'" type="button"><span class="no">'+(st==='done'?'✓':st==='stale'?'!':(i+1))+'</span><span><b>'+s[0]+'</b><small>'+s[1]+'</small></span>'+tag+'</button>';sl.appendChild(li)});
+  sl.addEventListener('click',function(e){var b=e.target.closest('.step');if(!b)return;sl.querySelectorAll('.step').forEach(function(x){x.classList.remove('cur')});b.classList.add('cur')});
+
+  /* 班級六色 */
+  var CN=['溫','良','恭','儉','勤','誠'], HUE=['琥珀','綠','藍','紫','洋紅','珊瑚'];
+  var cp=document.getElementById('clsPal');CN.forEach(function(n,i){var sci=i<3;cp.innerHTML+='<div class="cp" data-c="'+(i+1)+'"><strong>'+n+'</strong><span>0'+(i+1)+' 班・'+HUE[i]+'</span><div class="seg" role="group" aria-label="'+n+'班文理組" style="margin-top:6px"><button type="button" aria-pressed="'+sci+'">理組</button><button type="button" aria-pressed="'+(!sci)+'">文組</button></div></div>'});
+
+  /* 假資料 */
+  var NM=['王小明','李小華','張小美','陳大文','林小芬','黃小龍','吳小玲','劉大偉','蔡小雅','楊小傑','許小婷','鄭大成'];
+  function nameOf(c,n){return NM[(c*5+n*3)%NM.length]}
+  function pad(n){return (n<10?'0':'')+n}
+  function cellHTML(c,n,opt){opt=opt||{};var cls='cell'+(opt.mk?' mk-'+opt.mk:'');
+    if(opt.empty)return '<div class="cell empty-seat" aria-label="空位"></div>';
+    var mk=opt.mk?'<span class="mk">'+(opt.mk==='x'?'X 社會':'＋ 數A')+'</span>':'';
+    var co=opt.co?'<span class="co" title="座位座標：排－深位">'+opt.co+'</span>':'';
+    if(opt.tag){return '<div class="'+cls+'" data-c="'+c+'" style="--cx:var(--c'+c+'-ink)">'+co+'<span class="no">'+pad(c)+pad(n)+'</span><span class="nm"><span class="tag-c">'+CN[c-1]+'</span>'+nameOf(c,n)+'</span>'+mk+'</div>'}
+    return '<div class="'+cls+'" data-c="'+c+'">'+co+'<span class="no">'+pad(c)+pad(n)+'</span><span class="meta"><span class="tg">'+CN[c-1]+'</span>'+nameOf(c,n)+'</span>'+mk+'</div>'}
+
+  /* 標示範例 */
+  document.getElementById('markRow').innerHTML=
+    '<div><div class="small muted" style="margin-bottom:4px">一般（不標示）</div><div class="chart"><div class="cg" style="display:inline-grid">'+cellHTML(2,7,{co:'2-3'})+'</div></div></div>'+
+    '<div><div class="small muted" style="margin-bottom:4px">不考（抽離自習）</div><div class="chart"><div class="cg" style="display:inline-grid">'+cellHTML(2,8,{mk:'x',co:'2-4'})+'</div></div></div>'+
+    '<div><div class="small muted" style="margin-bottom:4px">加考（抽離考試）</div><div class="chart"><div class="cg" style="display:inline-grid">'+cellHTML(5,3,{mk:'add',co:'5-1'})+'</div></div></div>'+
+    '<div><div class="small muted" style="margin-bottom:4px">空位（禁用）</div><div class="chart"><div class="cg" style="display:inline-grid">'+cellHTML(0,0,{empty:1})+'</div></div></div>';
+  document.getElementById('markLegend').innerHTML='<span><b>圖例</b></span><span class="cell mk-x"><span class="mk">X 科目</span></span> 不考，抽離自習<span class="cell mk-add"><span class="mk">＋ 科目</span></span> 加考，抽離考試';
+
+  /* 座位表：6 深位 × 5 橫排；第 1 橫排在最下方 */
+  var D=6,R=5, cnt={1:0,2:0,3:0}, rows=[];
+  var assign={}; // key "d,r" -> {c,n}
+  for(var d=0;d<D;d++){var c=(d%3)+1;for(var r=0;r<R;r++){cnt[c]++;assign[d+','+r]={c:c,n:cnt[c]}}}
+  var marks={'1,2':'x','4,3':'x','2,0':'add'}; var emptySeat={'5,4':1};
+  var html='<div class="chart-wrap"><div class="chart-title">【115學年第3次學測模擬考】座位表<small>高三　溫 良 恭　假資料</small></div>';
+  html+='<div class="axis-y" style="grid-template-rows:repeat('+R+',var(--ch))">';
+  for(var r2=R-1;r2>=0;r2--)html+='<span>'+(r2+1)+'</span>';
+  html+='</div><div><div class="cg" style="grid-template-columns:repeat('+D+',var(--cw))">';
+  for(var r3=R-1;r3>=0;r3--)for(var d3=0;d3<D;d3++){var k=d3+','+r3;var a=assign[k];html+=emptySeat[k]?cellHTML(0,0,{empty:1}):cellHTML(a.c,a.n,{mk:marks[k],co:(d3+1)+'-'+(r3+1)})}
+  html+='</div><div class="axis-x" style="grid-template-columns:repeat('+D+',var(--cw));margin-top:4px">';
+  for(var d4=0;d4<D;d4++)html+='<span>第'+(d4+1)+'排</span>';
+  html+='</div></div><div class="podium-bar">講　台</div></div>';
+  document.getElementById('seatChart').innerHTML=html;
+  var seats=D*R-1;
+  var tab='<thead><tr><th>項目</th><th>溫</th><th>良</th><th>恭</th><th>合計</th></tr></thead><tbody>'+
+    '<tr><td>本教室考生人數</td><td class="n">'+cnt[1]+'</td><td class="n">'+cnt[2]+'</td><td class="n">'+(cnt[3]-1)+'</td><td class="n"><b>'+seats+'</b></td></tr>'+
+    '<tr><td>考國文、英文</td><td class="n">'+cnt[1]+'</td><td class="n">'+cnt[2]+'</td><td class="n">'+(cnt[3]-1)+'</td><td class="n">'+seats+'</td></tr>'+
+    '<tr><td>考社會</td><td class="n">'+(cnt[1]-1)+'</td><td class="n">'+cnt[2]+'</td><td class="n">'+(cnt[3]-1)+'</td><td class="n">'+(seats-1)+'</td></tr>'+
+    '<tr><td>考數 A</td><td class="n">'+cnt[1]+'</td><td class="n">'+cnt[2]+'</td><td class="n">'+(cnt[3]-1)+'</td><td class="n">'+seats+'</td></tr></tbody>';
+  document.getElementById('statTable').innerHTML=tab;
+
+  /* 標籤 */
+  var sh='<div class="sheet-grid" style="grid-template-columns:repeat(6,var(--cw))">';
+  var cn2={1:0,2:0,3:0,4:0,5:0,6:0};
+  var lm={'1,3':'x','4,2':'add'};
+  for(var r5=0;r5<3;r5++)for(var c5=0;c5<6;c5++){var cc=c5+1;cn2[cc]++;sh+=cellHTML(cc,cn2[cc],{tag:1,mk:lm[c5+','+r5],co:(c5+1)+'-'+(r5+1)})}
+  sh+='</div>';
+  document.getElementById('sheet').innerHTML=sh;
+
+  /* 黑白預覽 */
+  var gb=document.getElementById('grayBtn');
+  gb.onclick=function(){var on=gb.getAttribute('aria-pressed')!=='true';gb.setAttribute('aria-pressed',String(on));gb.textContent='黑白預覽：'+(on?'開':'關');
+    document.querySelectorAll('.chart,.sheet').forEach(function(e){e.classList.toggle('gray',on)})};
+
+  /* 步進器預覽 */
+  var rr=5,cc2=6,off={};
+  function drawGrid(){
+    var g=document.getElementById('pgrid');g.style.gridTemplateColumns='repeat('+cc2+',40px)';var h='';
+    for(var r=rr-1;r>=0;r--)for(var c=0;c<cc2;c++){var k=r+','+c;h+='<button type="button" class="pc'+(off[k]?' off':'')+'" data-k="'+k+'" aria-pressed="'+(!!off[k])+'" aria-label="第'+(c+1)+'排第'+(r+1)+'深位'+(off[k]?'，已禁用':'')+'">'+(c+1)+'-'+(r+1)+'</button>'}
+    g.innerHTML=h;
+    document.getElementById('ro').textContent=rr;document.getElementById('co').textContent=cc2;
+    var total=rr*cc2,dis=0;for(var k2 in off){var p=k2.split(',');if(+p[0]<rr&&+p[1]<cc2)dis++}
+    document.getElementById('gridStats').innerHTML='<div><small>座位</small><strong>'+total+'</strong></div><div class="'+(dis?'bad':'')+'"><small>禁用</small><strong>'+dis+'</strong></div><div><small>可排</small><strong>'+(total-dis)+'</strong></div>';
+  }
+  document.getElementById('pgrid').addEventListener('click',function(e){var b=e.target.closest('.pc');if(!b)return;var k=b.getAttribute('data-k');if(off[k])delete off[k];else off[k]=1;drawGrid()});
+  document.getElementById('rm').onclick=function(){if(rr>1){rr--;drawGrid()}};
+  document.getElementById('rp').onclick=function(){if(rr<12){rr++;drawGrid()}};
+  document.getElementById('cm').onclick=function(){if(cc2>1){cc2--;drawGrid()}};
+  document.getElementById('cp').onclick=function(){if(cc2<10){cc2++;drawGrid()}};
+  off['4,5']=1;drawGrid();
+
+  /* 切換 */
+  document.querySelectorAll('.seg').forEach(function(sg){if(sg.id)return;sg.addEventListener('click',function(e){var b=e.target.closest('button');if(!b||b.disabled)return;sg.querySelectorAll('button').forEach(function(x){x.setAttribute('aria-pressed',String(x===b))})})});
+})();
+</script>
+
+</body>
+</html>
