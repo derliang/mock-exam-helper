@@ -342,7 +342,7 @@ section>header p{color:var(--text-2);max-width:72ch}
 .toasts{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);z-index:60;display:grid;gap:8px;justify-items:center;max-width:calc(100vw - 32px)}
 .t .badge{white-space:nowrap}
 @media (max-width:560px){.alert{grid-template-columns:auto 1fr}.alert>.btn{grid-column:2;justify-self:start}}
-@media (max-width:760px){.ws .side{position:static}.pbar .seg button,.pbar .badge{white-space:nowrap;padding-inline:8px}.pbar .badge{display:none}.pbar .spacer{display:none}}.t.compact{min-width:0}
+@media (max-width:760px){.ws .side{position:static}.pbar .seg button,.pbar .badge{white-space:nowrap;padding-inline:8px}.pbar .badge{display:none}.pbar .spacer{display:none}}.t.compact{min-width:440px}
 .t.nw td,.t.nw th{white-space:nowrap}
 .stack>*,.grid>*,.grid2>*{min-width:0}.row{min-width:0}.seg{max-width:100%;overflow-x:auto;justify-self:start;width:fit-content}.seg button{flex:none}
 .ws.wide{grid-template-columns:230px minmax(0,1fr)}
@@ -447,3 +447,5 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .btn-fmt{display:inline-flex;align-items:center;gap:8px}
 .btn-fmt svg{width:22px;height:22px;flex:none}
 .btn-fmt.x{background:var(--fmt-xls-soft);border-color:var(--fmt-xls)}
+/* 手機（≤560px）頁首導覽有四列、約占螢幕四分之一：不黏頂，內容才有地方讀；摘要列改黏在視窗最上緣（PR #78 逐頁對稿發現） */
+@media (max-width:560px){.pbar{position:static}.sumbar{top:0}}
