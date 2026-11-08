@@ -153,7 +153,8 @@ function makeCell(code: string, seat: { row: number; depth: number }, ctx: Ctx):
     coord: seatLabel(seat),
     code,
     classLabel: cls?.name ?? String(classNo),
-    name: st?.name ?? '',
+    // 學生名單查無此人時退用考試名單的姓名，避免印出空白格（資料來源不同步的保險）
+    name: st?.name ?? ctx.entries.get(code)?.name ?? '',
     colorBg: col.bg,
     colorLine: col.line,
     colorFg: col.fg,
@@ -274,7 +275,7 @@ export function buildDetachList(input: ExportInput): ListPageModel {
       subject: ctx.subjectName.get(d.subjectId) ?? d.subjectId,
       code: d.code,
       className: ctx.classes.get(Number(d.code.slice(0, 2)))?.name ?? '',
-      name: ctx.students.get(d.code)?.name ?? '',
+      name: ctx.students.get(d.code)?.name ?? ctx.entries.get(d.code)?.name ?? '',
       place,
       purpose: d.purpose === 'exam' ? '抽離考試' : '抽離自習',
     };
@@ -284,7 +285,7 @@ export function buildDetachList(input: ExportInput): ListPageModel {
       subject: '（全科）',
       code: o.code,
       className: ctx.classes.get(Number(o.code.slice(0, 2)))?.name ?? '',
-      name: ctx.students.get(o.code)?.name ?? '',
+      name: ctx.students.get(o.code)?.name ?? ctx.entries.get(o.code)?.name ?? '',
       place: o.location,
       purpose: o.purpose === 'exam' ? '單人考試' : '單人自習',
     });
