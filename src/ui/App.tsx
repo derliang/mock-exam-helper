@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { Alert, Seg, StepNav, TopBar, type StepState } from './components';
+import { Alert, Badge, Seg, StepNav, TopBar, type StepState } from './components';
 import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
 import { Init } from './pages/Init';
@@ -9,6 +9,7 @@ import { Step2 } from './pages/Step2';
 import { Step3 } from './pages/Step3';
 import { Step4 } from './pages/Step4';
 import { Step5 } from './pages/Step5';
+import { Step6 } from './pages/Step6';
 import { createFsRepository, isFsAccessSupported } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
 import type { Doc } from './store';
@@ -69,7 +70,7 @@ export function App() {
   return (
     <>
       <header class="pbar">
-        <span class="brand">模擬考小幫手</span>
+        <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge></span>
         {r.page !== 'init' && (
           <nav class="nav" aria-label="主要導覽">
             <button type="button" onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
@@ -108,7 +109,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
   return (
     <div class="ws wide">
       <aside class="side"><StepNav steps={steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
-      {exam && p.route.step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} /> : exam && p.route.step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} /> : exam && p.route.step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} /> : <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">{exam ? '施工中' : '找不到這個模擬考'}</p></section>}
+      {exam && p.route.step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} /> : exam && p.route.step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} /> : exam && p.route.step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} /> : exam && p.route.step === 6 ? <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} /> : <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">{exam ? '施工中' : '找不到這個模擬考'}</p></section>}
     </div>
   );
 }
