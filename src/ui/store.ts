@@ -2,6 +2,7 @@
 import type { ClassInfo, Division, ExamConfig, ExamKind, Settings, Student, Track } from '../data';
 import { studentCode } from '../data';
 import type { ExamFiles } from '../data/folder';
+import { defaultLabelLayout } from '../export/model';
 import { defaultSubjects } from './subjects';
 
 export interface Doc {
@@ -79,7 +80,7 @@ export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date): Resu
     id: `exam-${now.getTime()}`, name: n, kind, division, semester: 'first', round: kind === 'gsat' ? 1 : undefined,
     participation: 'all', subjects: defaultSubjects(kind, kind === 'gsat' ? 1 : undefined), markRules: [], classroomIds: [],
     // 標籤格數待使用者定案（D72），這裡只是預設值，一律由參數帶
-    labelLayout: { paper: doc.settings.defaultLabelPaper, cols: 6, rows: 8 }, createdAt: now.toISOString(),
+    labelLayout: defaultLabelLayout(doc.settings.defaultLabelPaper), createdAt: now.toISOString(),
   };
   return { ok: true, doc: { ...doc, exams: [...doc.exams, exam] } };
 }
