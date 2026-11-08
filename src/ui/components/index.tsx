@@ -207,3 +207,17 @@ export function StepNextBar(p: { action: NextAction; onGo: (step: StepNo) => voi
     </div>
   );
 }
+
+/** 開關：某物「納入／不納入」，切換立即生效（DESIGN 10.9）。標示文字在開關上方，旁邊用文字寫目前狀態，不只靠顏色 */
+export function Switch(p: { label: string; checked: boolean; onChange: (v: boolean) => void; onText?: string; offText?: string }) {
+  return (
+    <div class="swf" onClick={(e) => e.stopPropagation()}>
+      <span class="cap">{p.label}</span>
+      <label class="sw">
+        <input type="checkbox" role="switch" aria-label={p.label} checked={p.checked} onChange={(e) => p.onChange(e.currentTarget.checked)} />
+        <span class="trk" aria-hidden="true" />
+        <span class="st">{p.checked ? (p.onText ?? '已列入') : (p.offText ?? '未列入')}</span>
+      </label>
+    </div>
+  );
+}

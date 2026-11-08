@@ -17,7 +17,13 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const roster = doc.rosters[exam.division];
   const classes = doc.settings.classes.filter((c) => c.division === exam.division);
   const noTrack = roster.length === 0 ? 0 : classes.filter((c) => !c.track).length;
-  const setRooms = (classrooms: typeof rooms) => p.onChange({ ...doc, settings: { ...doc.settings, classrooms } });
+  // 新增的班級教室預設列為考場（預備教室預設不列入，由使用者手動打開）
+  const setRooms = (classrooms: typeof rooms) => {
+    const added = classrooms.filter((r) => r.kind === 'class' && !rooms.some((o) => o.id === r.id)).map((r) => r.id);
+    let d = { ...doc, settings: { ...doc.settings, classrooms } };
+    if (added.length) { const r = updateExam(d, exam.id, { classroomIds: [...exam.classroomIds, ...added] }); if (r.ok) d = r.doc; }
+    p.onChange(d);
+  };
   const setIds = (ids: string[]) => { const r = updateExam(doc, exam.id, { classroomIds: ids }); if (r.ok) p.onChange(r.doc); };
 
   return (
@@ -53,7 +59,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="card stack">
-        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">勾選本次使用的教室；預備教室座位另計，不計入班級教室合計。教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
+        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開「列為考場」的教室才會計入座位；預備教室座位另計，不計入班級教室合計。教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
         <RoomList classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
       </div>
     </section>
