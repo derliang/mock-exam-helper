@@ -29,7 +29,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (!needsMarks(exam)) {
     return (
       <section class="stack">
-        <h2>④ 標示與抽離規則</h2>
+        <div class="card stephead"><div><h2>④ 標示與抽離規則</h2><p class="small muted">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</p></div></div>
         <Alert tone="info"><b>會考不需要這一步。</b>國中部每科都考，沒有選考，所以沒有標示，也沒有抽離。直接前往排座。</Alert>
       </section>
     );
@@ -37,7 +37,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (examEntries(doc, exam).length === 0) {
     return (
       <section class="stack">
-        <h2>④ 標示與抽離規則</h2>
+        <div class="card stephead"><div><h2>④ 標示與抽離規則</h2><p class="small muted">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</p></div></div>
         <div class="card"><p class="small muted">這一步要依考試名單算出每組每科考與不考的人數，匯入考試名單後才會出現內容。</p></div>
       </section>
     );
@@ -59,7 +59,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <h2>④ 標示與抽離規則</h2>
+      <div class="card stephead"><div><h2>④ 標示與抽離規則</h2><p class="small muted">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</p></div></div>
       {undecided
         ? <Alert tone="warn"><b>有 {undecided} 項接近一半的科目要你選。</b>選完才能排座；程式不替你決定要標哪一邊。</Alert>
         : (
@@ -77,7 +77,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             <thead><tr><th>組別代碼</th><th>考科</th><th>人數</th></tr></thead>
             <tbody>
               {groups.map((g) => (
-                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} /></td><td class="n">{g.count}</td></tr>
+                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} />{g.differing > 0 && <><br /><Badge tone="warn">{g.differing} 人考科不同</Badge> <span class="small muted">（上列為人數最多的組合）</span></>}</td><td class="n">{g.count}</td></tr>
               ))}
             </tbody>
           </table>

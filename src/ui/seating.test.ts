@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { ExamConfig, ExamEntry } from '../data';
 import type { Doc } from './store';
+import { flowOf } from './flow';
 import {
   afterOverrideChange,
   chartModel,
@@ -18,7 +19,8 @@ import {
   seatingBlockers,
   setMarkChoice,
   setOverride,
-  validationChecks,
+  validationChecks, examEntries, seatableEntries,
+
 } from './seating';
 
 const NOW = '2026-11-08T10:00:00.000Z';
@@ -76,9 +78,9 @@ describe('④ 標示規則', () => {
 
   it('組別對照表', () => {
     expect(groupTable(doc(), exam())).toEqual([
-      { code: '0', count: 3, subjectIds: ['soc', 'sci', 'lis'] },
-      { code: '6', count: 2, subjectIds: ['sci', 'lis'] },
-      { code: '8', count: 2, subjectIds: ['soc', 'lis'] },
+      { code: '0', count: 3, subjectIds: ['soc', 'sci', 'lis'], differing: 0 },
+      { code: '6', count: 2, subjectIds: ['sci', 'lis'], differing: 0 },
+      { code: '8', count: 2, subjectIds: ['soc', 'lis'], differing: 0 },
     ]);
   });
 
@@ -198,5 +200,46 @@ describe('⑤ 座位表與統計', () => {
     const o2 = setOverride(d2, e2, { kind: 'single', code: '0201', location: '圖書館', purpose: 'study' });
     if (!o2.ok) throw new Error(o2.error);
     expect(overrideNotes(o2.doc, e2, res2).get('0201')).toMatch(/不會生效/);
+  });
+});
+
+describe('D79 全科缺考者與驗證（fix-v2）', () => {
+  const withAbsent = (e: ExamConfig): Doc => {
+    const d = doc(e);
+    d.settings.classrooms.push({ id: 'P2', name: '預備二', kind: 'reserve', rows: 1, depth: 4, seatCount: 4 }); // 仍排座時他也要抽離自習，多一間預備教室
+    d.exams[0]!.classroomIds = ['S', 'L', 'P', 'P2'];
+    d.examFiles = { e1: { entries: [...entries, { classNo: 1, seatNo: 6, name: '測試辛', groupCode: '0', subjectIds: [] }] } };
+    return d;
+  };
+  const base = { markRules: setMarkChoice(exam(), 'science', 'soc', 'mark-absent') };
+
+  it('預設：全科缺考者不排座，⑤驗證與座位數檢查全過', () => {
+    const e2 = exam(base);
+    const r = reseat(withAbsent(e2), e2, NOW);
+    if (!r.ok) throw new Error(r.error);
+    const res = r.doc.examFiles!.e1!.result!;
+    expect(res.assignments).toHaveLength(7);
+    const checks = validationChecks(r.doc, e2, res);
+    expect(checks.filter((c) => !c.ok)).toEqual([]);
+    expect(checks[0]!.detail).toBe('考生 7 人，座位 9 個');
+    expect(seatableEntries(r.doc, e2)).toHaveLength(7);
+  });
+
+  it('勾「仍排座」：全科缺考者也排座，驗證全過、人數含他', () => {
+    const e2 = exam({ ...base, seatFullyAbsent: true });
+    const r = reseat(withAbsent(e2), e2, NOW);
+    if (!r.ok) throw new Error(r.error);
+    const res = r.doc.examFiles!.e1!.result!;
+    expect(res.assignments).toHaveLength(8);
+    const checks = validationChecks(r.doc, e2, res);
+    expect(checks.filter((c) => !c.ok)).toEqual([]);
+    expect(checks[0]!.detail).toBe('考生 8 人，座位 9 個');
+  });
+
+  it('座位剛好夠排「要排的人」時，不因全科缺考者多算而被擋', () => {
+    const e2 = exam(base);
+    const d = withAbsent(e2);
+    d.settings.classrooms[0]!.seatCount = 4; d.settings.classrooms[1]!.seatCount = 3;
+    expect(flowOf(d, e2, 5).summary.students).toBe(7);
   });
 });

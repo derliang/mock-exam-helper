@@ -3,7 +3,7 @@ import type { Division, Track } from '../../data';
 import { readXlsx, writeXlsx } from '../../import';
 import { Alert, Button, FormatButton, Modal } from '../components';
 import { downloadBytes, XLSX_MIME } from '../download';
-import { applyImport, exportRows, planImport, templateRows, type ImportPlan, type UnknownClassAction } from '../rosterIO';
+import { applyImport, exportRows, importOutcome, planImport, templateRows, type ImportPlan, type UnknownClassAction } from '../rosterIO';
 import { setClassTrack, type Doc } from '../store';
 import { parseRosterWorkbook } from '../step2';
 
@@ -35,8 +35,9 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
     }
   };
 
+  const outcome = plan ? importOutcome(p.doc, p.division, plan, unk) : null;
   const confirm = () => {
-    if (!plan) return;
+    if (!plan || !outcome || outcome.count === 0) return;
     let d = applyImport(p.doc, p.division, plan, unk);
     if (useTracks && plan.tracks && p.division === 'senior') {
       for (const [no, t] of Object.entries(plan.tracks)) d = setClassTrack(d, 'senior', Number(no), t);
@@ -70,8 +71,8 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
       {err && <div style="flex-basis:100%"><Alert tone="danger">{err}</Alert></div>}
       {plan && (
         <Modal title={`匯入${DIV_NAME[p.division]}學生名單`} onClose={() => setPlan(null)}
-          actions={<><Button onClick={() => setPlan(null)}>取消</Button><Button kind="primary" onClick={confirm}>確認取代為 {plan.after} 人名單</Button></>}>
-          <p>讀到 <strong>{plan.after}</strong> 人（目前 {plan.before} 人）。確定後會<strong>取代</strong>{DIV_NAME[p.division]}整份名單；之後可用「↶ 復原」回到匯入前。</p>
+          actions={<><Button onClick={() => setPlan(null)}>取消</Button><Button kind="primary" disabled={!outcome || outcome.count === 0} onClick={confirm}>確認取代為 {outcome?.count ?? 0} 人名單</Button></>}>
+          <p>讀到 <strong>{plan.after}</strong> 人，實際會匯入 <strong>{outcome?.count ?? 0}</strong> 人{outcome && outcome.skipped > 0 ? `（略過 ${outcome.skipped} 人）` : ''}（目前 {plan.before} 人）。確定後會<strong>取代</strong>{DIV_NAME[p.division]}整份名單；之後可用「↶ 復原」回到匯入前。</p>
           <p class="muted small">偵測到的格式：{plan.layout === 'blocks' ? '各班並排（區塊標題）' : plan.layout === 'wide' ? '各班並排（表頭欄位）' : '一人一列'}</p>
           {plan.unknownClasses.length > 0 && (() => {
             const labels = plan.unknownClasses.map((n) => `${String(n).padStart(2, '0')} 班（${plan.unknownCounts[n] ?? 0} 人）`).join('、');
@@ -84,6 +85,7 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
               </Alert>
             );
           })()}
+          {outcome && outcome.count === 0 && <Alert tone="danger">這樣選會匯入 0 人，不會動到目前的名單。請改選「新增這些班級」，或先到「班級資料」新增班級。</Alert>}
           {plan.issues.length > 0 && <Alert tone="warn">有 {plan.issues.length} 列已略過：{plan.issues.slice(0, 3).join('；')}{plan.issues.length > 3 ? '…' : ''}</Alert>}
           {plan.tracks && p.division === 'senior' && (
             <label class="small" style="display:block;margin-top:8px">

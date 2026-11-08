@@ -87,8 +87,15 @@ export function applyDiffs(
   let list = entries.map((e) => ({ ...e }));
   const rm = <T extends Id>(l: T[], x: Id) => l.filter((y) => !(y.classNo === x.classNo && y.seatNo === x.seatNo && y.name === x.name));
   const setStudent = (old: Id | undefined, to: Id) => {
+    // 保留原學生的學號／類組／特殊註記（#59）；只改班級、座號、姓名
+    const cur = old && students.find((y) => y.classNo === old.classNo && y.seatNo === old.seatNo && y.name === old.name);
     if (old) students = rm(students, old);
-    students.push({ classNo: to.classNo, seatNo: to.seatNo, name: to.name });
+    students.push({
+      ...(cur?.schoolId !== undefined ? { schoolId: cur.schoolId } : {}),
+      ...(cur?.groupCode !== undefined ? { groupCode: cur.groupCode } : {}),
+      ...(cur?.special !== undefined ? { special: cur.special } : {}),
+      classNo: to.classNo, seatNo: to.seatNo, name: to.name,
+    });
   };
   const setEntry = (old: Id | undefined, to: Id) => {
     const cur = old && list.find((y) => y.classNo === old.classNo && y.seatNo === old.seatNo && y.name === old.name);
@@ -117,4 +124,56 @@ export function applyDiffs(
   students.sort((a, b) => a.classNo - b.classNo || a.seatNo - b.seatNo);
   list.sort((a, b) => a.classNo - b.classNo || a.seatNo - b.seatNo);
   return { students, entries: list };
+}
+
+const label = (x: Id): string => `${String(x.classNo).padStart(2, '0')} 班 ${x.seatNo} 號「${x.name}」`;
+
+/**
+ * 套用前驗整份結果（#67）：班級存在、座號 1–99、姓名非空、班級＋座號不重複。
+ * 有問題就回傳訊息（指出哪兩人衝突），呼叫端不可寫入任何一份名單。
+ */
+export function validateResolved(res: ResolveResult, classNos: ReadonlySet<number>): string | null {
+  const check = (list: readonly Id[], where: string): string | null => {
+    const seen = new Map<string, Id>();
+    for (const x of list) {
+      if (!classNos.has(x.classNo)) return `${where}：${label(x)}的班級不存在，請先到「班級資料」新增`;
+      if (!Number.isInteger(x.seatNo) || x.seatNo < 1 || x.seatNo > 99) return `${where}：${label(x)}的座號要是 1～99 的整數`;
+      if (!x.name.trim()) return `${where}：${String(x.classNo).padStart(2, '0')} 班 ${x.seatNo} 號姓名不能空白`;
+      const k = codeOf(x);
+      const other = seen.get(k);
+      if (other) return `${where}：${label(other)}與${label(x)}編號重複（${k}），請重新選擇`;
+      seen.set(k, x);
+    }
+    return null;
+  };
+  return check(res.students, '共用學生名單') ?? check(res.entries, '考試名單');
+}
+
+const sig = (d: RosterDiff): string => {
+  const f = (x?: Id) => (x ? `${x.classNo}/${x.seatNo}/${x.name.trim()}` : '-');
+  return `${d.kind}|${d.code}|${f(d.exam)}|${f(d.roster)}`;
+};
+
+/**
+ * 依目前輸入（共用名單、考試名單、參加方式）重算差異（#60）。
+ * 只有「種類、編號、兩邊內容」完全相同的舊差異才沿用先前的選擇，不會把選擇套到不同考生。
+ */
+export function refreshDiffs(
+  roster: readonly Student[],
+  entries: readonly ExamEntry[],
+  participation: Participation,
+  stored: readonly RosterDiff[],
+): RosterDiff[] {
+  const old = new Map(stored.map((d) => [sig(d), d]));
+  return compareRosters(roster, entries, participation).diffs.map((d) => {
+    const o = old.get(sig(d));
+    return o?.choice !== undefined ? { ...d, choice: o.choice, ...(o.edited ? { edited: o.edited } : {}) } : d;
+  });
+}
+
+/** 已存的差異和重算結果是否為同一批差異（不看選擇） */
+export function diffsStale(stored: readonly RosterDiff[], fresh: readonly RosterDiff[]): boolean {
+  if (stored.length !== fresh.length) return true;
+  const a = new Set(stored.map(sig));
+  return fresh.some((d) => !a.has(sig(d)));
 }

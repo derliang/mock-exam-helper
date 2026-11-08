@@ -10,6 +10,7 @@ import {
   roomStats,
   specialOf,
   runSeating,
+  fullyAbsentCodes,
   seatingVersion,
   suggestMarks,
   validateSeating,
@@ -40,6 +41,13 @@ export function examRooms(doc: Doc, exam: ExamConfig): Classroom[] {
 }
 
 export const examEntries = (doc: Doc, exam: ExamConfig): ExamEntry[] => filesOf(doc, exam.id).entries ?? [];
+
+/** 實際要排座的考生：預設排除全科缺考者（D79，與 core runSeating 同一份判斷）；設「仍排座」則全部 */
+export const seatableEntries = (doc: Doc, exam: ExamConfig): ExamEntry[] => {
+  const entries = examEntries(doc, exam);
+  const skip = new Set(fullyAbsentCodes({ entries, seatFullyAbsent: !!exam.seatFullyAbsent }));
+  return skip.size ? entries.filter((e) => !skip.has(studentCode(e.classNo, e.seatNo))) : entries;
+};
 export const examOverrides = (doc: Doc, exam: ExamConfig): Override[] => filesOf(doc, exam.id).overrides ?? [];
 export const examResult = (doc: Doc, exam: ExamConfig): SeatingResult | undefined => filesOf(doc, exam.id).result;
 
@@ -50,7 +58,7 @@ export const ruleKey = (track: Track | undefined, subjectId: string): string => 
 
 export function markSuggestions(doc: Doc, exam: ExamConfig): MarkSuggestion[] {
   if (!needsMarks(exam)) return [];
-  return suggestMarks(examEntries(doc, exam), examClasses(doc, exam), exam.subjects);
+  return suggestMarks(seatableEntries(doc, exam), examClasses(doc, exam), exam.subjects);
 }
 
 /**
@@ -103,6 +111,24 @@ export function markRows(doc: Doc, exam: ExamConfig): MarkRow[] {
   });
 }
 
+/** 輸出用的姓名：共用學生名單優先，查無才用考試名單（與 export/model 同一規則，⑤預覽、⑥預覽、下載一致） */
+export function nameMapOf(doc: Doc, exam: ExamConfig): Map<string, string> {
+  const m = new Map(examEntries(doc, exam).map((e) => [studentCode(e.classNo, e.seatNo), e.name]));
+  for (const s of doc.rosters[exam.division] ?? []) { const c = studentCode(s.classNo, s.seatNo); if (m.has(c)) m.set(c, s.name); }
+  return m;
+}
+
+/** 共用名單與考試名單姓名不同的人（會影響輸出文件，納入版本碼，#61） */
+export function rosterNameDiffs(doc: Doc, exam: ExamConfig): { code: string; name: string }[] {
+  const entry = new Map(examEntries(doc, exam).map((e) => [studentCode(e.classNo, e.seatNo), e.name]));
+  const out: { code: string; name: string }[] = [];
+  for (const s of doc.rosters[exam.division] ?? []) {
+    const c = studentCode(s.classNo, s.seatNo);
+    if (entry.has(c) && entry.get(c) !== s.name) out.push({ code: c, name: s.name });
+  }
+  return out.sort((a, b) => (a.code < b.code ? -1 : 1));
+}
+
 export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeatingInput {
   return {
     examId: exam.id,
@@ -114,6 +140,7 @@ export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeat
     markRules: effectiveMarkRules(doc, exam).rules,
     overrides: examOverrides(doc, exam),
     ...(exam.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
+    ...(rosterNameDiffs(doc, exam).length ? { rosterNames: rosterNameDiffs(doc, exam) } : {}),
     now,
   };
 }
@@ -190,7 +217,7 @@ const CHECKS: { title: string; match: RegExp }[] = [
 
 export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResult): Check[] {
   const rooms = examRooms(doc, exam).filter((r) => r.kind === 'class');
-  const codes = examEntries(doc, exam).map((e) => studentCode(e.classNo, e.seatNo));
+  const codes = seatableEntries(doc, exam).map((e) => studentCode(e.classNo, e.seatNo));
   const errors = validateSeating({
     classrooms: rooms,
     classes: examClasses(doc, exam),
@@ -218,7 +245,7 @@ export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResu
 /** ④ 抽離預覽：依目前規則即時算（不需先排座） */
 export function detachPreview(doc: Doc, exam: ExamConfig): DetachResult {
   const { rules } = effectiveMarkRules(doc, exam);
-  const marks = applyMarks(examEntries(doc, exam), examClasses(doc, exam), exam.subjects, rules);
+  const marks = applyMarks(seatableEntries(doc, exam), examClasses(doc, exam), exam.subjects, rules);
   return allocateDetaches({
     subjects: exam.subjects,
     marks,
@@ -251,6 +278,7 @@ export interface ChartModel {
 
 function studentCtx(doc: Doc, exam: ExamConfig, result: SeatingResult) {
   const entries = new Map(examEntries(doc, exam).map((e) => [studentCode(e.classNo, e.seatNo), e]));
+  const nameOf = nameMapOf(doc, exam);
   const classes = new Map(examClasses(doc, exam).map((c) => [c.no, c]));
   const subjName = new Map(exam.subjects.map((s) => [s.id, s.name]));
   const marksBy = new Map<string, string[]>();
@@ -270,7 +298,7 @@ function studentCtx(doc: Doc, exam: ExamConfig, result: SeatingResult) {
     const marks = o ? [...own, `→${o.location}`] : own;
     const markKind = marks.length ? (absent.has(code) ? 'x' : 'add') : undefined;
     return {
-      kind: 'student', co, code, name: e?.name ?? '（不在名單）', classNo, className: c?.name ?? String(classNo), colorIndex: c?.colorIndex ?? classNo,
+      kind: 'student', co, code, name: nameOf.get(code) ?? e?.name ?? '（不在名單）', classNo, className: c?.name ?? String(classNo), colorIndex: c?.colorIndex ?? classNo,
       marks, ...(markKind ? { markKind } : {}),
     };
   };
@@ -349,14 +377,23 @@ export function overrideNotes(doc: Doc, exam: ExamConfig, result: SeatingResult 
   return out;
 }
 
-/** ④ 組別對照表：大考中心組別代碼 → 人數與考科（D15） */
-export function groupTable(doc: Doc, exam: ExamConfig): { code: string; count: number; subjectIds: string[] }[] {
-  const map = new Map<string, { count: number; subjectIds: string[] }>();
+/** ④ 組別對照表：大考中心組別代碼 → 人數與考科（D15）；同代碼考科不一致時標出 differing 人數（#70） */
+export function groupTable(doc: Doc, exam: ExamConfig): { code: string; count: number; subjectIds: string[]; /** 考科與標準（人數最多的組合）不同的人數；0＝一致 */ differing: number }[] {
+  const by = new Map<string, Map<string, { n: number; ids: string[] }>>();
   for (const e of examEntries(doc, exam)) {
     const code = e.groupCode ?? '（未填）';
-    const cur = map.get(code) ?? { count: 0, subjectIds: exam.subjects.filter((s) => e.subjectIds.includes(s.id)).map((s) => s.id) };
-    cur.count++;
-    map.set(code, cur);
+    const ids = exam.subjects.filter((s) => e.subjectIds.includes(s.id)).map((s) => s.id);
+    const combos = by.get(code) ?? new Map<string, { n: number; ids: string[] }>();
+    const key = ids.join(',');
+    const c = combos.get(key) ?? { n: 0, ids };
+    c.n++;
+    combos.set(key, c);
+    by.set(code, combos);
   }
-  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([code, v]) => ({ code, ...v }));
+  return [...by.entries()].sort((a, b) => a[0].localeCompare(b[0])).map(([code, combos]) => {
+    // 標準＝人數最多的組合；同人數取鍵值小者，結果與資料列順序無關
+    const list = [...combos.entries()].sort((a, b) => b[1].n - a[1].n || (a[0] < b[0] ? -1 : 1));
+    const count = list.reduce((n, [, v]) => n + v.n, 0);
+    return { code, count, subjectIds: list[0]![1].ids, differing: count - list[0]![1].n };
+  });
 }

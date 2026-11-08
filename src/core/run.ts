@@ -21,6 +21,8 @@ export interface RunSeatingInput {
   overrides: readonly Override[];
   /** D79：全科缺考者（無任何考科）預設不排座、不計份數；設 true 才照排 */
   seatFullyAbsent?: boolean;
+  /** 共用學生名單的姓名與考試名單不同者（輸出優先用共用名單，會改變文件內容）；空或不給＝無差異 */
+  rosterNames?: readonly { code: string; name: string }[];
   /** 產生時間（ISO 字串）；由呼叫端給，讓函式保持純粹 */
   now: string;
 }
@@ -33,11 +35,15 @@ export type RunSeatingResult =
 export function seatingVersion(input: RunSeatingInput): string {
   const { examId, division, classes, classrooms, entries, subjects, markRules, overrides } = input;
   // 只在開啟時才放進版本碼，避免舊存檔的版本碼全部變成「過期」
-  return dataVersion({ examId, division, classes, classrooms, entries, subjects, markRules, overrides, ...(input.seatFullyAbsent ? { seatFullyAbsent: true } : {}) });
+  return dataVersion({ examId, division, classes, classrooms, entries, subjects, markRules, overrides, ...(input.seatFullyAbsent ? { seatFullyAbsent: true } : {}), ...(input.rosterNames?.length ? { rosterNames: input.rosterNames } : {}) });
 }
 
+/** D79：全科缺考者（無任何考科）的編號；設「仍排座」時為空（＝都要排） */
+export const fullyAbsentCodes = (input: { entries: readonly { classNo: number; seatNo: number; subjectIds: string[] }[]; seatFullyAbsent?: boolean }): string[] =>
+  input.seatFullyAbsent ? [] : input.entries.filter((e) => e.subjectIds.length === 0).map((e) => studentCode(e.classNo, e.seatNo));
+
 export function runSeating(input: RunSeatingInput): RunSeatingResult {
-  const fullyAbsent = input.seatFullyAbsent ? [] : input.entries.filter((e) => e.subjectIds.length === 0).map((e) => studentCode(e.classNo, e.seatNo));
+  const fullyAbsent = fullyAbsentCodes(input);
   const absentSet = new Set(fullyAbsent);
   const seatable = input.entries.filter((e) => !absentSet.has(studentCode(e.classNo, e.seatNo)));
   const codes = seatable.map((e) => studentCode(e.classNo, e.seatNo));
