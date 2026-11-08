@@ -27,3 +27,10 @@
 ## 測試
 
 `npm test`（含 src/data、src/import 單元測試）。
+
+## 加開：② 考試名單頁＋設定頁匯入／匯出／範本（分支 build/a-ui-roster）
+
+- `src/ui/pages/Step2.tsx`：匯入大考中心格式 .xlsx → 欄位對應確認表 → 確認後存 `entries.json` 並比對 → 差異逐筆三選一＋手動編輯（D54）→ 全部處理完才能「套用處理結果」（更新學生名單，走 onChange 可復原）。全員／部分參加（D64）；「到設定頁看學生名單」帶回原頁。
+- `src/ui/pages/RosterIO.tsx`（設定頁學生名單）：下載 Excel 範本（班級、座號、姓名、學號（選填））、匯入（含並排區塊版式、預覽確認、取代整份名單、可勾選依類組欄設文理組）、匯出。
+- 純邏輯：`src/ui/step2.ts`（科目 id 對應、挑工作表）、`src/ui/rosterIO.ts`；`src/import/xlsxWrite.ts`（xlsx 寫出）；`Repository` 新增 `loadExamFile`／`saveExamFile`。
+- 沒驗到：兩頁未在 Chrome 目視、未實際上傳檔案操作（只有單元測試與 build）；復原只還原學生名單，不還原已存的 entries/diffs 檔。
