@@ -36,8 +36,12 @@ export function seatingVersion(input: RunSeatingInput): string {
   return dataVersion({ examId, division, classes, classrooms, entries, subjects, markRules, overrides, ...(input.seatFullyAbsent ? { seatFullyAbsent: true } : {}) });
 }
 
+/** D79：全科缺考者（無任何考科）的編號；設「仍排座」時為空（＝都要排） */
+export const fullyAbsentCodes = (input: { entries: readonly { classNo: number; seatNo: number; subjectIds: string[] }[]; seatFullyAbsent?: boolean }): string[] =>
+  input.seatFullyAbsent ? [] : input.entries.filter((e) => e.subjectIds.length === 0).map((e) => studentCode(e.classNo, e.seatNo));
+
 export function runSeating(input: RunSeatingInput): RunSeatingResult {
-  const fullyAbsent = input.seatFullyAbsent ? [] : input.entries.filter((e) => e.subjectIds.length === 0).map((e) => studentCode(e.classNo, e.seatNo));
+  const fullyAbsent = fullyAbsentCodes(input);
   const absentSet = new Set(fullyAbsent);
   const seatable = input.entries.filter((e) => !absentSet.has(studentCode(e.classNo, e.seatNo)));
   const codes = seatable.map((e) => studentCode(e.classNo, e.seatNo));

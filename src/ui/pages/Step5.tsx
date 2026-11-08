@@ -5,7 +5,7 @@ import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StatsBar } from '../co
 import { confirmCopy } from '../flow';
 import { ChartLegend, SeatChart } from '../components/SeatChart';
 import {
-  afterOverrideChange, chartModel, detachChartModel, detachSummary, examClasses, examEntries, examOverrides, examResult, examRooms,
+  afterOverrideChange, chartModel, detachChartModel, seatableEntries, detachSummary, examClasses, examEntries, examOverrides, examResult, examRooms,
   isStale, overrideNotes, removeOverride, reseat, roomStatTable, seatingBlockers, setOverride, validationChecks, type StepNo,
 } from '../seating';
 import type { Doc } from '../store';
@@ -97,7 +97,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     <section class="stack">
       <div class="card stephead"><div><h2>⑤ 排座與預覽</h2><p class="small muted">排座、看座位表與統計；名單或設定改了要重新排座。</p></div></div>
       <StatsBar items={[
-        { label: '考生', value: examEntries(doc, exam).length },
+        { label: '考生', value: seatableEntries(doc, exam).length },
         { label: '座位', value: seats },
         { label: '班級教室', value: `${classRooms.length} 間` },
         { label: '預備教室', value: `${rooms.length - classRooms.length} 間` },

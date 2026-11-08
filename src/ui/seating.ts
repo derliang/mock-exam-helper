@@ -10,6 +10,7 @@ import {
   roomStats,
   specialOf,
   runSeating,
+  fullyAbsentCodes,
   seatingVersion,
   suggestMarks,
   validateSeating,
@@ -40,6 +41,13 @@ export function examRooms(doc: Doc, exam: ExamConfig): Classroom[] {
 }
 
 export const examEntries = (doc: Doc, exam: ExamConfig): ExamEntry[] => filesOf(doc, exam.id).entries ?? [];
+
+/** 實際要排座的考生：預設排除全科缺考者（D79，與 core runSeating 同一份判斷）；設「仍排座」則全部 */
+export const seatableEntries = (doc: Doc, exam: ExamConfig): ExamEntry[] => {
+  const entries = examEntries(doc, exam);
+  const skip = new Set(fullyAbsentCodes({ entries, seatFullyAbsent: !!exam.seatFullyAbsent }));
+  return skip.size ? entries.filter((e) => !skip.has(studentCode(e.classNo, e.seatNo))) : entries;
+};
 export const examOverrides = (doc: Doc, exam: ExamConfig): Override[] => filesOf(doc, exam.id).overrides ?? [];
 export const examResult = (doc: Doc, exam: ExamConfig): SeatingResult | undefined => filesOf(doc, exam.id).result;
 
@@ -190,7 +198,7 @@ const CHECKS: { title: string; match: RegExp }[] = [
 
 export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResult): Check[] {
   const rooms = examRooms(doc, exam).filter((r) => r.kind === 'class');
-  const codes = examEntries(doc, exam).map((e) => studentCode(e.classNo, e.seatNo));
+  const codes = seatableEntries(doc, exam).map((e) => studentCode(e.classNo, e.seatNo));
   const errors = validateSeating({
     classrooms: rooms,
     classes: examClasses(doc, exam),
