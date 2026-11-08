@@ -1,7 +1,7 @@
 # 完工-fix-v2：教室列塌陷＋全科缺考者驗證
 
 ## 做了什麼
-1. **教室列塌陷**：`.roomrow.trk` 與開關軌道 `.trk`（46×26、圓角 99px）撞名。教室列改用 `hastrack`（`app.css`、`RoomList.tsx`）；開關軌道 `.trk` 與 `components/index.tsx` 的 Switch 未動。
+1. **教室列塌陷**：根因是 `.roomrow.trk` 與開關軌道 `.trk` 撞名。改名已由 main 的 #74（`hastrack`）完成，本 PR 只補版面測試（`css.test.ts` 斷言教室列不含 `.trk`）。
 2. **全科缺考者**：預設（未勾「仍排座」）時，⑤驗證報「考生沒有座位：0106」。根因是 `validationChecks` 用全部考生。現在 core 新增並匯出 `fullyAbsentCodes`（原 `runSeating` 內的判斷，行為不變，`runSeating` 改呼叫它），UI 新增 `seatableEntries` 同樣呼叫它。套用處：
    - `validationChecks`（恰好一座位、座位數 ≥ 考生數）
    - `capacity.ts`（③容量檢核，人數；「尚未匯入名單」仍以全部名單判斷）
