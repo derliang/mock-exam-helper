@@ -1,7 +1,9 @@
 /** 元件庫：只用 tokens 變數與 app.css 類別，不寫死色碼 */
 import type { ComponentChildren, JSX } from 'preact';
-import { useEffect } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import { classColorVars } from '../colors';
+import { UNDO_HINT, type ConfirmCopy, type Flow, type NextAction } from '../flow';
+import type { StepNo } from '../seating';
 
 type BtnKind = 'primary' | 'danger' | 'ghost' | 'default';
 
@@ -87,7 +89,10 @@ export type StepState = 'cur' | 'done' | 'stale' | 'todo';
 /** 步驟導覽（四種狀態，可自由跳步，D47） */
 export function StepNav(p: { steps: { no: number; name: string; state: StepState; note?: string }[]; onGo: (no: number) => void }) {
   const mark: Record<StepState, string> = { cur: '目前', done: '已完成', stale: '過期', todo: '未完成' };
+  const cur = p.steps.find((x) => x.state === 'cur');
   return (
+    <>
+    <p class="stepcount" aria-live="polite">{cur ? `第 ${cur.no}／${p.steps.length} 步` : `共 ${p.steps.length} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
     <ol class="steps" aria-label="步驟">
       {p.steps.map((s) => (
         <li key={s.no}>
@@ -99,6 +104,7 @@ export function StepNav(p: { steps: { no: number; name: string; state: StepState
         </li>
       ))}
     </ol>
+    </>
   );
 }
 
@@ -109,6 +115,76 @@ export function TopBar(p: { backLabel?: string; onBack?: () => void; undoCount: 
       {p.backLabel && p.onBack && <Button kind="ghost" onClick={p.onBack}>← 回到 {p.backLabel}</Button>}
       <span style="flex:1" />
       <Button disabled={p.undoCount === 0} onClick={p.onUndo} title="Ctrl+Z">↶ 復原（{p.undoCount}）</Button>
+    </div>
+  );
+}
+
+/** 破壞性動作的二次確認：說明會失去什麼，並提示可用「↶ 復原」找回（DESIGN 10.7） */
+export function ConfirmModal(p: { copy: ConfirmCopy; onConfirm: () => void; onClose: () => void; undoable?: boolean }) {
+  return (
+    <Modal title={p.copy.title} onClose={p.onClose} actions={<><Button onClick={p.onClose}>取消</Button><Button kind="danger" onClick={() => { p.onClose(); p.onConfirm(); }}>{p.copy.confirm}</Button></>}>
+      <p>{p.copy.body}</p>
+      {p.undoable !== false && <p class="small muted" style="margin-top:8px">{UNDO_HINT}</p>}
+    </Modal>
+  );
+}
+
+/** 點了才確認的按鈕：用在刪除、還原預設、重新匯入等 */
+export function ConfirmButton(p: { copy: ConfirmCopy; onConfirm: () => void; kind?: BtnKind; small?: boolean; children: ComponentChildren; undoable?: boolean }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <Button kind={p.kind ?? 'danger'} small={p.small} onClick={() => setOpen(true)}>{p.children}</Button>
+      {open && <ConfirmModal copy={p.copy} undoable={p.undoable} onConfirm={p.onConfirm} onClose={() => setOpen(false)} />}
+    </>
+  );
+}
+
+/** 空狀態：告訴使用者「這裡還沒有東西、為什麼、下一步按哪裡」 */
+export function EmptyState(p: { title: string; children?: ComponentChildren; action?: ComponentChildren }) {
+  return (
+    <div class="empty">
+      <strong>{p.title}</strong>
+      {p.children && <p class="muted">{p.children}</p>}
+      {p.action && <div class="btnrow">{p.action}</div>}
+    </div>
+  );
+}
+
+/** 常駐摘要列（不可關）：考生／座位／空位／警告；警告可點，一鍵跳到第一個問題 */
+export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
+  const { summary: s, issues } = p.flow;
+  const lack = s.spare < 0;
+  return (
+    <div class="sumbar" role="region" aria-label="本次考試摘要">
+      <span>考生 <b>{s.students}</b></span>
+      <span>座位 <b>{s.seats}</b></span>
+      <span class={lack ? 'bad' : ''}>{lack ? '缺位' : '空位'} <b>{lack ? -s.spare : s.spare}</b></span>
+      {issues.length === 0
+        ? <span class="ok">警告 <b>0</b>　✓ 沒有待處理的事</span>
+        : (
+          <button type="button" class="warnbtn" onClick={() => p.onGo(issues[0]!.step)} title={issues.map((i) => i.text).join('；')}>
+            ⚠ 警告 <b>{issues.length}</b>　{issues[0]!.text}　<u>{issues[0]!.fix}</u>
+          </button>
+        )}
+    </div>
+  );
+}
+
+/** 每個步驟頁底部的「下一步」：前置沒過就停用，說明缺什麼，並給一鍵跳轉 */
+export function StepFooter(p: { action: NextAction; onGo: (step: StepNo) => void }) {
+  const a = p.action;
+  if (a.kind === 'none') return null;
+  return (
+    <div class="stepfoot">
+      {a.kind === 'blocked' && (
+        <Alert tone="warn" action={<Button small kind="primary" onClick={() => p.onGo(a.fixStep)}>{a.fix}</Button>}>
+          <b>還不能進下一步：</b>{a.reason}
+        </Alert>
+      )}
+      <div class="btnrow" style="justify-content:flex-end">
+        <Button kind="primary" disabled={a.kind === 'blocked'} onClick={() => a.kind === 'go' && p.onGo(a.to)}>{a.label} →</Button>
+      </div>
     </div>
   );
 }

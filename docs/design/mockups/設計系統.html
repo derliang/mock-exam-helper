@@ -308,6 +308,10 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .chip-class[data-c="6"]{background:var(--c6-bg);border-color:var(--c6-line);color:var(--c6-ink)}
 .stale-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:var(--r-md);background:var(--warn-soft);border:1.5px dashed var(--warn-bar);color:var(--warn-ink);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px}
+.sumbar b{font-size:18px}.sumbar .warnbtn{margin-left:auto;min-height:36px;padding:4px 12px;border:1.5px solid var(--warn-bar);border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn-ink);font:inherit;font-weight:700}
+.empty{display:grid;gap:8px;justify-items:start;padding:20px;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--surface)}
+.empty strong{font-family:var(--f-head);font-size:18px}.empty p{margin:0}
 </style>
 
 <div class="top">
@@ -484,6 +488,15 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       </div></div>
   </section>
 
+  <section id="flow">
+    <header><h2>引路與防錯（施工G）</h2><p>所有步驟頁共用：常駐摘要列、步驟「第N／6步」、底部「下一步」（前置沒過就停用並說明＋一鍵跳轉）、破壞性動作二次確認、空狀態、行內驗證。規則見 DESIGN.md 10.7。</p></header>
+    <div class="card" style="display:grid;gap:14px">
+      <div class="sumbar"><span>考生 <b>7</b></span><span>座位 <b>9</b></span><span>空位 <b>2</b></span><button type="button" class="warnbtn">⚠ 警告 <b>1</b>　④ 有 1 項標示接近一半，要先選標「不考」或「加考」　<u>去 ④ 選標示</u></button></div>
+      <div class="alert a-warn"><span>⚠</span><div><b>還不能進下一步：</b>④ 有 1 項標示接近一半，要先選標「不考」或「加考」</div><button class="btn btn-primary">去 ④ 選標示</button></div>
+      <div style="text-align:right"><button class="btn btn-primary" disabled>下一步：⑤ 排座與預覽 →</button></div>
+      <div class="empty"><strong>還沒有匯入考試名單</strong><p class="muted">按上方「匯入考試名單 Excel」，選大考中心提供的考生資料名單（.xlsx）。</p></div>
+    </div>
+  </section>
   <section id="open">
     <header><h2>待使用者確認的提案</h2></header>
     <div class="card"><ol style="margin:0;padding-left:20px;display:grid;gap:8px">

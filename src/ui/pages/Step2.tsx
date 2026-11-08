@@ -2,7 +2,8 @@ import { useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, RosterDiff, RosterDiffChoice } from '../../data';
 import { studentCode } from '../../data';
 import { allResolved, applyDiffs, compareRosters, readXlsx, type Sheet } from '../../import';
-import { Alert, Badge, Button, StatsBar } from '../components';
+import { Alert, Badge, Button, ConfirmButton, EmptyState, StatsBar } from '../components';
+import { confirmCopy } from '../flow';
 import { updateExam, type Doc } from '../store';
 import { ImportWizard } from './ImportWizard';
 
@@ -75,13 +76,18 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="btnrow">
-        <Button kind="primary" onClick={() => input.current?.click()}>{entries ? '重新匯入考試名單' : '匯入考試名單 Excel'}</Button>
+        {entries
+          ? <ConfirmButton kind="primary" undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>重新匯入考試名單</ConfirmButton>
+          : <Button kind="primary" onClick={() => input.current?.click()}>匯入考試名單 Excel</Button>}
         {exam.participation === 'partial' && <Badge tone="info">部分參加：沒報名的人不算差異</Badge>}
         {done && <Badge tone="ok">已完成</Badge>}
         <input ref={input} type="file" accept=".xlsx" hidden aria-label="選擇考試名單 Excel 檔"
           onChange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ''; if (f) void onFile(f); }} />
       </div>
       {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
+      {!entries && !sheets && (
+        <div style="margin-top:12px"><EmptyState title="還沒有匯入考試名單">按上方「匯入考試名單 Excel」，選大考中心提供的考生資料名單（.xlsx）。匯入後會自動和學生名單比對，有差異再逐筆處理。</EmptyState></div>
+      )}
 
       {sheets && (
         <ImportWizard sheets={sheets} exam={exam} classNames={classNames} previous={entries ?? undefined} saved={doc.settings.markMap ?? {}}
