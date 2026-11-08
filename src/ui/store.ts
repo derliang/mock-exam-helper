@@ -81,7 +81,7 @@ export interface NewExamOptions {
 export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts: NewExamOptions = {}): Result<Doc> {
   const n = name.trim();
   if (!n) return fail('請輸入考試名稱');
-  if (kind === 'ast') return fail('分科即將推出');
+  if (kind === 'ast') return fail('分科尚未開放');
   if (doc.exams.some((e) => e.name === n)) return fail('已有同名的模擬考');
   const division: Division = kind === 'bcct' ? 'junior' : 'senior';
   const round = kind === 'gsat' ? doc.exams.filter((e) => e.kind === 'gsat').length + 1 : undefined;
@@ -143,7 +143,7 @@ export function examLabel(e: Pick<ExamConfig, 'division' | 'kind'>): string {
   return `${e.division === 'senior' ? '高中部' : '國中部'}・${KIND_LABEL[e.kind].replace(/（.*）/, '')}`;
 }
 
-export const KIND_LABEL: Record<ExamKind, string> = { gsat: '學測', ast: '分科（即將推出）', bcct: '會考' };
+export const KIND_LABEL: Record<ExamKind, string> = { gsat: '學測', ast: '分科（尚未開放）', bcct: '會考' };
 
 /** 更新某次模擬考的欄位（名稱同名檢查） */
 export function updateExam(doc: Doc, id: string, patch: Partial<ExamConfig>): Result<Doc> {

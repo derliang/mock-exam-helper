@@ -56,7 +56,7 @@ export function ImportWizard(p: {
   return (
     <div class="card" style="margin-top:12px;padding:12px">
       <h3>智慧匯入考試名單</h3>
-      <p class="muted small">程式先讀懂整份檔案，把看不懂或可能出錯的地方列在下面請你決定。全部處理完、看過預覽並按「確認匯入」之後才會寫入，之前取消不會改到任何資料。</p>
+      <p class="muted small">程式先讀懂整份檔案，把看不懂或可能出錯的地方列在下面請你決定。全部處理完、看過預覽並按「確認匯入」之後才會寫入並取代本次的考試名單，之前取消不會改到任何資料。</p>
 
       {scans.length > 1 && (
         <div class="field" style="margin:8px 0"><label for="wz-sheet">工作表</label>
@@ -69,7 +69,7 @@ export function ImportWizard(p: {
       {scan.header && (
         <>
           <h4 style="margin-top:12px">① 欄位對應{scan.header.span === 2 && <> <Badge tone="info">表頭佔兩列，已合併判讀</Badge></>}</h4>
-          <p class="muted small">表頭在第 {scan.header.row + 1} 列。確認程式有抓對欄位；沒認出的欄會被忽略。</p>
+          <p class="muted small">表頭在第 {scan.header.row + 1} 列。確認程式有抓對欄位；沒認出的欄不會匯入。</p>
           <table class="t"><thead><tr><th>用途</th><th>檔案中的欄位</th></tr></thead><tbody>
             {Object.entries(scan.headers).map(([f, h]) => <tr key={f}><td>{FIELD_LABEL[f] ?? f}</td><td>{h}</td></tr>)}
             {Object.values(scan.subjectColumns).map((h) => <tr key={h}><td>科目欄（打勾表示要考）</td><td>{h}</td></tr>)}
@@ -80,7 +80,7 @@ export function ImportWizard(p: {
       {scan.groups.length > 0 && (
         <>
           <h4 style="margin-top:16px">② 科目標示的寫法（共 {scan.groups.length} 組）</h4>
-          <p class="muted small">整份名單用到的標示寫法已依相似度分組、計次。請為每一組選擇它代表哪一科，或選「忽略」。程式的建議只是參考，不會自動套用。</p>
+          <p class="muted small">整份名單用到的標示寫法已依相似度分組、計次。請為每一組選擇它代表哪一科，或選「忽略」。程式的建議只是參考，不會自動套用；但你先前確認並記住的對應會先帶入，請核對。</p>
           <div style="overflow-x:auto"><table class="t"><thead><tr><th>出現的寫法（次數）</th><th>共</th><th>代表哪一科</th></tr></thead><tbody>
             {scan.groups.map((g) => (
               <tr key={g.id}>
@@ -159,7 +159,7 @@ function ReviewRow(p: { item: ReviewItem; decision?: RowDecision; groupCodes: st
   return (
     <div class="card" style="padding:8px;margin:6px 0">
       <div><Badge tone={done ? 'ok' : 'warn'}>{done ? (done.action === 'skip' ? '已略過' : '已修正') : '待處理'}</Badge> 第 {item.row} 列・{KIND_TEXT[item.kind]}：{item.message}</div>
-      <div class="muted small">原文：{item.cells.filter(Boolean).join('｜')}</div>
+      <div class="muted small">Excel 原始內容：{item.cells.filter(Boolean).join('｜')}</div>
       <div class="btnrow" style="margin-top:6px">
         <input class="input" style="width:72px" aria-label="班級" inputMode="numeric" value={c} onInput={(e) => setC(e.currentTarget.value)} />
         <input class="input" style="width:72px" aria-label="座號" inputMode="numeric" value={s} onInput={(e) => setS(e.currentTarget.value)} />

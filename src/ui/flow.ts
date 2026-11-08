@@ -81,7 +81,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
     add({ step: 5, text: '⑤ 還沒有排座結果', fix: '去 ⑤ 開始排座', level: 'block' });
   } else if (stale) {
     s5 = 'stale';
-    add({ step: 5, text: '⑤ 名單或設定在排座後改過，座位表已過期', fix: '去 ⑤ 重新排座', level: 'block' });
+    add({ step: 5, text: '⑤ 名單或設定在排座後改過，需要重新排座', fix: '去 ⑤ 重新排座', level: 'block' });
   } else {
     const bad = validationChecks(doc, exam, result).filter((c) => !c.ok);
     if (bad.length) add({ step: 5, text: `⑤ 驗證有 ${bad.length} 項不通過：${bad.map((c) => c.title).join('、')}`, fix: '去 ⑤ 看驗證', level: 'block' });
@@ -103,27 +103,27 @@ export function prerequisites(flow: Flow, target: StepNo): FlowIssue[] {
   return flow.issues.filter((i) => i.level === 'block' && i.step < target);
 }
 
+/** 「下一步」：永遠可以按（D47：六步可隨意跳）；前面還有沒做完的事就在旁邊標示原因，不禁止 */
 export type NextAction =
   | { kind: 'none' }
-  | { kind: 'go'; to: StepNo; label: string }
-  | { kind: 'blocked'; to: StepNo; label: string; reason: string; fix: string; fixStep: StepNo };
+  | { kind: 'go'; to: StepNo; label: string; pending?: { reason: string; fix: string; fixStep: StepNo } };
 
-/** 「下一步」按鈕：沒問題就前往；前置有問題就停用，說明缺什麼並給一鍵跳轉（只擋按鈕，側欄仍可自由跳，D47） */
+/** 「下一步」按鈕：不擋人；前置有問題只標示缺什麼並給一鍵跳轉（擋下的只有 ⑤ 排座與 ⑥ 下載本身，D47） */
 export function nextAction(flow: Flow, current: StepNo): NextAction {
   if (current >= 6) return { kind: 'none' };
   const to = (current + 1) as StepNo;
   const label = `下一步：${'①②③④⑤⑥'[to - 1]} ${STEP_NAMES[to - 1]}`;
-  // 前面的步驟（含目前這步）還有 block 問題就不能往下；進 ⑥ 時 ⑤ 本身也要完成
+  // 前面的步驟（含目前這步）還有 block 問題就標示；進 ⑥ 時 ⑤ 本身也要完成
   const need = prerequisites(flow, to);
   const first = need[0];
   if (first) {
     const more = need.length > 1 ? `（另有 ${need.length - 1} 項）` : '';
-    return { kind: 'blocked', to, label, reason: `${first.text}${more}`, fix: first.fix, fixStep: first.step };
+    return { kind: 'go', to, label, pending: { reason: `${first.text}${more}`, fix: first.fix, fixStep: first.step } };
   }
   return { kind: 'go', to, label };
 }
 
-/** 摘要列「警告 X」點下去要去哪：第一個 block 問題的步驟，沒有就回 undefined */
+/** 摘要列「待處理 X」點下去要去哪：第一個 block 問題的步驟，沒有就回 undefined */
 export function firstIssueStep(flow: Flow): StepNo | undefined {
   return flow.issues[0]?.step;
 }
@@ -154,19 +154,19 @@ export interface ConfirmCopy { title: string; body: string; confirm: string }
 /** 破壞性動作的確認文案：說清楚會失去什麼，並提示可用「↶ 復原」找回 */
 export const confirmCopy = {
   deleteStudent: (name: string, code: string): ConfirmCopy => ({
-    title: '刪除這位學生？', body: `將刪除 ${code} ${name}。空號會保留，不會遞補。`, confirm: '刪除',
+    title: '刪除這位學生？', body: `將刪除 ${code} ${name}。其他考生的編號不會改變，這個編號會空著、不會被遞補。`, confirm: '刪除',
   }),
   deleteClass: (name: string): ConfirmCopy => ({
     title: '刪除這個班級？', body: `將刪除班級「${name}」。這個班目前沒有學生，刪除後可用「↶ 復原」還原。`, confirm: '刪除',
   }),
   deleteRoom: (name: string, inUse: boolean): ConfirmCopy => ({
-    title: '刪除這間教室？', body: `將刪除「${name}」。${inUse ? '已選用它的模擬考會少一間教室，排座結果可能因此過期。' : ''}`, confirm: '刪除',
+    title: '刪除這間教室？', body: `將刪除「${name}」。教室清單是所有模擬考共用的，${inUse ? '已選用它的模擬考會少一間教室，排座結果可能因此過期。' : '其他模擬考若選用了它，也會少一間教室。'}`, confirm: '刪除',
   }),
   deleteSubject: (name: string): ConfirmCopy => ({
-    title: '刪除這個考科？', body: `將從考科表刪除「${name}」，名單裡這一科的資料也會被忽略。`, confirm: '刪除',
+    title: '刪除這個考科？', body: `將從考科表刪除「${name}」，名單裡這一科的資料不會再用於排座與標示。`, confirm: '刪除',
   }),
   resetSubjects: (): ConfirmCopy => ({
-    title: '還原預設考科？', body: '你對考科表做的新增、修改、刪除都會被取代成預設值。', confirm: '還原預設',
+    title: '還原本次的預設考科？', body: '你對本次考科表做的新增、修改、刪除都會被取代成預設值。', confirm: '還原本次考科',
   }),
   reimportList: (count: number): ConfirmCopy => ({
     title: '重新匯入考試名單？', body: `目前已有 ${count} 位考生。匯入新檔後會取代整份考試名單，已排好的座位表會變成過期，要重新排座。`, confirm: '繼續匯入',
@@ -175,18 +175,18 @@ export const confirmCopy = {
     title: '重新排座？', body: `會用目前的名單與設定重排座位表，舊結果將被取代。${overrides ? `已設定的 ${overrides} 筆個別覆寫會保留並重新套用。` : ''}`, confirm: '重新排座',
   }),
 };
-export const UNDO_HINT = '做錯了可以按頁面上方的「↶ 復原」（或 Ctrl+Z）找回。';
+export const UNDO_HINT = '做錯了可以在這次使用中按頁面上方的「↶ 復原」（或 Ctrl+Z）還原；重新整理頁面後可能就不能復原了。';
 
 // ───── 完工頁「下一步」 ─────
 
 export interface AfterExportItem { text: string; step?: StepNo; nav?: 'exams' }
 
-/** 匯出完成後該做什麼 */
+/** 下載完成後該做什麼（程式內部仍叫 export） */
 export function afterExport(format: 'word' | 'pdf', paper: string): AfterExportItem[] {
   const items: AfterExportItem[] = [
     { text: format === 'word' ? '打開下載資料夾，檢查每個 Word 檔的頁數與內容。' : '在新開的視窗選「列印」→ 目的地選「另存為 PDF」。' },
     { text: `列印前先確認紙張：座位表與名單用 A4，標籤用 ${paper}。` },
-    { text: '考試前若名單或教室有變，回 ⑤ 重新排座，再重新匯出。', step: 5 },
+    { text: '考試前若名單或教室有變，回 ⑤ 重新排座，再重新下載。', step: 5 },
     { text: '這次考完，回模擬考列表建立下一次（會帶入上一次的設定）。', nav: 'exams' },
   ];
   return items;

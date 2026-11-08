@@ -32,7 +32,7 @@ describe('D-1 教室組別（理組／文組）', () => {
     const issue = flow.issues.find((i) => i.step === 3 && i.text.includes('理組／文組'));
     expect(issue?.fix).toBe('去 ③ 指定理組／文組');
     expect(flow.steps.find((s) => s.no === 4)!.state).not.toBe('done');
-    expect(nextAction(flow, 3).kind).toBe('blocked');
+    expect(nextAction(flow, 3)).toMatchObject({ kind: 'go', pending: {} });
     expect(seatingBlockers(d, exam).some((b) => b.step === 3 && b.text.includes('理組／文組'))).toBe(true);
     const r = reseat(d, exam, '2026-11-08T00:00:00Z');
     expect(r.ok).toBe(false);

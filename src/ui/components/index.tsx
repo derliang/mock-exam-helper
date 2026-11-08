@@ -170,39 +170,39 @@ export function EmptyState(p: { title: string; children?: ComponentChildren; act
   );
 }
 
-/** 常駐摘要列（不可關）：考生／座位／空位／警告；警告可點，一鍵跳到第一個問題 */
+/** 常駐摘要列（不可關）：考生／座位／空位／待處理；待處理可點，一鍵跳到第一個問題 */
 export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
   const { summary: s, issues } = p.flow;
   const lack = s.spare < 0;
   return (
     <div class="sumbar" role="region" aria-label="本次考試摘要">
-      <span>考生 <b>{s.students}</b></span>
+      {s.students === 0 ? <span>考生 <b>尚未匯入考試名單</b></span> : <span>考生 <b>{s.students}</b></span>}
       <span>座位 <b>{s.seats}</b></span>
-      <span class={lack ? 'bad' : ''}>{s.seats === 0 ? '空位' : lack ? '缺位' : '空位'} <b>{s.seats === 0 ? '—' : lack ? -s.spare : s.spare}</b></span>
+      <span class={lack && s.students > 0 ? 'bad' : ''}>{s.seats === 0 || s.students === 0 ? '空位' : lack ? '缺位' : '空位'} <b>{s.seats === 0 || s.students === 0 ? '—' : lack ? -s.spare : s.spare}</b></span>
       {issues.length === 0
-        ? <span class="ok">警告 <b>0</b>　✓ 沒有待處理的事</span>
+        ? <span class="ok">待處理 <b>0</b>　✓ 沒有待處理的事</span>
         : (
           <button type="button" class="warnbtn" onClick={() => p.onGo(issues[0]!.step)} title={issues.map((i) => i.text).join('；')}>
-            ⚠ 警告 <b>{issues.length}</b>　{issues[0]!.text}　<u>{issues[0]!.fix}</u>
+            ⚠ 待處理 <b>{issues.length}</b>　{issues[0]!.text}　<u>{issues[0]!.fix}</u>
           </button>
         )}
     </div>
   );
 }
 
-/** 每個步驟頁底部的「下一步」：前置沒過就停用，說明缺什麼，並給一鍵跳轉 */
-export function StepFooter(p: { action: NextAction; onGo: (step: StepNo) => void }) {
+/** 步驟頁上方的「下一步」（D58 放頁面上方）：永遠可以按；前面還有沒做完的事只標示原因並給一鍵跳轉，不禁止（D47） */
+export function StepNextBar(p: { action: NextAction; onGo: (step: StepNo) => void }) {
   const a = p.action;
   if (a.kind === 'none') return null;
   return (
-    <div class="stepfoot">
-      {a.kind === 'blocked' && (
-        <Alert tone="warn" action={<Button small kind="primary" onClick={() => p.onGo(a.fixStep)}>{a.fix}</Button>}>
-          <b>還不能進下一步：</b>{a.reason}
+    <div class="stepnext">
+      {a.pending && (
+        <Alert tone="warn" action={<Button small onClick={() => p.onGo(a.pending!.fixStep)}>{a.pending.fix}</Button>}>
+          <b>前面還有事沒做完：</b>{a.pending.reason}。你可以先往下看，之後再回來處理。
         </Alert>
       )}
       <div class="btnrow" style="justify-content:flex-end">
-        <Button kind="primary" disabled={a.kind === 'blocked'} onClick={() => a.kind === 'go' && p.onGo(a.to)}>{a.label} →</Button>
+        <Button kind="primary" onClick={() => p.onGo(a.to)}>{a.label} →</Button>
       </div>
     </div>
   );

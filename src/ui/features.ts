@@ -1,7 +1,7 @@
 /**
  * 選用功能註冊表（D75、D77、D78）。
- * 核心（排座、標籤、座位表、抽離、匯出、防呆、常駐摘要列）永遠開啟，不在這裡。
- * 選用功能預設全「關」，使用者在設定頁「選用功能」逐項勾選；關掉的功能從導覽、匯出頁與步驟中
+ * 核心（排座、標籤、座位表、抽離、下載、防呆、常駐摘要列）永遠開啟，不在這裡。
+ * 選用功能預設全「關」，使用者在設定頁「選用功能」逐項勾選；關掉的功能從導覽、下載頁與步驟中
  * 完全消失（不留灰色入口）。新增選用功能的接入方式見 docs/dispatch/H包接入指南.md。
  */
 import { createContext } from 'preact';
@@ -24,7 +24,7 @@ export interface FeatureDef {
   scope: FeatureScope;
 }
 
-/** 匯出頁多出的一項（勾選後與核心項目一起匯出） */
+/** 下載頁多出的一項（勾選後與核心項目一起下載） */
 export interface ExportExtra {
   key: string;
   title: string;
@@ -50,10 +50,10 @@ export interface FeatureUi {
 /** 本次已規劃的選用功能（D77），預設全關 */
 export const BUILTIN_FEATURES: FeatureDef[] = [
   { id: 'pickup-list', name: '領卷清單（含對卷）', desc: '每間教室、每科要領幾份試卷與答案卡，領卷時照表點數核對。', scope: 'all' },
-  { id: 'student-lookup', name: '考生查詢', desc: '輸入編號或姓名，馬上看到他在哪間教室、哪個座位。', scope: 'all' },
+  { id: 'student-lookup', name: '考生查詢', desc: '輸入考生編號、座號、學號或姓名，查他每一科在哪間教室、哪個座位。', scope: 'all' },
   { id: 'attendance-sheet', name: '出缺席記錄表', desc: '每間教室一頁，照座位順序列出考生，留打勾欄，考試當天點名用。', scope: 'all' },
-  { id: 'print-alignment', name: '列印對位測試頁', desc: '先印一張測試頁，確認 100% 縮放與邊界沒有被印表機裁掉。', scope: 'all' },
-  { id: 'bcct-quick-mode', name: '會考快速模式', desc: '沿用上次設定，檢核都過時只要貼上名單就能匯出。只用於會考。', scope: 'bcct' },
+  { id: 'print-alignment', name: '列印對位測試頁', desc: '正式列印前先印測試頁（A4、B4、A3 各一頁），確認 100% 縮放與邊界沒有被印表機裁掉。', scope: 'all' },
+  { id: 'bcct-quick-mode', name: '會考快速模式', desc: '沿用上次會考的設定；貼上新名單、四項檢查都過時會自動排座，看過檢核後再下載。只用於會考。', scope: 'bcct' },
 ];
 
 const defs: FeatureDef[] = [...BUILTIN_FEATURES];
