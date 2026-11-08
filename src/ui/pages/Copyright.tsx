@@ -43,7 +43,7 @@ const SECTIONS: Section[] = [
 ];
 
 /** 站內版權頁（頁尾「© 版權所有」連到這裡）。條文與 repo 根目錄 LICENSE.md 逐條一致，改一邊要改另一邊。 */
-export function Copyright(p: { backLabel?: string; onBack: () => void }) {
+export function Copyright(p: { backLabel?: string; onBack: () => void; onPrivacy?: () => void }) {
   return (
     <section class="lic">
       <div class="pagehead">
@@ -65,7 +65,7 @@ export function Copyright(p: { backLabel?: string; onBack: () => void }) {
       </article>
       <footer class="lic-foot small muted">
         <Button kind="ghost" onClick={p.onBack}>{APP_NAME}・回到程式</Button>
-        <span>© 2026 derliang｜保留所有權利｜限非營利使用</span>
+        <span>© 2026 derliang｜保留所有權利｜限非營利使用{p.onPrivacy && <>｜<button type="button" class="lic-link" onClick={p.onPrivacy}>隱私權政策</button></>}</span>
       </footer>
     </section>
   );
