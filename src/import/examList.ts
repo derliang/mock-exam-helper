@@ -66,6 +66,8 @@ export interface ExamListResult {
   issues: ExamListIssue[];
   /** 欄位對應結果（給畫面讓使用者確認） */
   columns: Record<string, number>;
+  /** 欄位 → 該欄表頭原文（給畫面讓使用者確認對應是否正確） */
+  headers: Record<string, string>;
 }
 
 export interface ExamListOptions {
@@ -82,7 +84,7 @@ export function parseExamList(rows: readonly (readonly string[])[], opts: ExamLi
   const issues: ExamListIssue[] = [];
   const h = findHeaderRow(rows);
   if (h < 0) {
-    return { entries: [], issues: [{ row: 0, message: '找不到表頭（需有「座號」與「姓名」欄）' }], columns: {} };
+    return { entries: [], issues: [{ row: 0, message: '找不到表頭（需有「座號」與「姓名」欄）' }], columns: {}, headers: {} };
   }
   const col = mapColumns(rows[h] ?? []);
   const get = (r: readonly string[], f: keyof typeof col): string => (col[f] === undefined ? '' : (r[col[f] as number] ?? ''));
@@ -125,5 +127,6 @@ export function parseExamList(rows: readonly (readonly string[])[], opts: ExamLi
     entries.push(e);
   }
   const columns = Object.fromEntries(Object.entries(col).filter(([, v]) => v !== undefined)) as Record<string, number>;
-  return { entries, issues, columns };
+  const headers = Object.fromEntries(Object.entries(columns).map(([f, i]) => [f, (rows[h]?.[i] ?? '').trim()]));
+  return { entries, issues, columns, headers };
 }

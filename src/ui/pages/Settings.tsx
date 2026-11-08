@@ -3,6 +3,7 @@ import type { Division, LabelPaper, Student, Track } from '../../data';
 import { studentCode } from '../../data';
 import { Alert, Button, ClassChip, Modal, Seg } from '../components';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
+import { RosterIO } from './RosterIO';
 import { addStudent, removeStudent, searchStudents, setClassColor, setClassTrack, updateStudent, type Doc } from '../store';
 
 type Tab = 'roster' | 'classes' | 'school' | 'rooms';
@@ -42,6 +43,7 @@ function Roster({ doc, onChange, division }: Props) {
       <div class="btnrow">
         <input class="input" style="max-width:360px" type="search" aria-label="搜尋姓名、考生編號、學號" placeholder="搜尋姓名、考生編號、學號" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
         <Button kind="primary" onClick={() => setEditing('new')}>新增學生</Button>
+        <RosterIO doc={doc} division={division} onChange={onChange} />
       </div>
       <p class="muted small" style="margin:8px 0">共 {doc.rosters[division].length} 人。刪除後空號保留。</p>
       <div style="overflow-x:auto">
