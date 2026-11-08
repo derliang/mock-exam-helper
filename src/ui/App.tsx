@@ -119,7 +119,7 @@ export function App() {
     <FeatureContext.Provider value={hist.present.settings}>
       <header class="pbar">
         <div class="pbar-in">
-          <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge> <span class="ver" title="目前版本">{formatVersion(APP_VERSION)}</span></span>
+          <span class="brand">模擬考小幫手 <span class="ver" title="目前版本">{formatVersion(APP_VERSION)}</span></span>
           <nav class="nav" aria-label="主要導覽">
             <button type="button" onClick={() => go({ page: 'init' })} aria-current={r.page === 'init'}>資料夾設定</button>
             <button type="button" disabled={!hasFolder} onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>

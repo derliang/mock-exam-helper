@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { Footer } from './Footer';
 
 describe('頁尾元件', () => {
-  it('顯示程式名稱、版本、beta 標示與版權', () => {
+  it('顯示程式名稱、版本、預發布標示與版權', () => {
     const html = renderToString(<Footer version="0.1.0-beta.1" buildDate="2026-11-08" />);
     expect(html).toContain('<footer');
     expect(html).toContain('模擬考小幫手');
