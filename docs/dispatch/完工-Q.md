@@ -27,3 +27,35 @@
 
 ## 未動
 全站頁尾、其他頁面、`version.ts`。
+
+---
+
+# 追加：站內「隱私權政策」頁（調度員追加，使用者：「隱私權參考這頁」）
+
+同一個 PR（#50）。規格：`docs/dispatch/隱私權頁內容規格.md`。截圖：`隱私權頁-375.jpg`、`隱私權頁-1280.jpg`、`全站頁尾-375.jpg`（頁尾加「隱私權」後手機換行不破版）。
+
+## 做了什麼
+- 新頁 `src/ui/pages/Privacy.tsx`：頁首、H1「隱私權政策」、更新日期（2026 年 11 月 8 日）、English version 錨點（`#en`，點了捲動）、開頭段、一到八小節、English 摘要段（內容與中文一致）、頁尾連結列與版權行。不含 Google 登入、雲端硬碟同步、Apps Script、相片、日曆、請假、有限使用等老師隨手記專屬內容；「七之一」略去。
+- 路由 `privacy`（`nav.ts`、`App.tsx`，返回鈕行為同版權頁，`pageName`：版權頁改稱「使用授權」、隱私權頁「隱私權政策」）。
+- 全站頁尾加「隱私權」按鈕，與「© 版權所有」並列（`Footer.tsx` `onPrivacy`）；版權頁頁尾加「隱私權政策」連結，隱私權頁連回「使用授權」「授權說明」。
+- 樣式：`.lic` 加 `overflow-wrap:anywhere`（長網址在手機被裁切）、`.lic-link`、`h3`。
+
+## 隱私承諾核對（實際查過）
+| 項目 | 查法 | 結果 |
+|---|---|---|
+| Google Fonts／analytics／追蹤 | grep `src`、`index.html` 與 `dist`（googleapis、gstatic、google-analytics、googletagmanager、gtag、sendBeacon、XMLHttpRequest、WebSocket、外部 `<link>`／`<script>`） | 程式碼無；`dist` 內的 http 字串只在套件註解（jszip、pako、adobe、sil.org 等），沒有實際請求 |
+| `fetch(` | grep | 只有 `src/export/fontLoader.ts`，載入 `?url` 內嵌字型檔（與網站同源，由 GitHub Pages 提供，匯出時才下載） |
+| 瀏覽器儲存 | grep | 只有 IndexedDB：資料庫 `mock-exam-helper`、store `handles`、key `root`，存資料夾控制代碼（`src/data/fsRepository.ts`）；沒有 localStorage、sessionStorage、cookie、Service Worker |
+| 寫入資料夾的檔案 | `src/data/folder.ts` 註解與程式 | settings.json、roster-senior／junior.json、`exams/<id>/` 下 exam／entries／diffs／overrides／result.json；覆寫前留 `.bak` |
+
+上述核對寫成測試（`Privacy.test.tsx`「隱私承諾與實際程式一致」）：日後有人加外部資源、fetch、localStorage 等，測試會紅燈提醒同步改政策。
+
+## 驗證
+`npx tsc --noEmit` 無錯；`npx vitest run` 42 檔 354 測試全過；`npm run build` 成功。
+
+## 不確定、交調度員（沒用肯定句帶過）
+1. **深淺色設定沒有儲存**：程式裡沒找到持久化（重開頁面會回「系統」），所以政策沒提；若之後加了偏好儲存就必須更新政策與測試。
+2. **GitHub Pages 的連線資料**：政策寫「GitHub 依其隱私權政策處理連線資料（例如 IP 位址）」，是依規格寫的一般性說法，我沒有查 GitHub 的政策原文。
+3. **瀏覽器自身行為**（例如瀏覽器的檔案存取授權記錄、瀏覽器同步）不在本程式控制內，政策沒逐項寫。
+4. 政策網址 `https://derliang.github.io/mock-exam-helper/` 取自規格，我沒有實際連線確認部署位置。
+5. 英文段是中文的簡短對照，非法律用語審校。

@@ -7,6 +7,7 @@ export type Route =
   | { page: 'exams' }
   | { page: 'new' }
   | { page: 'copyright' }
+  | { page: 'privacy' }
   | { page: 'lookup'; examId?: string }
   | { page: 'settings'; tab?: 'roster' | 'classes' | 'school' | 'rooms' | 'features'; division?: 'senior' | 'junior' }
   | { page: 'step'; examId: string; step: 1 | 2 | 3 | 4 | 5 | 6 }

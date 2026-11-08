@@ -315,6 +315,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .pfoot .pf-ver:hover{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
 .pfoot .pf-ver:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .pfoot .pf-pre{font-size:11px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
+.pfoot .pf-link{font:inherit;color:inherit;background:none;border:0;padding:4px 6px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .pf-about{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 10px}
 .pf-about dt{color:var(--text-3);font-weight:700}
 .pf-about dd{margin:0}
@@ -502,12 +503,12 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   </section>
 
   <section id="footer">
-    <header><h2>全站頁尾</h2><p>每一頁（資料夾設定、各步驟、共用設定頁）底部都有同一個頁尾：程式名稱、版本號、版權。短內容頁貼在視窗底部（sticky footer），不遮擋內容；版本號是按鈕，點開「關於」看版本、建置日期與資料只存本機的說明。頁尾不進 Word／PDF，列印時隱藏。</p></header>
+    <header><h2>全站頁尾</h2><p>每一頁（資料夾設定、各步驟、共用設定頁）底部都有同一個頁尾：程式名稱、版本號、「© 版權所有」與「隱私權」兩個連結（版權人全站統一為 derliang）。短內容頁貼在視窗底部（sticky footer），不遮擋內容；版本號是按鈕，點開「關於」看版本、建置日期與資料只存本機的說明。頁尾不進 Word／PDF，列印時隱藏。</p></header>
     <div class="grid">
       <div class="card"><div class="lab">測試版（beta）</div>
-        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v0.1.0-beta.1<span class="pf-pre">beta</span></button><span class="pf-copy">© 2026 模擬考小幫手</span></footer></div>
+        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v0.1.0-beta.1<span class="pf-pre">beta</span></button><button type="button" class="pf-copy pf-link">© 版權所有</button><button type="button" class="pf-copy pf-link">隱私權</button></footer></div>
       <div class="card"><div class="lab">正式版（無預發布標籤）</div>
-        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v1.0.0</button><span class="pf-copy">© 2026 模擬考小幫手</span></footer></div>
+        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v1.0.0</button><button type="button" class="pf-copy pf-link">© 版權所有</button><button type="button" class="pf-copy pf-link">隱私權</button></footer></div>
     </div>
   </section>
 

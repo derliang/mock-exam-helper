@@ -3,7 +3,7 @@ import { Button, Modal } from './index';
 import { APP_NAME, APP_VERSION, BUILD_DATE, copyrightText, formatVersion, preLabel } from '../version';
 
 /** 全站頁尾：程式名稱、版本（可點開「關於」）、版權。不進下載檔；列印時隱藏 */
-export function Footer(p: { version?: string; buildDate?: string; onCopyright?: () => void }) {
+export function Footer(p: { version?: string; buildDate?: string; onCopyright?: () => void; onPrivacy?: () => void }) {
   const version = p.version ?? APP_VERSION;
   const buildDate = p.buildDate ?? BUILD_DATE;
   const [open, setOpen] = useState(false);
@@ -17,6 +17,7 @@ export function Footer(p: { version?: string; buildDate?: string; onCopyright?: 
       {p.onCopyright
         ? <button type="button" class="pf-copy pf-link" onClick={p.onCopyright}>© 版權所有</button>
         : <span class="pf-copy">© 版權所有</span>}
+      {p.onPrivacy && <button type="button" class="pf-copy pf-link" onClick={p.onPrivacy}>隱私權</button>}
       {open && (
         <Modal title={`關於${APP_NAME}`} onClose={() => setOpen(false)} actions={<Button kind="primary" onClick={() => setOpen(false)}>關閉</Button>}>
           <dl class="pf-about">
