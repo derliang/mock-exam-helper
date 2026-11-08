@@ -7,7 +7,7 @@
  */
 import type { ClassInfo, Classroom, Detach, Mark, Override, StudentCode, Subject } from '../data/types';
 import { parseStudentCode } from '../data/helpers';
-import { seatGroup, type SeatingStrategy } from './seating';
+import { seatGroup } from './seating';
 import { validateSeating } from './validate';
 
 export interface SpecialPlacement {
@@ -24,7 +24,6 @@ export interface DetachInput {
   /** 本次可用的預備教室（依清單順序） */
   reserveRooms: readonly Classroom[];
   classes: readonly ClassInfo[];
-  strategy: SeatingStrategy;
 }
 
 export type DetachResult =
@@ -83,7 +82,7 @@ export function allocateDetaches(input: DetachInput): DetachResult {
     }
 
     if (exam.length) {
-      const r = seatGroup(examRooms.rooms, exam, input.strategy);
+      const r = seatGroup(examRooms.rooms, exam);
       if (!r.ok) {
         errors.push(`${subject.name}抽離考試：${r.error}`);
         continue;
