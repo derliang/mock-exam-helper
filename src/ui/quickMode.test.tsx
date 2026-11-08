@@ -6,7 +6,7 @@ import { enabledStepPanels } from './features';
 import { QuickPanel } from './pages/QuickPanel';
 import { parsePasted, previousExam, quickCheck, sheetFromPaste } from './quickMode';
 import { reseat } from './seating';
-import type { Doc } from './store';
+import { previousExam as storePrevious, type Doc } from './store';
 
 const SUBJ = [{ id: 'chinese', name: '國文' }, { id: 'math', name: '數學' }];
 function exam(id: string, createdAt: string, patch: Partial<ExamConfig> = {}): ExamConfig {
@@ -49,6 +49,16 @@ describe('H7 快速模式進入條件', () => {
     const r = quickCheck(alone, alone.exams[0]!);
     expect(r.status).toBe('unavailable');
     expect(r.checks[0]!.text).toContain('沒有上一次會考');
+  });
+
+  it('「上次」與新增考試共用同一個定義：同類型、最近修改的那次（不是建立時間）', () => {
+    const d = doc();
+    // p 建立較早但剛修改過；另加一次較晚建立、較早修改的 q
+    const q = exam('q', '2026-03-01T00:00:00.000Z', { updatedAt: '2026-03-02T00:00:00.000Z' });
+    const p2 = { ...d.exams[0]!, updatedAt: '2026-09-01T00:00:00.000Z' };
+    const d2: Doc = { ...d, exams: [p2, q, cur(d)], examFiles: { p: { entries }, q: { entries } } };
+    expect(previousExam(d2, cur(d2))?.id).toBe('p');
+    expect(storePrevious(d2, 'bcct', (e) => e.id !== 'c' && !!d2.examFiles?.[e.id]?.entries?.length)?.id).toBe('p');
   });
 
   it('貼上前：教室與學生名單沒變 → ready，另兩項待貼上才判斷', () => {

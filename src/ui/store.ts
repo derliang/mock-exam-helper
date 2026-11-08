@@ -116,9 +116,9 @@ export function schoolYear(d: Date): number {
   return d.getMonth() >= 7 ? y : y - 1;
 }
 
-/** 這次沿用的對象：同類型最近一次修改的模擬考 */
-export function previousExam(doc: Doc, kind: ExamKind): ExamConfig | undefined {
-  return doc.exams.filter((e) => e.kind === kind).sort((a, b) => lastModified(b).localeCompare(lastModified(a)))[0];
+/** 這次沿用的對象：同類型最近一次修改的模擬考（新增考試與會考快速模式共用這個定義；accept 可再加條件） */
+export function previousExam(doc: Doc, kind: ExamKind, accept: (e: ExamConfig) => boolean = () => true): ExamConfig | undefined {
+  return doc.exams.filter((e) => e.kind === kind && accept(e)).sort((a, b) => lastModified(b).localeCompare(lastModified(a)))[0];
 }
 
 export const lastModified = (e: ExamConfig): string => e.updatedAt ?? e.createdAt;

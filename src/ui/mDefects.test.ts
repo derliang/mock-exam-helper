@@ -83,7 +83,7 @@ describe('D-2 匯出與 ⑤ 畫面一致（未鎖定「標少數」建議也要�
     expect(s.ok ? '' : s.error).toBe('');
     if (!s.ok) return;
     const screen = examResult(s.doc, exam)!;
-    const p = prepareExport(d, exam, now);
+    const p = prepareExport(s.doc, exam);
     expect(p.ok).toBe(true);
     if (!p.ok) return;
     expect(screen.marks.length).toBeGreaterThan(0);

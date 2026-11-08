@@ -3,7 +3,7 @@ import type { ExamConfig } from '../../data';
 import { Alert, Badge, Button } from '../components';
 import { flowOf } from '../flow';
 import { parsePasted, quickCheck, type QuickCheck } from '../quickMode';
-import { reseat } from '../seating';
+import { examEntries, reseat } from '../seating';
 import type { Doc } from '../store';
 
 const MARK = { ok: '✓', fail: '✗', pending: '…' } as const;
@@ -17,8 +17,10 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
   const [text, setText] = useState('');
   const [tried, setTried] = useState<ReturnType<typeof quickCheck> | null>(null);
   const [applied, setApplied] = useState(false);
+  /** 通過檢查後先停在這裡等使用者確認，才取代考試名單並排座 */
+  const [pending, setPending] = useState<ReturnType<typeof parsePasted>>(null);
   const [errs, setErrs] = useState<string[]>([]);
-  const base = quickCheck(doc, exam);
+  const base = { ...quickCheck(doc, exam), entryCount: examEntries(doc, exam).length };
 
   const run = () => {
     const input = parsePasted(exam, doc.settings.classes.filter((c) => c.division === exam.division).map((c) => c.name), text);
@@ -27,6 +29,13 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
     setTried(res);
     setErrs([]);
     if (res.status !== 'passed') return;
+    setPending(input);
+  };
+
+  const apply = () => {
+    const input = pending;
+    if (!input) return;
+    setPending(null);
     const files = doc.examFiles?.[exam.id] ?? {};
     const next: Doc = { ...doc, examFiles: { ...doc.examFiles, [exam.id]: { ...files, entries: input.entries, diffs: [] } } };
     const r = reseat(next, exam, new Date().toISOString());
@@ -47,7 +56,12 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
           {tried?.status === 'unavailable' && (
             <Alert tone="warn"><b>退回一般六步驟：</b>{tried.checks.filter((c) => c.state === 'fail').map((c) => c.text).join('　')}請改用上面的「匯入本次考試名單」，逐步處理。</Alert>
           )}
-          {!applied && (
+          {pending && (
+            <Alert tone="warn" action={<><Button small kind="primary" onClick={apply}>確認取代並排座</Button><Button small onClick={() => setPending(null)}>取消</Button></>}>
+              <b>檢查都通過。要套用嗎？</b>這會用貼上的 {pending.entries.length} 人取代目前的考試名單（目前 {base.entryCount} 人），並重新排座。套用後若不對，可按頁首的「復原」回到套用前。
+            </Alert>
+          )}
+          {!applied && !pending && (
             <>
               <div class="field"><label for="qm-paste">貼上考試名單</label>
                 <textarea id="qm-paste" class="input" rows={6} value={text} placeholder="從 Excel 複製整張表（含表頭）後貼在這裡" onInput={(e) => setText(e.currentTarget.value)} />
@@ -58,6 +72,7 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
           {errs.length > 0 && <Alert tone="danger"><ul>{errs.map((e) => <li key={e}>{e}</li>)}</ul></Alert>}
           {applied && (
             <div class="stack">
+              <p class="small muted">已套用。若不對，按頁首的「復原」可回到套用前的名單與排座。</p>
               <p class="small">其餘步驟：① 考試設定、③ 教室、④ 標示、⑤ 排座　<Badge>沿用上次</Badge></p>
               {flow.issues.length === 0
                 ? <Alert tone="ok" action={<Button small kind="primary" onClick={() => p.onStep?.(6)}>前往 ⑥ 下載</Button>}><b>檢核全部通過。</b>考生 {flow.summary.students}、座位 {flow.summary.seats}，可以前往下載。</Alert>

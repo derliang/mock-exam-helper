@@ -118,6 +118,18 @@ describe('H4 查詢結果', () => {
     const { d, e, res } = seated([...entries, absent]);
     const hit = lookupExaminee(d, e, res, absent);
     expect(hit).toMatchObject({ allAbsent: true, rows: [] });
+    expect(hit.absentSeat).toBeUndefined();
+  });
+  it('全科缺考且勾了「仍排座」：排座真的排了他，查詢要給教室與座位，不能說未排座', () => {
+    const absent: ExamEntry = { classNo: 2, seatNo: 4, name: '缺考者', subjectIds: [] };
+    const e = exam({ ...decided(), seatFullyAbsent: true });
+    const r = reseat(doc(e, [...entries, absent]), e, NOW);
+    if (!r.ok) throw new Error(r.error);
+    const res = r.doc.examFiles!.e1!.result!;
+    expect(res.assignments.some((a) => a.code === '0204')).toBe(true);
+    const hit = lookupExaminee(r.doc, e, res, absent);
+    expect(hit.absentSeat).toMatchObject({ place: '良' });
+    expect(hit.absentSeat!.seat).toMatch(/^\d+-\d+$/);
   });
   it('不考的科目標示「這科不考」', () => {
     const { d, e, res } = seated();

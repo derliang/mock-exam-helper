@@ -26,8 +26,10 @@ export interface LookupHit {
   classNo: number;
   className: string;
   seatNo: number;
-  /** 全科缺考，未排座（D79） */
+  /** 全科缺考（D79）；是否有座位看 absentSeat */
   allAbsent: boolean;
+  /** 全科缺考但設定「仍排座」時，排座結果給的教室與座位（排－深位）；沒排座則為 undefined */
+  absentSeat?: { place: string; seat: string };
   rows: LookupRow[];
 }
 
@@ -86,7 +88,8 @@ export function lookupExaminee(doc: Doc, exam: ExamConfig, result: SeatingResult
   const className = examClasses(doc, exam).find((c) => c.no === e.classNo)?.name ?? String(e.classNo);
   const base = { code, name: e.name, classNo: e.classNo, className, seatNo: e.seatNo };
   if (e.subjectIds.length === 0) {
-    return { ...base, allAbsent: true, rows: [] };
+    const seated = result.assignments.find((a) => a.code === code);
+    return { ...base, allAbsent: true, ...(seated ? { absentSeat: { place: roomName(seated.classroomId), seat: seatLabel(seated) } } : {}), rows: [] };
   }
   const home = result.assignments.find((a) => a.code === code);
   const ov = examOverrides(doc, exam).find((o) => o.code === code);

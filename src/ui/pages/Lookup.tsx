@@ -72,7 +72,9 @@ export function Lookup(p: { doc: Doc; examId?: string; onGoStep: (examId: string
         <div class="card stack">
           <h3>{hit.className}班 {hit.seatNo} 號　{hit.name}　<Badge>{hit.code}</Badge></h3>
           {hit.allAbsent
-            ? <Alert tone="info"><b>全科缺考，未排座。</b>這位考生在考試名單裡沒有任何考科，所以不佔座位。</Alert>
+            ? (hit.absentSeat
+              ? <Alert tone="info"><b>全科缺考，但設定為仍排座。</b>座位在 {hit.absentSeat.place}　{hit.absentSeat.seat}（排－深位）；他沒有任何考科，不計領卷份數。</Alert>
+              : <Alert tone="info"><b>全科缺考，未排座。</b>這位考生在考試名單裡沒有任何考科，所以不佔座位。</Alert>)
             : (
               <div class="scroll"><table class="t compact">
                 <thead><tr><th>科目</th><th>教室／地點</th><th>座位（排－深位）</th><th>說明</th></tr></thead>

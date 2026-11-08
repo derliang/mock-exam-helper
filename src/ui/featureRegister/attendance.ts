@@ -13,7 +13,7 @@ export const attendanceExport: ExportExtra = {
   title: '出缺席記錄表（A4）',
   sub: '每間教室一頁，照座位順序列出考生，每科留一格打勾；不考的科目與抽離去處已標明',
   run: async ({ doc, exam, format }): Promise<OutputFile[]> => {
-    const prepared = prepareExport(doc, exam, new Date().toISOString());
+    const prepared = prepareExport(doc, exam);
     if (!prepared.ok) throw new Error(prepared.errors.join('；'));
     const pages = buildAttendancePages(prepared.input);
     const meta = { generatedAt: prepared.input.result.generatedAt, dataVersion: prepared.input.result.dataVersion };

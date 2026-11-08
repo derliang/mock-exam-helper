@@ -109,7 +109,7 @@ export function Step6(p: {
   const chosenExtras = extras.filter((x) => extraOn[x.key]);
   const mainNone = !o.seat && !o.label && !o.study && !o.reserve;
   const diffs = p.unresolvedDiffs ?? unresolvedDiffsOf(p.doc, exam);
-  const prepared = useMemo(() => prepareExport(p.doc, exam, new Date().toISOString()), [p.doc, exam]);
+  const prepared = useMemo(() => prepareExport(p.doc, exam), [p.doc, exam]);
   const loader = p.loadFonts ?? (async () => (await import('../../export/fontLoader')).loadFonts());
 
   // 字集檢查要字型字集；先用「全部通過」，載入後再重算（使用者按匯出前就會載入）
@@ -160,6 +160,7 @@ export function Step6(p: {
           <ul>{prepared.errors.map((e) => <li key={e}>{e}</li>)}</ul>
           <div class="row" style="margin-top:8px">
             {prepared.errors.some((e) => e.startsWith('缺考試名單')) && <Button small kind="primary" onClick={() => p.onGoStep(2)}>去 ② 匯入考試名單</Button>}
+            {prepared.errors.some((e) => e.startsWith('缺排座結果') || e.startsWith('排座已過期')) && <Button small kind="primary" onClick={() => p.onGoStep(5)}>回 ⑤ 排座</Button>}
             {prepared.errors.some((e) => e.startsWith('缺教室')) && <Button small kind="primary" onClick={() => p.onGoStep(3)}>去 ③ 勾選教室</Button>}
           </div>
         </Alert></div>
