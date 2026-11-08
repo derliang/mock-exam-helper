@@ -1,12 +1,15 @@
 /** 畫面層的文件狀態與純函式變更（可單元測試；復原以整份快照為單位） */
 import type { ClassInfo, Division, ExamConfig, ExamKind, Settings, Student, Track } from '../data';
 import { studentCode } from '../data';
+import type { ExamFiles } from '../data/folder';
 import { defaultSubjects } from './subjects';
 
 export interface Doc {
   settings: Settings;
   rosters: Record<Division, Student[]>;
   exams: ExamConfig[];
+  /** 每次模擬考底下的其他檔案（考試名單、比對、覆寫、排座結果），以考試 id 為鍵；跟著復原 */
+  examFiles?: Record<string, Partial<ExamFiles>>;
 }
 
 export type Result<T> = { ok: true; doc: T } | { ok: false; error: string };
