@@ -72,7 +72,7 @@ export function Modal(p: { title: string; onClose: () => void; children: Compone
     return () => window.removeEventListener('keydown', h);
   }, [p.onClose]);
   return (
-    <div class="modal-frame" onClick={(e) => e.target === e.currentTarget && p.onClose()}>
+    <div class="mfade" onClick={(e) => e.target === e.currentTarget && p.onClose()}>
       <div class="modal" role="dialog" aria-modal="true" aria-label={p.title}>
         <h3>{p.title}</h3>
         <div class="t">{p.children}</div>

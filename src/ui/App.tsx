@@ -1,7 +1,12 @@
-import { useEffect, useState } from 'preact/hooks';
-import { Alert, Button, Seg, StepNav, TopBar, type StepState } from './components';
+import { useEffect, useRef, useState } from 'preact/hooks';
+import { Seg, StepNav, TopBar, type StepState } from './components';
 import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
-import { createMemoryRepository, type Repository } from './repository';
+import { Exams } from './pages/Exams';
+import { Init } from './pages/Init';
+import { Settings } from './pages/Settings';
+import { createMemoryRepository, demoDoc, type Repository } from './repository';
+import type { Doc } from './store';
+import { canUndo, commit, newHistory, undo, type History } from './undo';
 
 type Theme = 'system' | 'light' | 'dark';
 const repo: Repository = createMemoryRepository();
@@ -19,15 +24,25 @@ function useTheme(): [Theme, (t: Theme) => void] {
 export function App() {
   const [nav, setNav] = useState<NavState>(initialNav());
   const [theme, setTheme] = useTheme();
+  const [hist, setHist] = useState<History<Doc>>(() => newHistory(demoDoc()));
+  const loaded = useRef(false);
+
+  // 資料夾授權後載入；每次變更存檔
+  const load = async () => { const d = await repo.load(); setHist(newHistory(d)); loaded.current = true; };
+  const edit = (d: Doc) => { setHist((h) => commit(h, d)); void repo.save(d); };
+  const onUndo = () => setHist((h) => { const n = undo(h); void repo.save(n.present); return n; });
+  const undoCount = hist.past.length;
+
   const go = (r: Route) => setNav((s) => goTo(s, r));
   const go2 = (r: Route, from: { route: Route; label: string }) => setNav((s) => pushTo(s, r, from));
   const back = () => setNav(goBack);
   const r = nav.route;
-  // 復原（Ctrl+Z）：頁面資料層接上後由各頁的 History 處理，這裡先留殼
-  const undoCount = 0;
-  const onUndo = () => {};
+
   useEffect(() => {
-    const h = (e: KeyboardEvent) => { if ((e.ctrlKey || e.metaKey) && e.key === 'z') { e.preventDefault(); onUndo(); } };
+    const h = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement | null;
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !(t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) && canUndo(hist)) { e.preventDefault(); onUndo(); }
+    };
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   });
@@ -36,55 +51,39 @@ export function App() {
     <>
       <header class="pbar">
         <span class="brand">模擬考小幫手</span>
-        <nav class="nav" aria-label="主要導覽">
-          <Button kind="ghost" small onClick={() => go({ page: 'exams' })}>模擬考列表</Button>
-          <Button kind="ghost" small onClick={() => go2({ page: 'settings' }, { route: r, label: '上一頁' })}>設定</Button>
-        </nav>
+        {r.page !== 'init' && (
+          <nav class="nav" aria-label="主要導覽">
+            <button type="button" onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
+            <button type="button" onClick={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>設定</button>
+          </nav>
+        )}
+        <span style="flex:1" />
         <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '系統' }, { value: 'light', label: '淺' }, { value: 'dark', label: '深' }]} />
       </header>
       <main class="wrap">
         {r.page !== 'init' && <TopBar backLabel={backLabel(nav)} onBack={back} undoCount={undoCount} onUndo={onUndo} />}
-        {r.page === 'init' && <Init onDone={() => go({ page: 'exams' })} />}
-        {r.page === 'exams' && <Exams onOpen={() => go({ page: 'step', examId: 'demo', step: 1 })} />}
-        {r.page === 'settings' && <Placeholder title="設定頁" />}
-        {r.page === 'step' && <Workspace route={r} onStep={(step) => go({ page: 'step', examId: r.examId, step })} />}
-        {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <Placeholder title={r.page} />}
+        {r.page === 'init' && <Init repo={repo} onDone={async () => { await load(); go({ page: 'exams' }); }} />}
+        {r.page === 'exams' && <Exams doc={hist.present} onChange={edit} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} />}
+        {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} />}
+        {r.page === 'step' && <Workspace route={r} doc={hist.present} onStep={(step) => go({ page: 'step', examId: r.examId, step })} />}
+        {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
     </>
   );
 }
 
-const Placeholder = (p: { title: string }) => <section><h2>{p.title}</h2><p class="muted">施工中</p></section>;
-
-function Init(p: { onDone: () => void }) {
-  const [busy, setBusy] = useState(false);
-  const choose = async () => { setBusy(true); await repo.chooseFolder(); p.onDone(); };
-  return (
-    <section>
-      <h1>模擬考小幫手</h1>
-      <p class="muted">第一次使用：選一個放資料的資料夾。資料只存在你的電腦。</p>
-      <div class="btnrow" style="margin-top:16px">
-        <Button kind="primary" disabled={busy} onClick={choose}>選擇資料夾</Button>
-      </div>
-      <Alert tone="info">請使用 Chrome。也可以把資料夾拖到這裡（施工中）。</Alert>
-    </section>
-  );
+/** 「← 回到 …」要寫清楚是哪一頁（DESIGN 10.1） */
+export function pageName(r: Route, doc: Doc): string {
+  switch (r.page) {
+    case 'exams': return '模擬考列表';
+    case 'settings': return '設定';
+    case 'step': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」${stepTitle(r.step)}`;
+    default: return '上一頁';
+  }
 }
 
-function Exams(p: { onOpen: () => void }) {
-  return (
-    <section>
-      <h2>模擬考列表</h2>
-      <p class="muted">尚無模擬考（假資料示意）。</p>
-      <Button kind="primary" onClick={p.onOpen}>開啟示範</Button>
-    </section>
-  );
-}
-
-function Workspace(p: { route: Extract<Route, { page: 'step' }>; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void }) {
-  const steps = STEP_NAMES.map((name, i) => ({
-    no: i + 1, name, state: (i + 1 === p.route.step ? 'cur' : 'todo') as StepState,
-  }));
+function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void }) {
+  const steps = STEP_NAMES.map((name, i) => ({ no: i + 1, name, state: (i + 1 === p.route.step ? 'cur' : 'todo') as StepState }));
   return (
     <div class="ws wide">
       <aside class="side"><StepNav steps={steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>

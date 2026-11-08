@@ -334,3 +334,11 @@ section>header p{color:var(--text-2);max-width:72ch}
 .swatches button{width:28px;height:28px;border-radius:50%;border:2px solid var(--line-2);cursor:pointer;padding:0}
 .swatches button[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:2px}
 .mfade{position:fixed;inset:0;z-index:50;background:rgba(20,18,12,.45);display:grid;place-items:center;padding:16px}
+/* 表格與遮罩（原型移植） */
+table.t{border-collapse:collapse;width:100%;min-width:560px}
+.t th{text-align:left;font-size:12px;color:var(--text-3);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line-2);background:var(--sunken);white-space:nowrap}
+.t td{padding:8px 10px;border-bottom:1px solid var(--line)}
+.t tbody tr:hover{background:var(--accent-soft)}
+.t td.n{font-variant-numeric:tabular-nums}
+.t tr.gap td{color:var(--text-3);font-style:normal;background:repeating-linear-gradient(135deg,transparent 0 6px,var(--sunken) 6px 12px)}
+.mfade{position:fixed;inset:0;z-index:50;background:rgba(20,18,12,.45);display:grid;place-items:center;padding:16px}
