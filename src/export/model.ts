@@ -16,6 +16,7 @@ import {
   type Settings,
   type Student,
 } from '../data';
+import { detachRoomCounts, roomStats, type RoomStats } from '../core/stats';
 import { classColor } from './colors';
 
 export interface ExportInput {
@@ -107,10 +108,17 @@ export const PAPER_MM: Record<LabelPaper | 'A4', { w: number; h: number }> = {
 };
 export const mmToTwip = (mm: number): number => Math.round((mm * 1440) / 25.4);
 
-/** 標籤格尺寸（mm）：紙張扣邊界後均分；同一種紙張＋格數下每格固定、不隨人數變 */
+/** 標籤預設格數（D74）：A3 7×7（35mm 正方）、B4 6 欄×8 列 */
+export function defaultLabelLayout(paper: LabelPaper): LabelLayout {
+  return paper === 'A3' ? { paper, cols: 7, rows: 7 } : { paper, cols: 6, rows: 8 };
+}
+
+/** A3 的 7×7 是固定 35mm 正方（沿用舊標籤，D74）；其他格數由紙張扣邊界後均分。
+ * 均分時高度多扣 3mm：Word 表格後一定要有一個段落，不預留會多出空白頁。 */
 export function labelCellMm(layout: LabelLayout, marginMm: number): { w: number; h: number } {
+  if (layout.paper === 'A3' && layout.cols === 7 && layout.rows === 7) return { w: 35, h: 35 };
   const p = PAPER_MM[layout.paper];
-  return { w: (p.w - 2 * marginMm) / layout.cols, h: (p.h - 2 * marginMm) / layout.rows };
+  return { w: (p.w - 2 * marginMm) / layout.cols, h: (p.h - 2 * marginMm - 3) / layout.rows };
 }
 
 interface Ctx {
@@ -160,22 +168,11 @@ function usableOf(c: Classroom): Set<string> {
   return s;
 }
 
-/** 座位表統計（D40）：全部依該教室計算 */
-export function computeStats(codes: string[], subjectIds: string[], ctx: Pick<Ctx, 'classes' | 'subjectName' | 'entries'>): StatsModel {
-  const byClass = new Map<number, number>();
-  for (const c of codes) {
-    const no = Number(c.slice(0, 2));
-    byClass.set(no, (byClass.get(no) ?? 0) + 1);
-  }
+function fromRoomStats(rs: RoomStats, ctx: Ctx): StatsModel {
   return {
-    perClass: [...byClass.entries()]
-      .sort((a, b) => a[0] - b[0])
-      .map(([no, count]) => ({ className: ctx.classes.get(no)?.name ?? String(no), count })),
-    total: codes.length,
-    perSubject: subjectIds.map((sid) => ({
-      subjectName: ctx.subjectName.get(sid) ?? sid,
-      count: codes.filter((c) => ctx.entries.get(c)?.subjectIds.includes(sid)).length,
-    })),
+    total: rs.total,
+    perClass: rs.perClass.map((c) => ({ className: ctx.classes.get(c.classNo)?.name ?? String(c.classNo), count: c.count })),
+    perSubject: rs.perSubject.map((c) => ({ subjectName: ctx.subjectName.get(c.subjectId) ?? c.subjectId, count: c.inRoom })),
   };
 }
 
@@ -183,7 +180,6 @@ export function computeStats(codes: string[], subjectIds: string[], ctx: Pick<Ct
 export function buildSeatPages(input: ExportInput): SeatPageModel[] {
   const ctx = ctxOf(input);
   const rooms = new Map(input.settings.classrooms.map((c) => [c.id, c]));
-  const subjectIds = input.exam.subjects.map((s) => s.id);
   const pages: SeatPageModel[] = [];
   for (const id of input.exam.classroomIds) {
     const room = rooms.get(id);
@@ -200,11 +196,7 @@ export function buildSeatPages(input: ExportInput): SeatPageModel[] {
       depth: room.depth,
       cells,
       usable: usableOf(room),
-      stats: computeStats(
-        mine.map((a) => a.code),
-        subjectIds,
-        ctx,
-      ),
+      stats: fromRoomStats(roomStats(id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches), ctx),
     });
   }
   const groups = new Map<string, typeof input.result.detaches>();
@@ -232,11 +224,14 @@ export function buildSeatPages(input: ExportInput): SeatPageModel[] {
       depth: room.depth,
       cells,
       usable: usableOf(room),
-      stats: computeStats(
-        ds.map((d) => d.code),
-        [subjectId],
-        ctx,
-      ),
+      stats: (() => {
+        const dc = detachRoomCounts(input.result.detaches, subjectId, roomId);
+        return {
+          total: dc.total,
+          perClass: dc.perClass.map((c) => ({ className: ctx.classes.get(c.classNo)?.name ?? String(c.classNo), count: c.count })),
+          perSubject: [{ subjectName: sname, count: dc.total }],
+        };
+      })(),
     });
   }
   return pages;

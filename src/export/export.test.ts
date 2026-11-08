@@ -9,6 +9,7 @@ import {
   findMissingChars,
   footerText,
   labelCellMm,
+  defaultLabelLayout,
   mmToTwip,
   renderDocx,
   renderPrintHtml,
@@ -52,7 +53,8 @@ describe('版面模型', () => {
       { className: '溫', count: 10 },
       { className: '良', count: 8 },
     ]);
-    expect(p1!.stats.perSubject.map((s) => s.count)).toEqual([18, 18, 18]);
+    // 使用核心 roomStats：英文有 2 人抽離到預備教室，本教室實際考 16 人
+    expect(p1!.stats.perSubject.map((s) => s.count)).toEqual([18, 16, 18]);
     expect(p2!.stats.total).toBe(12);
   });
 
@@ -72,13 +74,22 @@ describe('版面模型', () => {
   it('標籤：格數參數化，每張紙格子大小固定、順序同座位表（D69/D72）', () => {
     const f48 = labelCellMm({ paper: 'B4', cols: 6, rows: 8 }, 0);
     expect(f48.w).toBeCloseTo(250 / 6, 5);
-    expect(f48.h).toBeCloseTo(353 / 8, 5);
-    const a3 = labelCellMm({ paper: 'A3', cols: 7, rows: 7 }, 0);
-    expect(a3.w).toBeCloseTo(297 / 7, 5);
+    expect(f48.h).toBeCloseTo((353 - 3) / 8, 5);
+    expect(labelCellMm({ paper: 'A3', cols: 7, rows: 7 }, 0)).toEqual({ w: 35, h: 35 });
+    expect(labelCellMm({ paper: 'B4', cols: 7, rows: 7 }, 0).w).toBeCloseTo(250 / 7, 5);
     const pages = buildLabelPages(makeFixture({ labelCols: 7, labelRows: 7 }));
     expect(pages).toHaveLength(2);
     expect(pages[0]!.cells.slice(0, 3).map((c) => c.coord)).toEqual(['1-1', '1-2', '1-3']);
     expect(pages[0]!.cells).toHaveLength(18);
+  });
+
+  it('標籤預設（D74）：A3 7×7 固定 35mm 正方，B4 6 欄×8 列', () => {
+    expect(defaultLabelLayout('A3')).toEqual({ paper: 'A3', cols: 7, rows: 7 });
+    expect(defaultLabelLayout('B4')).toEqual({ paper: 'B4', cols: 6, rows: 8 });
+    expect(labelCellMm(defaultLabelLayout('A3'), 10)).toEqual({ w: 35, h: 35 });
+    const b4 = labelCellMm(defaultLabelLayout('B4'), 10);
+    expect(b4.w).toBeCloseTo(230 / 6, 5);
+    expect(b4.h).toBeCloseTo((353 - 20 - 3) / 8, 5);
   });
 
   it('標籤：座位多於格數時丟錯，不默默截斷', () => {
@@ -150,6 +161,15 @@ describe('Word 輸出（D44/D45）', () => {
       expect(new Set(heights).size).toBe(1);
       expect(heights[0]! * rows).toBeLessThanOrEqual(mmToTwip(353 - 20));
     }
+  });
+
+  it('A3 7×7：每格 35mm 正方、格子大小不隨人數變', async () => {
+    const f = makeFixture({ paper: 'A3', labelCols: 7, labelRows: 7 });
+    const doc = await (await unzip(await renderDocx({ label: buildLabelPages(f) }, { fonts, ...meta }))).text('word/document.xml');
+    const widths = [...[...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)][0]![1]!.matchAll(/w:w="(\d+)"/g)].map((m) => Number(m[1]));
+    expect(widths).toEqual(Array(7).fill(mmToTwip(35)));
+    const heights = new Set([...doc.matchAll(/<w:trHeight w:val="(\d+)" w:hRule="exact"/g)].map((m) => Number(m[1])));
+    expect([...heights]).toEqual([mmToTwip(35)]);
   });
 
   it('embed-bold 後處理：Bold 掛在同一家族下，不再有獨立 Bold 家族', async () => {

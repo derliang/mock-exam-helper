@@ -64,7 +64,7 @@ function labelHtml(p: LabelPageModel, o: HtmlOptions): string {
         : '<div class="lab"></div>',
     );
   }
-  return `<section class="sheet" style="page:${layout.paper.toLowerCase()};padding:${margin}mm;"><div class="labels" style="grid-template-columns:repeat(${layout.cols},${cell.w.toFixed(2)}mm);grid-auto-rows:${(cell.h - 3 / layout.rows).toFixed(2)}mm">${cells.join('')}</div>
+  return `<section class="sheet" style="page:${layout.paper.toLowerCase()};padding:${margin}mm;"><div class="labels" style="grid-template-columns:repeat(${layout.cols},${cell.w.toFixed(2)}mm);grid-auto-rows:${cell.h.toFixed(2)}mm">${cells.join('')}</div>
 <footer>${esc(p.title)}　${esc(footerText(o.generatedAt, o.dataVersion))}</footer></section>`;
 }
 
