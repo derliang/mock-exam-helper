@@ -22,7 +22,7 @@ import { Step3 } from './pages/Step3';
 import { Step4 } from './pages/Step4';
 import { Step5 } from './pages/Step5';
 import { Step6 } from './pages/Step6';
-import { createFsRepository, isFsAccessSupported } from '../data';
+import { createFsRepository, isFsAccessSupported, SwitchBlockedError } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
 import { examLabel, stampModified, type Doc } from './store';
 import { APP_VERSION, formatVersion } from './version';
@@ -50,6 +50,10 @@ export function App() {
   const [theme, setTheme] = useTheme();
   const [hist, setHist] = useState<History<Doc>>(() => newHistory(emptyDoc()));
   const [warning, setWarning] = useState<string | undefined>();
+  // 存檔失敗要看得見（#58）：存檔佇列的狀態，錯誤時顯示警示與重試
+  const [saveErr, setSaveErr] = useState<string | undefined>();
+  useEffect(() => repo.onSaveStatus?.((s) => setSaveErr(s.state === 'error' ? s.message : undefined)), []);
+  const retrySave = () => { void repo.retrySave?.(); };
   // 重開頁面：能靜默還原上次資料夾就直接進列表（瀏覽器要求重新授權時留在初始化頁，由使用者按鈕）
   useEffect(() => {
     void (async () => { if (fsRepo && (await fsRepo.restore())) { await load(); go({ page: 'exams' }); } })();
@@ -67,9 +71,18 @@ export function App() {
     const d = stampModified(hist.present, d0, new Date());
     setHist((h) => commit(h, d, describeChange(h.present, d))); setStaleNote(undefined); void repo.save(d);
   };
-  // 更換資料夾：重新選一個，成功才載入；使用者取消視窗不算錯誤
+  // 更換資料夾：新資料夾授權成功才切換並載入；失敗明示「仍使用原資料夾」；使用者取消視窗不算錯誤（#69）
   const changeFolder = async () => {
-    try { await repo.chooseFolder(); await load(); } catch (e) { if (!(e instanceof DOMException && e.name === 'AbortError')) setWarning('無法使用這個資料夾，請改選別的資料夾。'); }
+    const old = repo.folderName?.() ?? '';
+    const still = old ? `仍使用原資料夾「${old}」。` : '';
+    try {
+      if (!(await repo.chooseFolder())) { setWarning(`沒有取得新資料夾的讀寫授權，資料夾沒有切換，${still || '請再試一次。'}`); return; }
+    } catch (e) {
+      if (e instanceof DOMException && e.name === 'AbortError') return;
+      setWarning(e instanceof SwitchBlockedError ? e.message : `無法使用這個資料夾，${still || '請改選別的資料夾。'}`);
+      return;
+    }
+    try { await load(); } catch { setWarning('新資料夾已選定，但讀取資料失敗，請改選別的資料夾或重新整理頁面。'); }
   };
   const onUndo = () => setHist((h) => { const n = undo(h); void repo.save(n.present); return n; });
   const [staleNote, setStaleNote] = useState<string | undefined>();
@@ -136,6 +149,7 @@ export function App() {
         {r.page === 'privacy' && <Privacy {...(backLabel(gnav) ? { backLabel: backLabel(gnav)! } : {})} onBack={() => (gnav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} onCopyright={() => go2({ page: 'copyright' }, { route: r, label: pageName(r, hist.present) })} />}
         {r.page === 'copyright' && <Copyright onPrivacy={() => go2({ page: 'privacy' }, { route: r, label: pageName(r, hist.present) })} {...(backLabel(gnav) ? { backLabel: backLabel(gnav)! } : {})} onBack={() => (gnav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} />}
         {r.page === 'init' && <Init repo={repo} fsSupported={fsSupported} onRestore={fsRepo ? () => fsRepo.restore() : undefined} onDone={async () => { await load(); go({ page: 'exams' }); }} />}
+        {saveErr && <div style="margin-bottom:12px"><Alert tone="danger" action={<Button small onClick={retrySave}>重試存檔</Button>}>最新的修改還沒有存進資料夾（{saveErr}）。請確認資料夾仍可寫入後按「重試存檔」；在存妥之前請不要關閉頁面。</Alert></div>}
         {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
         {r.page === 'exams' && <Exams doc={hist.present} folder={repo.folderName?.()} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} onNew={() => go({ page: 'new' })} onSettings={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} onChangeFolder={() => void changeFolder()} />}
         {r.page === 'new' && <NewExam doc={hist.present} onCancel={() => go({ page: 'exams' })} onCreate={(d, examId) => { edit(d); go({ page: 'step', examId, step: 1 }); }} />}

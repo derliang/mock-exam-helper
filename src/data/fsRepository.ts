@@ -8,6 +8,7 @@ import type { Doc } from '../ui/store';
 import { createHandleFS, type DirFS } from './dirfs';
 import type { ExamFiles } from './folder';
 import { loadDoc, loadExamFile, saveDoc, saveExamFile } from './folder';
+import { createSaveQueue, SwitchBlockedError, type SaveQueue, type SaveStatus } from './saveQueue';
 
 const DB = 'mock-exam-helper';
 const STORE = 'handles';
@@ -30,7 +31,7 @@ async function idb<T>(mode: IDBTransactionMode, f: (s: IDBObjectStore) => IDBReq
   });
 }
 
-type PermHandle = FileSystemDirectoryHandle & {
+export type PermHandle = FileSystemDirectoryHandle & {
   queryPermission?: (d: { mode: 'readwrite' }) => Promise<PermissionState>;
   requestPermission?: (d: { mode: 'readwrite' }) => Promise<PermissionState>;
 };
@@ -52,16 +53,39 @@ export function isFsAccessSupported(): boolean {
   return typeof window !== 'undefined' && 'showDirectoryPicker' in window;
 }
 
-export function createFsRepository(): FsRepository {
+/** 瀏覽器 API 的注入點（測試用）；預設用真實的 showDirectoryPicker／IndexedDB／檔案系統 */
+export interface FsRepositoryDeps {
+  pick?: () => Promise<PermHandle>;
+  permission?: (h: PermHandle) => Promise<boolean>;
+  makeFs?: (h: PermHandle) => DirFS;
+  remember?: (h: PermHandle) => Promise<void>;
+}
+
+export function createFsRepository(deps: FsRepositoryDeps = {}): FsRepository {
   let fs: DirFS | null = null;
+  let queue: SaveQueue<Doc> | null = null;
   let warning: string | undefined;
   let folder = '';
+  let status: SaveStatus = { state: 'idle' };
+  const listeners = new Set<(s: SaveStatus) => void>();
+  const emit = (s: SaveStatus) => { status = s; listeners.forEach((f) => f(s)); };
 
-  const adopt = async (h: PermHandle): Promise<boolean> => {
-    if (!(await ensurePermission(h))) return false;
-    fs = createHandleFS(h);
+  const permission = deps.permission ?? ensurePermission;
+  const makeFs = deps.makeFs ?? createHandleFS;
+  const remember = deps.remember ?? ((h: PermHandle) => idb('readwrite', (s) => s.put(h, KEY)).then(() => undefined));
+
+  // 授權成功才換資料夾；換之前先等舊資料夾的存檔佇列清空（#58、#69），失敗就不切換
+  const adopt = async (h: PermHandle, verify = false): Promise<boolean> => {
+    if (!(await permission(h))) return false;
+    while (queue && !queue.isIdle()) if (!(await queue.flush())) throw new SwitchBlockedError();
+    if (queue && queue.status().state === 'error') throw new SwitchBlockedError();
+    const nextFs = makeFs(h);
+    if (verify) await loadDoc(nextFs); // 新資料夾讀不了就丟錯、不切換（#69：B 讀檔失敗時仍使用 A）
+    await remember(h);
+    fs = nextFs;
+    queue = createSaveQueue((d: Doc) => saveDoc(nextFs, d), emit);
+    emit({ state: 'idle' });
     folder = h.name;
-    await idb('readwrite', (s) => s.put(h, KEY));
     return true;
   };
   const need = (): DirFS => {
@@ -74,16 +98,19 @@ export function createFsRepository(): FsRepository {
     folderName: () => folder,
     lastWarning: () => warning,
     async chooseFolder() {
-      const pick = (window as unknown as { showDirectoryPicker: (o: object) => Promise<PermHandle> }).showDirectoryPicker;
-      await adopt(await pick.call(window, { mode: 'readwrite' }));
+      const pick = deps.pick ?? (() => (window as unknown as { showDirectoryPicker: (o: object) => Promise<PermHandle> }).showDirectoryPicker.call(window, { mode: 'readwrite' }));
+      return adopt(await pick(), true);
     },
+    saveStatus: () => status,
+    onSaveStatus(f) { listeners.add(f); return () => { listeners.delete(f); }; },
+    async retrySave() { return queue ? queue.retry() : true; },
     async adoptDropped(items) {
       for (const item of Array.from(items)) {
         const get = (item as unknown as { getAsFileSystemHandle?: () => Promise<FileSystemHandle | null> })
           .getAsFileSystemHandle;
         if (!get) continue;
         const h = await get.call(item);
-        if (h?.kind === 'directory') return adopt(h as PermHandle);
+        if (h?.kind === 'directory') return adopt(h as PermHandle, true);
       }
       return false;
     },
@@ -101,7 +128,8 @@ export function createFsRepository(): FsRepository {
       return r.data;
     },
     async save(doc) {
-      await saveDoc(need(), doc);
+      need();
+      queue!.enqueue(doc); // 排進佇列即返回；失敗由 onSaveStatus 通知畫面
     },
     async loadExamFile<K extends keyof ExamFiles>(examId: string, key: K): Promise<ExamFiles[K] | null> {
       const r = await loadExamFile(need(), examId, key);
