@@ -27,7 +27,7 @@ describe('匯入規劃', () => {
     const plan = planImport(doc, 'senior', [{ classNo: 9, seatNo: 1, name: '測試甲' }, { classNo: 1, seatNo: 2, name: '測試乙' }]);
     expect(plan.unknownClasses).toEqual([9]);
     expect(plan.after).toBe(2);
-    const next = applyImport(doc, 'senior', plan);
+    const next = applyImport(doc, 'senior', plan, 'add');
     expect(next.rosters.senior).toHaveLength(2);
     expect(next.rosters.junior).toEqual(doc.rosters.junior);
     expect(doc.rosters.senior).toHaveLength(0);

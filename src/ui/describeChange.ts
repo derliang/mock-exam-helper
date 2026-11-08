@@ -39,10 +39,13 @@ function examLabel(prev: Doc['exams'], next: Doc['exams']): string | undefined {
 function settingsLabel(prev: Doc['settings'], next: Doc['settings']): string | undefined {
   if (same(prev, next)) return undefined;
   if (!same(prev.classes, next.classes)) {
+    if (next.classes.length > prev.classes.length) return '新增班級';
+    if (next.classes.length < prev.classes.length) return '刪除班級';
     const a = prev.classes.find((c, k) => !same(c, next.classes[k]));
     const b = a && next.classes.find((c) => c.no === a.no && c.division === a.division);
     if (a && b && a.colorIndex !== b.colorIndex) return '修改班級色';
     if (a && b && a.track !== b.track) return '修改文理組';
+    if (a && b && a.name !== b.name) return '修改班級名稱';
     return '修改班級資料';
   }
   if (!same(prev.classrooms, next.classrooms)) {
@@ -79,5 +82,6 @@ export function describeChange(prev: Doc, next: Doc): string | undefined {
   if (parts.length === 0) return undefined;
   // 名單比對套用會同時動學生名單與考試名單：用較能描述整件事的那個
   if (parts.length > 1 && parts.includes('處理名單比對')) return '套用名單比對';
+  if (parts.length > 1 && parts.includes('新增班級') && parts[0]?.startsWith('匯入')) return `${parts[0]}並新增班級`;
   return parts[0];
 }

@@ -156,6 +156,9 @@ export const confirmCopy = {
   deleteStudent: (name: string, code: string): ConfirmCopy => ({
     title: '刪除這位學生？', body: `將刪除 ${code} ${name}。其他考生的編號不會改變，這個編號會空著、不會被遞補。`, confirm: '刪除',
   }),
+  deleteClass: (name: string): ConfirmCopy => ({
+    title: '刪除這個班級？', body: `將刪除班級「${name}」。這個班目前沒有學生，刪除後可用「↶ 復原」還原。`, confirm: '刪除',
+  }),
   deleteRoom: (name: string, inUse: boolean): ConfirmCopy => ({
     title: '刪除這間教室？', body: `將刪除「${name}」。教室清單是所有模擬考共用的，${inUse ? '已選用它的模擬考會少一間教室，排座結果可能因此過期。' : '其他模擬考若選用了它，也會少一間教室。'}`, confirm: '刪除',
   }),

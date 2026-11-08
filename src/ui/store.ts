@@ -155,3 +155,72 @@ export function updateExam(doc: Doc, id: string, patch: Partial<ExamConfig>): Re
   }
   return { ok: true, doc: { ...doc, exams: doc.exams.map((e) => (e.id === id ? { ...e, ...patch } : e)) } };
 }
+
+// ── 新增／刪除／改名班級（D83）──────────────────────────────────────────
+
+const classesOf = (doc: Doc, division: Division): ClassInfo[] => doc.settings.classes.filter((c) => c.division === division);
+
+/** 下一個班級序號：該部別最大序號＋1 */
+export const nextClassNo = (doc: Doc, division: Division): number => Math.max(0, ...classesOf(doc, division).map((c) => c.no)) + 1;
+
+/** 班級名稱檢查：不可空白、同部別不可重名；回傳錯誤訊息或 null */
+export function validateClassName(doc: Doc, division: Division, name: string, exceptNo?: number): string | null {
+  const n = name.trim();
+  if (!n) return '班級名稱不可空白';
+  if (classesOf(doc, division).some((c) => c.no !== exceptNo && c.name === n)) return `已有名為「${n}」的班級，名稱不可重複`;
+  return null;
+}
+
+/** 目前最少人用的班級色（同數量取序號小者），新班級預設用它 */
+function leastUsedColor(list: ClassInfo[]): number {
+  const count = new Map<number, number>();
+  for (let i = 1; i <= 12; i++) count.set(i, 0);
+  for (const c of list) { const k = ((c.colorIndex - 1) % 12 + 12) % 12 + 1; count.set(k, (count.get(k) ?? 0) + 1); }
+  let best = 1;
+  for (let i = 2; i <= 12; i++) if ((count.get(i) ?? 0) < (count.get(best) ?? 0)) best = i;
+  return best;
+}
+
+export interface NewClassInput { name?: string; track?: Track; no?: number }
+
+/**
+ * 新增班級。no 不給就用下一個序號；給了但已存在則失敗。
+ * name 不給用「第NN班」；國中部不設文理組，高中部預設理組。
+ */
+export function addClass(doc: Doc, division: Division, input: NewClassInput = {}): Result<Doc> {
+  const no = input.no ?? nextClassNo(doc, division);
+  if (!Number.isInteger(no) || no < 1 || no > 99) return fail('班級序號要在 1～99');
+  if (classesOf(doc, division).some((c) => c.no === no)) return fail(`班級 ${String(no).padStart(2, '0')} 已存在`);
+  const name = (input.name ?? '').trim() || `第${String(no).padStart(2, '0')}班`;
+  const bad = validateClassName(doc, division, name);
+  if (bad) return fail(bad);
+  const c: ClassInfo = { no, name, division, colorIndex: leastUsedColor(classesOf(doc, division)), ...(division === 'senior' ? { track: input.track ?? 'science' } : {}) };
+  const classes = [...doc.settings.classes, c].sort((a, b) => (a.division === b.division ? a.no - b.no : a.division === 'senior' ? -1 : 1));
+  return { ok: true, doc: { ...doc, settings: { ...doc.settings, classes } } };
+}
+
+/** 這個班級目前有多少東西用到它（名單人數、各次考試名單人數） */
+export function classUsage(doc: Doc, division: Division, no: number): { roster: number; examEntries: number } {
+  const roster = doc.rosters[division].filter((s) => s.classNo === no).length;
+  let examEntries = 0;
+  for (const e of doc.exams) {
+    if (e.division !== division) continue;
+    examEntries += (doc.examFiles?.[e.id]?.entries ?? []).filter((x) => x.classNo === no).length;
+  }
+  return { roster, examEntries };
+}
+
+/** 刪除班級：班上還有學生（名單或任何一次考試名單）就拒絕，不連帶刪人 */
+export function removeClass(doc: Doc, division: Division, no: number): Result<Doc> {
+  if (!classesOf(doc, division).some((c) => c.no === no)) return fail('找不到這個班級');
+  const u = classUsage(doc, division, no);
+  if (u.roster > 0) return fail(`這班在學生名單裡還有 ${u.roster} 人，請先刪除或搬走他們，才能刪除班級`);
+  if (u.examEntries > 0) return fail(`這班在模擬考的考試名單裡還有 ${u.examEntries} 筆，刪除後這些人會找不到班級`);
+  return { ok: true, doc: { ...doc, settings: { ...doc.settings, classes: doc.settings.classes.filter((c) => !(c.no === no && c.division === division)) } } };
+}
+
+export function renameClass(doc: Doc, division: Division, no: number, name: string): Result<Doc> {
+  const bad = validateClassName(doc, division, name, no);
+  if (bad) return fail(bad);
+  return { ok: true, doc: mapClass(doc, no, division, (c) => ({ ...c, name: name.trim() })) };
+}
