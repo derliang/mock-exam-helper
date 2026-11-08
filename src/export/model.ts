@@ -33,6 +33,8 @@ export interface ExportInput {
 /** 一個格子上要印的內容 */
 export interface CellModel {
   coord: string; // 排－深位
+  /** 座位位置（排、深位，從 1 起）：標籤依它排在實際位置，不是依序一格接一格 */
+  seat: { row: number; depth: number };
   code: string; // 考生編號
   classLabel: string; // 班級名稱
   name: string;
@@ -163,6 +165,7 @@ function makeCell(code: string, seat: { row: number; depth: number }, ctx: Ctx):
     }));
   return {
     coord: seatLabel(seat),
+    seat: { row: seat.row, depth: seat.depth },
     code,
     classLabel: cls?.name ?? String(classNo),
     // 學生名單查無此人時退用考試名單的姓名，避免印出空白格（資料來源不同步的保險）
@@ -249,11 +252,34 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
   return pages;
 }
 
-/** 標籤：每間教室一張紙，順序同座位表（排 1 深位 1→depth，再排 2…）。超出格數丟錯，不默默截斷 */
+/**
+ * 標籤依實際座位位置排（與座位表同一張圖，只是沒有講臺與統計）：欄＝排（左→右），列＝深位（最大深位在上、1 在下，0101 在左下角）。
+ * 沒有座位的位置留空白格。超出標籤格數時丟錯，不默默截斷。
+ */
+function checkLabelBounds(roomName: string, seats: { row: number; depth: number }[], layout: { cols: number; rows: number }): void {
+  const maxRow = Math.max(0, ...seats.map((s) => s.row));
+  const maxDepth = Math.max(0, ...seats.map((s) => s.depth));
+  if (maxRow > layout.cols || maxDepth > layout.rows) {
+    throw new Error(`教室「${roomName}」的座位排到第 ${maxRow} 排、深位 ${maxDepth}，超過標籤每張 ${layout.cols} 排×${layout.rows} 深位（${layout.cols}×${layout.rows}）`);
+  }
+}
+
+/** 標籤頁的格子陣列（由左到右、由上到下，長度 cols×rows）：依座位位置放，沒人的位置是 undefined */
+export function labelGrid(p: LabelPageModel): (CellModel | undefined)[] {
+  const { cols, rows } = p.layout;
+  const g: (CellModel | undefined)[] = Array.from({ length: cols * rows }, () => undefined);
+  for (const c of p.cells) {
+    const col = c.seat.row - 1;
+    const rowIdx = rows - c.seat.depth;
+    if (col >= 0 && col < cols && rowIdx >= 0 && rowIdx < rows) g[rowIdx * cols + col] = c;
+  }
+  return g;
+}
+
+/** 標籤：每間教室一張紙，位置同座位表（見 labelGrid）。超出格數丟錯 */
 export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): LabelPageModel[] {
   const ctx = ctxOf(input);
   const layout = input.exam.labelLayout;
-  const cap = layout.cols * layout.rows;
   const pages: LabelPageModel[] = [];
   for (const id of scope === 'reserve' ? [] : input.exam.classroomIds) {
     const room = input.settings.classrooms.find((c) => c.id === id);
@@ -262,9 +288,7 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
       .filter((a) => a.classroomId === id)
       .sort((a, b) => a.row - b.row || a.depth - b.depth);
     if (mine.length === 0) continue;
-    if (mine.length > cap) {
-      throw new Error(`教室「${room.name}」有 ${mine.length} 個座位，超過標籤每張 ${cap} 格（${layout.cols}×${layout.rows}）`);
-    }
+    checkLabelBounds(room.name, mine.map((a) => a), layout);
     pages.push({
       kind: 'label',
       title: `${input.exam.name}　${room.name}`,
@@ -284,7 +308,7 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
       const [roomId, subjectId] = k.split('|') as [string, string];
       const room = input.settings.classrooms.find((c) => c.id === roomId);
       if (!room) continue;
-      if (ds.length > cap) throw new Error(`教室「${room.name}」有 ${ds.length} 個座位，超過標籤每張 ${cap} 格（${layout.cols}×${layout.rows}）`);
+      checkLabelBounds(room.name, ds.map((d) => d.seat!), layout);
       const sname = ctx.subjectName.get(subjectId) ?? subjectId;
       const sorted = [...ds].sort((a, b) => a.seat!.row - b.seat!.row || a.seat!.depth - b.seat!.depth);
       pages.push({

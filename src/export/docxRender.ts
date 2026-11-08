@@ -27,6 +27,7 @@ import {
 import {
   footerText,
   labelCellMm,
+  labelGrid,
   mmToTwip,
   PAPER_MM,
   type CellModel,
@@ -113,9 +114,23 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
   const totalW = columnWidths.reduce((a, b) => a + b, 0);
   const rowH = mmToTwip(Math.min(24, 190 / (page.depth + 1)));
 
-  const sizeCode = Math.min(18, (colW / 1440) * 25.4 * 0.62);
-  const sizeSmall = Math.min(9, (colW / 1440) * 25.4 * 0.36);
+  let sizeCode = Math.min(18, (colW / 1440) * 25.4 * 0.62);
+  let sizeSmall = Math.min(9, (colW / 1440) * 25.4 * 0.36);
   const sizeCoord = 7;
+  const sizeTag = 7;
+  // 格內有「X 不考／＋ 加考」標示時，內容會比列高多：Word 的列高是固定值，超出的部分會被裁掉，
+  // 只剩一條線（使用者回報的「不正確的線條」）。這裡先算內容需要多高，不夠就把考生編號與姓名縮小，標示字維持可讀。
+  // 中文字型行高約為字級的 1.5 倍，另加上下邊距。
+  const LH = 1.5;
+  const maxTags = Math.max(0, ...[...page.cells.values()].map((c) => c.tags.length));
+  const availPt = rowH / 20 - 6;
+  const fixedPt = (sizeCoord + sizeTag * maxTags) * LH;
+  const flexPt = (sizeCode + sizeSmall) * LH;
+  if (fixedPt + flexPt > availPt) {
+    const k = Math.max(0.5, (availPt - fixedPt) / flexPt);
+    sizeCode *= k;
+    sizeSmall *= k;
+  }
 
   const rows: TableRow[] = [];
   // 深位由上到下：最大深位在上、1 在下（講臺在下方，0101 在左下角）
@@ -138,7 +153,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
             para([run(cell.coord, { size: sizeCoord, color: pal!.fg }, mode)], AlignmentType.RIGHT),
             para([run(cell.code, { size: sizeCode, bold: true, color: pal!.fg }, mode)]),
             para([run(`${cell.classLabel}｜${cell.name}`, { size: sizeSmall, color: pal!.fg }, mode)]),
-            ...tagParagraphs(cell, 7, mode),
+            ...tagParagraphs(cell, sizeTag, mode),
           ]
         : [para([run(usable ? '' : '空位', { size: 7, color: '999999' }, mode)])];
       cells.push(
@@ -152,7 +167,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
         }),
       );
     }
-    rows.push(new TableRow({ height: { value: rowH, rule: HeightRule.EXACT }, cantSplit: true, children: cells }));
+    rows.push(new TableRow({ height: { value: rowH, rule: HeightRule.ATLEAST }, cantSplit: true, children: cells }));
   }
   // 底部標「第N排」
   rows.push(
@@ -190,7 +205,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
       para([run(page.title, { size: 16, bold: true }, mode)], AlignmentType.CENTER, { spacing: { before: 0, after: 120 } }),
       new Table({ width: { size: totalW, type: WidthType.DXA }, columnWidths, layout: TableLayoutType.FIXED, rows }),
       para([run('▲ 講臺在座位表下方（0101 在左下角）　座標＝排－深位', { size: 8, color: '555555' }, mode)], AlignmentType.CENTER, { spacing: { before: 60, after: 60 } }),
-      ...statsLines.map((l) => para([run(l, { size: 10 }, mode)], AlignmentType.LEFT)),
+      ...statsLines.map((l) => para([run(l, { size: 13 }, mode)], AlignmentType.LEFT, { spacing: { before: 0, after: 60 } })),
     ],
   };
 }
@@ -210,24 +225,40 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
   const sizeName = cell.w * 0.4;
   const sizeSmall = cell.w * 0.26;
 
+  const grid = labelGrid(page);
   const rows: TableRow[] = [];
   for (let r = 0; r < layout.rows; r++) {
     const cells: TableCell[] = [];
     for (let c = 0; c < layout.cols; c++) {
-      const m = page.cells[r * layout.cols + c];
+      const m = grid[r * layout.cols + c];
+      // 有「X 不考／＋ 加考」標示的標籤：列高是固定值，內容多一行就會被裁成一條線。
+      // 先算這格需要多高，不夠就只縮小這格的編號與姓名（中文字型行高約字級 1.5 倍），標示字維持可讀。
+      let codeSz = sizeCode;
+      let nameSz = sizeName;
+      const tagSz = sizeSmall * 0.9;
+      if (m && m.tags.length > 0) {
+        const LH = 1.5;
+        const availPt = rowH / 20 - 8;
+        const fixedPt = (sizeSmall + tagSz * m.tags.length) * LH;
+        const flexPt = (sizeCode + sizeName) * LH;
+        const k = Math.max(0.5, Math.min(1, (availPt - fixedPt) / flexPt));
+        codeSz = sizeCode * k;
+        nameSz = sizeName * k;
+      }
       cells.push(
         new TableCell({
           width: { size: colW, type: WidthType.DXA },
           verticalAlign: VerticalAlign.CENTER,
           margins: { top: 20, bottom: 20, left: 30, right: 30 },
-          // 標籤一律白底，細實線相鄰共用（P12）；班級用文字印出，黑白也分得出（D39）
-          borders: allBorders(thin('666666')),
+          // 標籤底色用各班代表色（使用者 2026-11-08 定案，取代原 P12 的白底）；班級仍用文字印出，黑白列印也分得出（D39）
+          shading: m ? { type: ShadingType.CLEAR, fill: m.colorBg, color: 'auto' } : undefined,
+          borders: allBorders(m ? thin(m.colorLine) : thin('666666')),
           children: m
             ? [
-                para([run(m.coord, { size: sizeSmall }, mode)], AlignmentType.RIGHT),
-                para([run(m.code, { size: sizeCode, bold: true }, mode)]),
-                para([run(`${m.classLabel}｜${m.name}`, { size: sizeName, color: '000000' }, mode)]),
-                ...tagParagraphs(m, sizeSmall, mode),
+                para([run(m.coord, { size: sizeSmall, color: m.colorFg }, mode)], AlignmentType.RIGHT),
+                para([run(m.code, { size: codeSz, bold: true, color: m.colorFg }, mode)]),
+                para([run(`${m.classLabel}｜${m.name}`, { size: nameSz, color: m.colorFg }, mode)]),
+                ...tagParagraphs(m, tagSz, mode),
               ]
             : [para([])],
         }),

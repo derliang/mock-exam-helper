@@ -24,7 +24,7 @@ describe('類別撞名', () => {
     const room = readFileSync('src/ui/components/RoomList.tsx', 'utf8');
     expect(css).not.toMatch(/\.roomrow\.trk/);
     expect(room).not.toMatch(/'\s*trk\s*'/);
-    expect(css).toMatch(/\.roomrow\.roomrow-cls\{/);
+    expect(css).toMatch(/\.roomrow\.hastrack\{/);
     expect(css).toMatch(/^\.trk\{width:46px;height:26px/m);
   });
 });

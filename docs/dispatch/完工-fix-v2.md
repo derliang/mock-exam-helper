@@ -1,7 +1,7 @@
 # 完工-fix-v2：教室列塌陷＋全科缺考者驗證
 
 ## 做了什麼
-1. **教室列塌陷**：`.roomrow.trk` 與開關軌道 `.trk`（46×26、圓角 99px）撞名。教室列改用 `roomrow-cls`（`app.css`、`RoomList.tsx`）；開關軌道 `.trk` 與 `components/index.tsx` 的 Switch 未動。
+1. **教室列塌陷**：`.roomrow.trk` 與開關軌道 `.trk`（46×26、圓角 99px）撞名。教室列改用 `hastrack`（`app.css`、`RoomList.tsx`）；開關軌道 `.trk` 與 `components/index.tsx` 的 Switch 未動。
 2. **全科缺考者**：預設（未勾「仍排座」）時，⑤驗證報「考生沒有座位：0106」。根因是 `validationChecks` 用全部考生。現在 core 新增並匯出 `fullyAbsentCodes`（原 `runSeating` 內的判斷，行為不變，`runSeating` 改呼叫它），UI 新增 `seatableEntries` 同樣呼叫它。套用處：
    - `validationChecks`（恰好一座位、座位數 ≥ 考生數）
    - `capacity.ts`（③容量檢核，人數；「尚未匯入名單」仍以全部名單判斷）
@@ -14,7 +14,7 @@
 - 重現：新測試在舊碼下失敗，訊息 `考生沒有座位：0106`；修後通過。
 - `npx tsc --noEmit` 綠；`npm test` 384 全綠（原 380＋新 4）；`npm run build` 綠。
 - 新測試：`seating.test.ts`〈D79 全科缺考者與驗證〉3 則（預設、仍排座、座位剛好夠）；`css.test.ts`〈類別撞名〉1 則（教室列不含 `.trk`、`.trk` 仍是 46×26）。
-- 瀏覽器：`docs/dispatch/完工-fix-v2-截圖/`，教室列 500／820／1280 × 淺／深，假資料；量測教室列 class 為 `roomrow roomrow-cls`，整列正常展開。
+- 瀏覽器：`docs/dispatch/完工-fix-v2-截圖/`，教室列 500／820／1280 × 淺／深，假資料；量測教室列 class 為 `roomrow hastrack`，整列正常展開。
 
 ## 沒驗到的地方
 - 截圖用暫時 harness（只渲染 RoomList，已刪除、未提交），不是完整 App（需檔案夾授權）。

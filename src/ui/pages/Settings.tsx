@@ -38,7 +38,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
       {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}
-      {tab === 'rooms' && <RoomList classes={p.doc.settings.classes} inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} />}
+      {tab === 'rooms' && <div class="card stack"><div><h3>教室清單</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡選用，座位表在這裡也能編輯。</p></div><RoomList classes={p.doc.settings.classes} inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} /></div>}
     </section>
   );
 }
