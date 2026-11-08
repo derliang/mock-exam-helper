@@ -6,7 +6,7 @@ import type { Doc } from './store';
 
 function docOf(): Doc {
   const f = makeFixture();
-  return { settings: f.settings, rosters: { senior: f.students, junior: [] }, exams: [f.exam] };
+  return { settings: f.settings, rosters: { senior: f.students, junior: [] }, exams: [f.exam], examFiles: { [f.exam.id]: { entries: f.entries, diffs: [], overrides: [] } } };
 }
 
 describe('prepareExport', () => {
@@ -19,7 +19,15 @@ describe('prepareExport', () => {
   it('沒勾教室：擋下', () => {
     const d = docOf();
     const r = prepareExport(d, { ...d.exams[0]!, classroomIds: [] }, '2026-11-08T00:00:00Z');
-    expect(r).toEqual({ ok: false, errors: ['這次考試還沒勾選教室，請先到 ③ 教室設定。'] });
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors[0]).toMatch(/^缺教室.*③/);
+  });
+
+  it('沒匯入考試名單：說缺什麼、去哪補', () => {
+    const d = docOf();
+    const r = prepareExport({ ...d, examFiles: {} }, d.exams[0]!, '2026-11-08T00:00:00Z');
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.errors[0]).toMatch(/^缺考試名單.*②/);
   });
 
   it('排座結果的版本碼穩定，與產生時間無關', () => {

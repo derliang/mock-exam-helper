@@ -65,7 +65,7 @@ describe('匯出前檢查', () => {
   it('過期與未處理差異會擋下', () => {
     const i = preflight(makeFixture(), defaultOptions(), { stale: true, unresolvedDiffs: 3 }, has);
     expect(i.filter((x) => x.level === 'block')).toHaveLength(2);
-    expect(i[1]!.text).toContain('3 筆差異');
+    expect(i[1]!.text).toContain('3 筆');
   });
 
   it('什麼都沒勾會擋下', () => {

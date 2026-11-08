@@ -110,9 +110,9 @@ export interface PreflightState {
  */
 export function preflight(input: ExportInput, o: ExportOptions, st: PreflightState, hasChar: (ch: string) => boolean): Issue[] {
   const issues: Issue[] = [];
-  if (st.stale) issues.push({ level: 'block', text: '排座結果過期（名單或設定在排座後有修改），請先回 ⑤ 重新排座。' });
-  if ((st.unresolvedDiffs ?? 0) > 0) issues.push({ level: 'block', text: `考試名單與學生名單還有 ${st.unresolvedDiffs} 筆差異沒處理，請先回 ② 處理。` });
-  if (!o.seat && !o.label && !o.study && !o.reserve) issues.push({ level: 'block', text: '請至少勾選一種匯出內容。' });
+  if (st.stale) issues.push({ level: 'block', text: '排座結果過期：名單或設定在排座之後改過，表上的座位可能已經不對。請回 ⑤ 重新排座，再回來匯出。' });
+  if ((st.unresolvedDiffs ?? 0) > 0) issues.push({ level: 'block', text: `② 還有 ${st.unresolvedDiffs} 筆考試名單與學生名單的差異沒處理（例如新增、缺少或資料不同的考生）。請回 ② 逐筆選擇處理方式，處理完再匯出。` });
+  if (!o.seat && !o.label && !o.study && !o.reserve) issues.push({ level: 'block', text: '還沒勾選要匯出的內容：請在下方至少勾選座位表、標籤、抽離自習名單或預備教室其中一項。' });
   try {
     buildParts(input, o);
   } catch (e) {
@@ -124,7 +124,7 @@ export function preflight(input: ExportInput, o: ExportOptions, st: PreflightSta
       const shown = miss.slice(0, 8).map((m) => `${String(m.classNo).padStart(2, '0')}${String(m.seatNo).padStart(2, '0')} 的「${m.ch}」`).join('、');
       issues.push({
         level: 'warn',
-        text: `${miss.length} 個字不在內嵌字型內（${shown}${miss.length > 8 ? '…' : ''}），Word 會改用該電腦的字型顯示，請開檔確認這些字。`,
+        text: `${miss.length} 個罕用字不在內嵌字型內（${shown}${miss.length > 8 ? '…' : ''}）。仍可匯出，但 Word 會改用該電腦的字型顯示這些字；匯出後請開檔確認，必要時手動改字型。`,
       });
     }
   }

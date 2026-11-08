@@ -3,7 +3,7 @@ import type { ExamConfig, LabelPaper } from '../../data';
 import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, type ExportOptions, type OutputFile } from '../../export/plan';
 import type { FontData } from '../../export/docxRender';
 import { Alert, Badge, Button, Seg } from '../components';
-import { prepareExport } from '../exportInput';
+import { prepareExport, unresolvedDiffsOf } from '../exportInput';
 import type { Doc } from '../store';
 
 type Loaded = { fonts: FontData; has: (ch: string) => boolean };
@@ -39,7 +39,7 @@ export function Step6(p: {
   stale?: boolean;
   /** 考試名單差異未處理數（② 提供） */
   unresolvedDiffs?: number;
-  onGoStep: (n: 2 | 5) => void;
+  onGoStep: (n: 2 | 3 | 5) => void;
   /** 測試或預覽可注入字型載入；預設延遲載入真實字型 */
   loadFonts?: () => Promise<Loaded>;
 }) {
@@ -52,12 +52,13 @@ export function Step6(p: {
   const junior = exam.division === 'junior';
   const set = (patch: Partial<ExportOptions>) => { setO((x) => ({ ...x, ...patch })); setResults(null); };
 
+  const diffs = p.unresolvedDiffs ?? unresolvedDiffsOf(p.doc, exam);
   const prepared = useMemo(() => prepareExport(p.doc, exam, new Date().toISOString()), [p.doc, exam]);
   const loader = p.loadFonts ?? (async () => (await import('../../export/fontLoader')).loadFonts());
 
   // 字集檢查要字型字集；先用「全部通過」，載入後再重算（使用者按匯出前就會載入）
   const has = fontState?.has ?? (() => true);
-  const issues = prepared.ok ? preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: p.unresolvedDiffs }, has) : [];
+  const issues = prepared.ok ? preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, has) : [];
   const blocked = !prepared.ok || issues.some((i) => i.level === 'block');
   const files = prepared.ok && !blocked ? planFiles(prepared.input, o) : [];
 
@@ -69,7 +70,7 @@ export function Step6(p: {
       const env = fontState ?? (await loader());
       setFontState(env);
       // 載入字型後字集檢查可能出現新警告：有新的擋下項目就停
-      const again = preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: p.unresolvedDiffs }, env.has);
+      const again = preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, env.has);
       if (again.some((i) => i.level === 'block')) return;
       const out = await runExport(prepared.input, o, { fonts: env.fonts });
       if (o.format === 'word') out.forEach(download);
@@ -96,6 +97,10 @@ export function Step6(p: {
         <div style="margin-top:12px"><Alert tone="danger">
           <b>還不能匯出：</b>
           <ul>{prepared.errors.map((e) => <li key={e}>{e}</li>)}</ul>
+          <div class="row" style="margin-top:8px">
+            {prepared.errors.some((e) => e.startsWith('缺考試名單')) && <Button small kind="primary" onClick={() => p.onGoStep(2)}>去 ② 匯入考試名單</Button>}
+            {prepared.errors.some((e) => e.startsWith('缺教室')) && <Button small kind="primary" onClick={() => p.onGoStep(3)}>去 ③ 勾選教室</Button>}
+          </div>
         </Alert></div>
       )}
       {issues.map((i) => (
