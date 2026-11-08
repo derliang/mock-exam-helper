@@ -2,7 +2,7 @@
  * PDF 輸出（D29：PDF 為輔）：產生列印用 HTML，由瀏覽器「列印成 PDF」。
  * 內容與 Word 共用 model.ts 的版面模型。紙張用 @page 具名頁面（Chrome 支援）：座位表、名單 A4，標籤 B4 或 A3。
  */
-import { footerText, labelCellMm, PAPER_MM, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel } from './model';
+import { footerText, labelCellMm, PAPER_MM, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
 
 export interface HtmlOptions {
   generatedAt: string;
@@ -74,6 +74,15 @@ function listHtml(p: ListPageModel, o: HtmlOptions): string {
 <footer>${esc(footerText(o.generatedAt, o.dataVersion))}</footer></section>`;
 }
 
+function tableHtml(p: TablePageModel, o: HtmlOptions): string {
+  const sum = p.widths.reduce((a, b) => a + b, 0);
+  const tr = (cells: string[], tag: 'td' | 'th', cls = '') =>
+    `<tr${cls}>${cells.map((c, i) => `<${tag} style="width:${(((p.widths[i] ?? 1) * 100) / sum).toFixed(1)}%">${esc(c)}</${tag}>`).join('')}</tr>`;
+  const rows = p.rows.map((r) => tr(r, 'td')).join('') + (p.totalRow ? tr(p.totalRow, 'td', ' class="total"') : '');
+  return `<section class="sheet a4" style="page:a4"><h1>${esc(p.title)}</h1>${p.subtitle ? `<p class="sub">${esc(p.subtitle)}</p>` : ''}<table class="list tbl"><thead>${tr(p.heads, 'th')}</thead><tbody>${rows}</tbody></table>
+<footer>${esc(footerText(o.generatedAt, o.dataVersion))}</footer></section>`;
+}
+
 const CSS = `
 @page a4 { size: 210mm 297mm; margin: 12mm }
 @page b4 { size: ${PAPER_MM.B4.w}mm ${PAPER_MM.B4.h}mm; margin: 0 }
@@ -97,17 +106,21 @@ table.grid th.axis { font-size: 10pt }
 table.list { border-collapse: collapse; width: 100% }
 table.list th, table.list td { border: 1px solid #808080; padding: 1mm 2mm; text-align: left; font-size: 10.5pt }
 table.list th { background: #eee }
+table.tbl td { height: 9mm }
+table.tbl tr.total td { font-weight: 700; background: #f4f4f4 }
+.sheet.a4 p.sub { font-size: 12pt; text-align: center; margin: 0 0 4mm }
 footer { font-size: 8pt; color: #555; text-align: right; margin-top: 3mm }
 .note { font-size: 8pt; color: #555; text-align: center }
 `;
 
-export type HtmlPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel | ListPageModel[] };
+export type HtmlPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel | ListPageModel[]; table?: TablePageModel[] };
 
 export function renderPrintHtml(pages: HtmlPages, o: HtmlOptions): string {
   const body = [
     ...(pages.seat ?? []).map((p) => seatHtml(p, o)),
     ...(pages.label ?? []).map((p) => labelHtml(p, o)),
     ...[pages.list ?? []].flat().map((l) => listHtml(l, o)),
+    ...(pages.table ?? []).map((t) => tableHtml(t, o)),
   ];
   if (body.length === 0) throw new Error('沒有可輸出的頁面');
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>模擬考小幫手輸出</title><style>${CSS}${o.extraCss ?? ''}</style></head><body>${body.join('\n')}</body></html>`;
