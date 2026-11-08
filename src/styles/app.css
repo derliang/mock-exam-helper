@@ -45,7 +45,7 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(-
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-on)}
 .seg button:disabled{color:var(--text-3);cursor:not-allowed;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 10px)}
 .swf{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
-.swf .cap{font-size:12px;font-weight:700;color:var(--text-2)}
+.swf .cap{font-size:12px;font-weight:700;color:var(--text-2);white-space:nowrap}
 .sw{display:inline-flex;align-items:center;gap:10px;cursor:pointer}
 .sw input{position:absolute;opacity:0;width:1px;height:1px}
 .sw .trk{width:46px;height:26px;border-radius:99px;background:var(--line-2);position:relative;transition:background .15s;flex:none}
@@ -354,7 +354,7 @@ section>header p{color:var(--text-2);max-width:72ch}
 .roomrow .info{white-space:nowrap}
 .roomrow .stepper output{font-size:16px}
 .roomlist{display:grid;gap:8px}
-@media (max-width:900px){.roomrow{display:flex;flex-wrap:wrap}.roomrow>.field:nth-of-type(1){flex:1 1 180px}.roomrow>.field{flex:0 1 auto}.roomrow .info{flex:1 1 100%}}
+@media (max-width:1180px){.roomrow{display:flex;flex-wrap:wrap}.roomrow>.field:nth-of-type(1){flex:1 1 180px}.roomrow>.field{flex:0 1 auto}.roomrow .info{flex:1 1 100%}}
 .prev .pgrid .pc{width:52px;height:44px;font-size:13px}
 .vcode{font-size:12px;color:var(--text-3);text-align:right;font-variant-numeric:tabular-nums}
 .swatches{display:flex;gap:6px;flex-wrap:wrap}
