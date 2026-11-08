@@ -458,13 +458,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .lprev-cell{display:grid;border-top:1px solid var(--cut);border-left:1px solid var(--cut)}
 .lprev-cell .lcell{height:100%}
 .lprev figcaption{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.4}
-.lcell{position:relative;display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:center;border-right:1px solid var(--cut);border-bottom:1px solid var(--cut);padding:1cqw .4cqw .8cqw;text-align:center;font-family:var(--f-no);overflow:hidden;min-width:0;color:var(--text);line-height:1.15}
-.lcell .no{font-size:5.4cqw;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding-top:2.4cqw}
-.lcell .nm{font-size:2.8cqw;font-weight:700;white-space:nowrap}
-.lcell .tag-c{color:var(--cx);margin-right:1.2cqw;padding-right:1.2cqw;border-right:.3cqw solid var(--cx)}
+.lcell{position:relative;display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:center;border-right:1px solid var(--cut);border-bottom:1px solid var(--cut);padding:1.2cqw .4cqw 1.4cqw;row-gap:.9cqw;text-align:center;font-family:var(--f-no);overflow:hidden;min-width:0;color:var(--text);line-height:1.15}
+.lcell .no{font-size:4.8cqw;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding-top:1.6cqw;line-height:1.1;align-self:end}
+.lcell .nm{font-size:2.5cqw;font-weight:700;white-space:nowrap;line-height:1.2}
+.lcell .tag-c{color:var(--cx);margin-right:1cqw;padding-right:1cqw;border-right:.3cqw solid var(--cx)}
 .lcell .co{position:absolute;right:.9cqw;top:.6cqw;font-size:2.2cqw;font-weight:700;font-variant-numeric:tabular-nums}
 .lcell .mks{display:grid;justify-items:center;gap:.2cqw}
-.lcell .mk{font-size:2.1cqw;font-weight:700;padding:0 1cqw;line-height:3cqw;border-radius:3px;white-space:nowrap}
+.lcell .mk{font-size:2cqw;font-weight:700;padding:0 .9cqw;line-height:2.8cqw;border-radius:3px;white-space:nowrap}
 .lcell.mk-x .mk{background:var(--att-fill);color:var(--att-on);border:.4cqw solid var(--att-fill)}
 .lcell.mk-add .mk{background:var(--surface);color:var(--text);border:.4cqw solid var(--text)}
 .lcell.blank{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,var(--line-2) 5px 10px)}
@@ -1057,7 +1057,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var mk=marksOf(S.cur,s),o=ovrOf(s),cls='lcell',mks='',n=cc(s.c);
     if(o){cls+=o.kind==='考試'?' mk-add':' mk-x';mks='<span class="mks"><span class="mk">→'+esc(o.place)+'</span></span>'}
     else if(mk.length){cls+=mk.some(function(m){return m.charAt(0)==='X'})?' mk-x':' mk-add';mks='<span class="mks">'+mk.map(function(m){return '<span class="mk">'+m+'</span>'}).join('')+'</span>'}
-    return '<div class="'+cls+'" style="background:var(--c'+n+'-bg);--cx:var(--c'+n+'-ink)"><span class="co">'+co+'</span><span class="no">'+s.id+'</span><span class="nm"><span class="tag-c">'+CNAME[s.c]+'</span>'+esc(s.name)+'</span>'+mks+'</div>'}
+    return '<div class="'+cls+'" style="background:var(--c'+n+'-bg);--cx:var(--c'+n+'-ink)"><span class="co">'+co+'</span><span class="no">'+s.id+'</span><span class="nm"'+(s.name.length>4?' style="font-size:'+(s.name.length>5?1.7:2)+'cqw"':'')+'><span class="tag-c">'+CNAME[s.c]+'</span>'+esc(s.name)+'</span>'+mks+'</div>'}
   function exportFiles(e){
     var x=S.exp,ext=x.fmt==='Word'?'docx':'pdf',d=D(),f=[],n=d.rooms.length;
     if(x.seat)f.push({n:'座位表.'+ext,p:n+' 頁（每間班級教室一頁）'});
