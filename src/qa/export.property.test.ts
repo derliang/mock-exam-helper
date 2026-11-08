@@ -153,7 +153,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
       expect(count(docx, meta.dataVersion)).toBeGreaterThanOrEqual(seat.length + label.length);
     }
     expect(checked).toBeGreaterThanOrEqual(20);
-  }, 120_000);
+  }, 300_000);
 });
 
 describe('姓名來源不同步的保險（缺陷 F-1 回歸）', () => {

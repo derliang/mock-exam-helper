@@ -29,7 +29,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (!needsMarks(exam)) {
     return (
       <section class="stack">
-        <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
+        <StepHead title="④ 標示與抽離規則" />
         <Alert tone="info"><b>會考不需要這一步。</b>國中部每科都考，沒有選考，所以沒有標示，也沒有抽離。直接前往排座。</Alert>
       </section>
     );
@@ -77,7 +77,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             <thead><tr><th>組別代碼</th><th>考科</th><th>人數</th></tr></thead>
             <tbody>
               {groups.map((g) => (
-                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} /></td><td class="n">{g.count}</td></tr>
+                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} />{g.differing > 0 && <><br /><Badge tone="warn">{g.differing} 人考科不同</Badge> <span class="small muted">（上列為人數最多的組合）</span></>}</td><td class="n">{g.count}</td></tr>
               ))}
             </tbody>
           </table>

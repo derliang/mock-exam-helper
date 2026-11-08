@@ -73,7 +73,7 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
           {applied && (
             <div class="stack">
               <p class="small muted">已套用。若不對，按頁首的「復原」可回到套用前的名單與排座。</p>
-              <p class="small">其餘步驟：① 考試設定、③ 教室、④ 標示、⑤ 排座　<Badge>沿用上次</Badge></p>
+              <p class="small">其餘步驟：① 考試設定、③ 教室、⑤ 排座　<Badge>沿用上次</Badge></p>
               {flow.issues.length === 0
                 ? <Alert tone="ok" action={<Button small kind="primary" onClick={() => p.onStep?.(6)}>前往 ⑥ 下載</Button>}><b>檢核全部通過。</b>考生 {flow.summary.students}、座位 {flow.summary.seats}，可以前往下載。</Alert>
                 : flow.issues.map((i) => (

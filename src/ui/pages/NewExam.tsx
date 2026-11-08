@@ -7,14 +7,14 @@ import { newExam, previousExam, schoolYear, suggestExamName, type Doc } from '..
 const TYPES: { kind: ExamKind; level: string; title: string; subj: string; soon?: boolean }[] = [
   { kind: 'gsat', level: '高中部', title: '學測模擬考', subj: '國、英、數（第 3 次起分數 A、數 B）、自然、社會' },
   { kind: 'ast', level: '高中部', title: '分科模擬考', subj: '每一科都是選考；沒有實際名單與樣本，之後才做', soon: true },
-  { kind: 'bcct', level: '國中部', title: '會考模擬考', subj: '國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗（固定七科），不分文理組、沒有選考' },
+  { kind: 'bcct', level: '國中部', title: '會考模擬考', subj: '國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗（固定七科），沒有選考' },
 ];
 
 /** 新增模擬考整頁三段式：1 選類型、2 基本資料、3 預設設定（沿用上一次同類型） */
 export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, examId: string) => void; now?: () => Date }) {
   const now = p.now ?? (() => new Date());
   const [kind, setKind] = useState<ExamKind>('gsat');
-  const [name, setName] = useState(() => suggestExamName(p.doc, 'gsat'));
+  const [name, setName] = useState(() => suggestExamName(p.doc, 'gsat', (p.now ?? (() => new Date()))()));
   // 使用者沒自己改過名稱時，換類型就跟著換建議名稱
   const [edited, setEdited] = useState(false);
   const [semester, setSemester] = useState<Semester>('first');
@@ -25,7 +25,7 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
 
   const pick = (k: ExamKind) => {
     setKind(k); setErr('');
-    if (!edited) setName(suggestExamName(p.doc, k));
+    if (!edited) setName(suggestExamName(p.doc, k, now()));
   };
   const submit = () => {
     if (!check.ok) return;

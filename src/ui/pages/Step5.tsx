@@ -1,11 +1,12 @@
 import { useState } from 'preact/hooks';
 import type { ExamConfig, SeatingResult } from '../../data';
 import { studentCode } from '../../data';
+import { mixedMarkCodes, overridePurpose } from '../../core/detach';
 import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
 import { ChartLegend, SeatChart } from '../components/SeatChart';
 import {
-  afterOverrideChange, chartModel, detachChartModel, seatableEntries, detachSummary, examClasses, examEntries, examOverrides, examResult, examRooms,
+  afterOverrideChange, chartModel, detachChartModel, seatableEntries, detachSummary, nameMapOf, examClasses, examEntries, examOverrides, examResult, examRooms,
   isStale, overrideNotes, removeOverride, reseat, roomStatTable, seatingBlockers, setOverride, validationChecks, type StepNo,
 } from '../seating';
 import type { Doc } from '../store';
@@ -81,7 +82,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const seats = classRooms.reduce((a, r) => a + r.seatCount, 0);
   const notes = overrideNotes(doc, exam, result);
   const overrides = examOverrides(doc, exam);
-  const names = new Map(examEntries(doc, exam).map((e) => [studentCode(e.classNo, e.seatNo), e.name]));
+  const names = nameMapOf(doc, exam);
   const summary = detachSummary(exam, result);
   const pulls = summary.flatMap((s) => s.examRooms.map((r) => ({ key: `${s.subjectId}|${r.roomId}`, subjectId: s.subjectId, name: s.name, roomId: r.roomId })));
   const pull = pulls.find((x) => x.key === pullKey) ?? pulls[0];
@@ -90,7 +91,8 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const model = room ? chartModel(doc, exam, result, room) : null;
   const present = model ? [...new Set(model.lines.flat().flatMap((c) => (c.kind === 'student' ? [c.classNo] : [])))].sort((a, b) => a - b) : [];
   const stat = room ? roomStatTable(doc, exam, result, room.id) : null;
-  const trackOf = (t?: string) => (exam.division === 'senior' && t ? (t === 'science' ? '（理）' : '（文）') : '');
+  const senior = exam.division === 'senior'; // 會考沒有標示、抽離、個別覆寫（單人特例）
+  const trackOf = (t?: string) => (senior && t ? (t === 'science' ? '（理）' : '（文）') : '');
   const vcode = <div class="vcode">產生 {taipei(result.generatedAt)}　資料版本 {result.dataVersion}（名單或設定改了，版本碼就會變）</div>;
 
   return (
@@ -100,7 +102,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         { label: '考生', value: seatableEntries(doc, exam).length },
         { label: '座位', value: seats },
         { label: '班級教室', value: `${classRooms.length} 間` },
-        { label: '預備教室', value: `${rooms.length - classRooms.length} 間` },
+        ...(senior ? [{ label: '預備教室', value: `${rooms.length - classRooms.length} 間` }] : []),
         { label: '驗證', value: stale ? '需重新排座' : allPass ? '通過' : '不通過', bad: !stale && !allPass },
       ]} />
       {stale && (
@@ -114,7 +116,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       {room && model && (
         <div class="card stack">
           <div class="btnrow" style="justify-content:space-between">
-            <div><h3>座位表預覽</h3><p class="small muted">班級底色；橫排（左右）與深位（前後），講臺在下方。{!stale && '點任一位考生可設定個別覆寫（只改指定考科的去處，不是換座位）。'}</p></div>
+            <div><h3>座位表預覽</h3><p class="small muted">班級底色；橫排（左右）與深位（前後），講臺在下方。{senior && !stale && '點任一位考生可設定個別覆寫（只改指定考科的去處，不是換座位）。'}</p></div>
             <ConfirmButton kind="default" copy={confirmCopy.reseat(overrides.length)} onConfirm={run}>重新排座</ConfirmButton>
           </div>
           {classRooms.length > 1 && (
@@ -128,11 +130,11 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             title={`【${exam.name}】座位表`}
             sub={`${room.name}　考生 ${model.count} 人`}
             onlyClass={only ? Number(only) : undefined}
-            onPick={stale ? undefined : (code, co) => setEditing({ code, co })}
+            onPick={stale || !senior ? undefined : (code, co) => setEditing({ code, co })}
           />
-          <ChartLegend override={overrides.length > 0} />
+          <ChartLegend override={overrides.length > 0} marks={exam.division === 'senior'} />
           {vcode}
-          <p class="small muted">不開放拖曳換座位：會破壞「同班編號沿座位遞增」的規則。「個別覆寫」不是換座位，只改指定考科的去處。</p>
+          <p class="small muted">不開放拖曳換座位：會破壞「同班編號沿座位遞增」的規則。{senior && '「個別覆寫」不是換座位，只改指定考科的去處。'}</p>
           {stat && (
             <div>
               <div class="lab">座位表統計（這間教室）</div>
@@ -157,7 +159,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           : <Alert tone="warn">需要重新排座：名單或設定已變更，舊座位表不能下載，重新排座後才會驗證。</Alert>}
       </div>
 
-      <div class="card stack">
+      {senior && <div class="card stack">
         <div><h3>個別覆寫（單人特例）</h3><p class="small muted">保留原教室座位（不是換座位），只把這個人被標示的那幾節考科改到自填地點，不佔預備教室；改了會自動重排並再驗證。在上面的座位表點考生就能設定。</p></div>
         {overrides.length === 0
           ? <p class="small muted">目前沒有個別覆寫。</p>
@@ -167,9 +169,9 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               <Button small onClick={() => p.onChange(afterOverrideChange(removeOverride(doc, exam, o.code), exam, new Date().toISOString()))}>移除此設定</Button>
             </div>
           ))}
-      </div>
+      </div>}
 
-      {exam.division === 'senior' && (
+      {senior && (
         <div class="card stack">
           <div><h3>預備教室與抽離</h3><p class="small muted">標「X」的人這科不考，該節改到自習地點（只出名單）；標「＋」的人這科要考，該節改到預備教室。與座位表同一份資料。</p></div>
           {summary.length === 0
@@ -214,8 +216,13 @@ function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; c
   const subj = new Map(p.exam.subjects.map((s) => [s.id, s.name]));
   const marks = p.result.marks.filter((m) => m.code === p.code);
   const now = () => new Date().toISOString();
+  // 各科各自選用途（#66）：預設依標示方向；已存過的照舊值
+  const mixed = mixedMarkCodes(p.result.marks).has(p.code);
+  const [purp, setPurp] = useState<Record<string, 'exam' | 'study'>>(() =>
+    Object.fromEntries(marks.map((m) => [m.subjectId, cur ? overridePurpose(cur, m.subjectId, m.mode, mixed) : m.mode === 'extra' ? 'exam' : 'study'] as const)));
   const save = () => {
-    const r = setOverride(p.doc, p.exam, { kind: 'single', code: p.code, location: place, purpose: marks.some((m) => m.mode === 'extra') ? 'exam' : 'study' });
+    const purposes = Object.fromEntries(marks.map((m) => [m.subjectId, purp[m.subjectId] ?? (m.mode === 'extra' ? 'exam' : 'study')] as const));
+    const r = setOverride(p.doc, p.exam, { kind: 'single', code: p.code, location: place, purpose: Object.values(purposes).includes('exam') ? 'exam' : 'study', purposes });
     if (!r.ok) { setErr(`${r.error}：例如「教務處」，會印在座位表與名單上`); return; }
     p.onSave(afterOverrideChange(r.doc, p.exam, now()));
   };
@@ -234,9 +241,14 @@ function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; c
         ? <Alert tone="info">這位考生每科都在原教室考，沒有要抽離的科目，不需要覆寫。</Alert>
         : (
           <>
-            <Alert tone="info">
-              {marks.map((m) => `${m.mode === 'absent' ? `X${subj.get(m.subjectId)}：該節到他處自習` : `＋${subj.get(m.subjectId)}：該節到他處考試`}`).join('；')}
-            </Alert>
+            <div class="stack">
+              {marks.map((m) => (
+                <div class="row" key={m.subjectId} style="justify-content:space-between">
+                  <span>{m.mode === 'absent' ? 'X' : '＋'}{subj.get(m.subjectId)}（{m.mode === 'absent' ? '原本不考' : '原本加考'}）</span>
+                  <Seg<'exam' | 'study'> label={`${subj.get(m.subjectId)}用途`} value={purp[m.subjectId] ?? 'study'} onChange={(v) => setPurp((x) => ({ ...x, [m.subjectId]: v }))} options={[{ value: 'exam', label: '到他處考試' }, { value: 'study', label: '到他處自習' }]} />
+                </div>
+              ))}
+            </div>
             <div class={`field${err ? ' err' : ''}`}>
               <label for="ovr-place">地點</label>
               <input

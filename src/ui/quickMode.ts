@@ -5,7 +5,7 @@
 import type { ExamConfig, ExamEntry } from '../data';
 import { compareRosters, type Sheet } from '../import';
 import { parseExamWorkbook } from './step2';
-import { examEntries, examRooms } from './seating';
+import { examEntries, examRooms, hasImportedList } from './seating';
 import { previousExam as storePrevious, type Doc } from './store';
 
 export type QuickKey = 'rooms' | 'roster' | 'count' | 'subjects';
@@ -27,7 +27,7 @@ export interface QuickResult {
 
 /** 上一次會考：與新增考試的「上次」同一個定義（store.previousExam：同類型、最近修改），另要求不是自己且已有考試名單 */
 export function previousExam(doc: Doc, exam: ExamConfig): ExamConfig | undefined {
-  return storePrevious(doc, 'bcct', (e) => e.id !== exam.id && examEntries(doc, e).length > 0);
+  return storePrevious(doc, 'bcct', (e) => e.id !== exam.id && hasImportedList(doc, e));
 }
 
 const sameSet = (a: string[], b: string[]): boolean => a.length === b.length && [...a].sort().every((x, i) => x === [...b].sort()[i]);

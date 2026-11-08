@@ -1,9 +1,9 @@
 import type { ExamConfig, Track } from '../../data';
-import { Alert, Button, Seg, StepHead } from '../components';
+import { Alert, Button, Seg, StatsBar, StepHead } from '../components';
 import { RoomList } from '../components/RoomList';
 import { classCapacity, reserveCheck } from '../capacity';
 import { newClassRoomIds, roomsMissingTrack } from '../rooms';
-import { examRooms } from '../seating';
+import { examEntries, examRooms, seatableEntries } from '../seating';
 import { setClassTrack, updateExam, type Doc } from '../store';
 
 /** ③ 教室設定：標題卡、狀態檢核卡（理組／文組分列＋預備教室）、班級（文理組）卡、教室與座位卡（原型 v3） */
@@ -11,7 +11,12 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const { doc, exam } = p;
   const rooms = doc.settings.classrooms;
   const senior = exam.division === 'senior';
-  const { lines, noList } = classCapacity(doc, exam);
+  const { lines, noList, seats } = classCapacity(doc, exam);
+  const students = seatableEntries(doc, exam).length;
+  const bcct = exam.kind === 'bcct';
+  const allRooms = examRooms(doc, exam);
+  const reserveSeats = allRooms.filter((r) => r.kind === 'reserve').reduce((n, r) => n + r.seatCount, 0);
+  const hasList = examEntries(doc, exam).length > 0;
   const missing = roomsMissingTrack(examRooms(doc, exam), exam.division);
   const reserve = reserveCheck(doc, exam);
   const roster = doc.rosters[exam.division];
@@ -29,12 +34,23 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="③ 教室設定">用開關選出本次考試的教室，確認座位夠用；高中部的班級要先分好理組、文組。</StepHead>
+      <StepHead title="③ 教室設定">用開關選出本次考試的教室，確認座位夠用{senior ? '；高中部的班級要先分好理組、文組' : ''}。</StepHead>
+
+      {/* D56：狀態檢核放頁面上方、隨時看得到；統計列照設計系統「頂部統計列」（D82 修訂） */}
+      <StatsBar items={[
+        { label: '考生', value: hasList ? students : '—' },
+        { label: '座位', value: seats },
+        { label: hasList && seats < students ? '缺位' : '空位', value: hasList ? Math.abs(seats - students) : '—', bad: hasList && seats < students },
+        { label: '班級教室', value: `${allRooms.filter((r) => r.kind === 'class').length} 間` },
+        { label: '預備教室', value: bcct ? '不需要' : `${allRooms.filter((r) => r.kind === 'reserve').length} 間` },
+      ]} />
 
       <div class="card stack">
-        <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。{senior ? '高中部理組、文組各自計算，預備教室不納入。' : ''}</p></div>
-        {/* 完整警示只在頁面上方講一次（DESIGN 10.7 規則 4）；這裡只留一行灰字，不再用警示框（D82 仍不顯示考生 0） */}
-        {noList && <p class="small muted">尚未匯入考試名單，無法檢核座位夠不夠。</p>}
+        <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。{senior ? '高中部理組、文組各自計算，預備教室不納入；預備教室座位另計（目前 ' + reserveSeats + '）。' : ''}</p></div>
+        {/* 完整警示只在頁面上方講一次（DESIGN 10.7 規則 4）；沒有考生人數時不顯示 0（D82），但座位合計仍要看得到 */}
+        {noList && (bcct
+          ? <p class="small muted">共用學生名單是空的，沒有考生可檢核；教室座位合計 {seats}。</p>
+          : <p class="small muted">教室座位合計 {seats}。匯入考試名單後檢核夠不夠。</p>)}
         {lines.map((l) => <Alert key={l.label} tone={l.ok ? 'ok' : 'danger'}>{l.ok ? <><b>{l.label}：</b>{l.detail}</> : l.message}</Alert>)}
         {missing.length > 0 && <Alert tone="danger"><b>高中部排座要先指定教室的組別。</b>「{missing.map((r) => r.name).join('、')}」還沒選理組或文組，請在下面該列的「組別」按鈕選一個（預備教室不用選）。</Alert>}
         <Alert tone={reserve.tone}>{reserve.message}</Alert>
@@ -61,8 +77,8 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="card stack">
-        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；預備教室座位另計，不計入班級教室合計。教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
-        <RoomList classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
+        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；{senior ? '預備教室座位另計，不計入班級教室合計。' : ''}教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
+        <RoomList junior={!senior} classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
       </div>
     </section>
   );
