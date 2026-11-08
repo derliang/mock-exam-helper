@@ -6,7 +6,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--f-ui);font-size:14
 .wrap{max-width:1160px;margin:20px auto 64px;padding:24px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-xl);box-shadow:var(--shadow-2)}
 @media (max-width:560px){.wrap{padding:14px;margin-top:12px;border-radius:var(--r-lg)}}
 h1,h2,h3{font-family:var(--f-head);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em}
-h1{font-size:26px} h2{font-size:21px} h3{font-size:16px}
+/* 字級只有四級（DESIGN 10.9）：頁標 26、區塊標 18、內文 14、說明 13 */
+h1,h2{font-size:26px;line-height:1.3} h3{font-size:18px;line-height:1.4}
+.lic-sec h2{font-size:18px}
 p{margin:0}
 .muted{color:var(--text-3)} .small{font-size:13px}
 .num{font-variant-numeric:tabular-nums}
@@ -400,7 +402,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 @media print{.pfoot{display:none}}
 
 /* ④⑤（施工B）：自原型移植；座位表在 .scroll 內等比縮小（最小 0.4 倍），再窄才在卡片內捲動 */
-.lab{font-size:12px;font-weight:700;color:var(--text-3);margin-bottom:8px;letter-spacing:.04em}
+.lab{font-family:var(--f-head);font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.4}
 .scroll{overflow-x:auto;max-width:100%}
 .cell[role="button"]{cursor:pointer}
 .blk-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}

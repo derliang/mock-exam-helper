@@ -175,7 +175,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <div class="stack" style="min-width:0">
         <SummaryBar flow={flow} onGo={p.onStep} />
-        <StepNextBar action={nextAction(flow, step)} onGo={p.onStep} />
+        <StepNextBar action={quietPending(nextAction(flow, step), step)} onGo={p.onStep} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
           : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
           : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />
@@ -186,4 +186,13 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       </div>
     </div>
   );
+}
+
+/**
+ * 警示只講一次（DESIGN 10.7 規則 4）：要去補的就是「這一步」時，頁面本身已有更具體的狀態卡，不再顯示「前面還有事沒做完」；
+ * ⑤ 排座自己有「還不能排座」的完整清單，也不重複。
+ */
+function quietPending(a: ReturnType<typeof nextAction>, step: number): ReturnType<typeof nextAction> {
+  if (a.kind === 'go' && a.pending && (a.pending.fixStep === step || step === 5)) return { ...a, pending: undefined };
+  return a;
 }
