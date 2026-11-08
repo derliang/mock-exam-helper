@@ -4,7 +4,7 @@
  */
 import type { ExamConfig } from '../data';
 import { checkSeats, roomsMissingTrack, seatTotals } from './rooms';
-import { examEntries, examResult, examRooms, isStale, seatingBlockers, needsMarks, validationChecks, type StepNo } from './seating';
+import { seatableEntries, examResult, examRooms, isStale, seatingBlockers, needsMarks, validationChecks, type StepNo } from './seating';
 import { STEP_NAMES } from './nav';
 import type { Doc } from './store';
 
@@ -43,7 +43,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   const issues: FlowIssue[] = [];
   const add = (i: FlowIssue) => issues.push(i);
 
-  const students = examEntries(doc, exam).length;
+  const students = seatableEntries(doc, exam).length;
   const rooms = examRooms(doc, exam);
   const { classSeats } = seatTotals(rooms.filter((r) => r.kind === 'class'));
   const spare = classSeats - students;

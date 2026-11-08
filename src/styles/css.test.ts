@@ -17,3 +17,14 @@ describe('CSS 語法', () => {
     expect(r.warnings).toEqual([]);
   });
 });
+
+describe('類別撞名', () => {
+  it('班級教室列不得再用開關軌道的 .trk（fix-v2：曾使整列塌成 46×26）', () => {
+    const css = readFileSync('src/styles/app.css', 'utf8');
+    const room = readFileSync('src/ui/components/RoomList.tsx', 'utf8');
+    expect(css).not.toMatch(/\.roomrow\.trk/);
+    expect(room).not.toMatch(/'\s*trk\s*'/);
+    expect(css).toMatch(/\.roomrow\.roomrow-cls\{/);
+    expect(css).toMatch(/^\.trk\{width:46px;height:26px/m);
+  });
+});

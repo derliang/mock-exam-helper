@@ -107,7 +107,7 @@ describe('步驟② 考試名單', () => {
   it('有差異且未打開比對畫面：warn 提示「處理差異」；比對畫面在匯入後才自動打開（state），總覽不出現表格', () => {
     const { doc, second } = twoGsat();
     const diffs: RosterDiff[] = [{ kind: 'only-in-exam', code: '0145', exam: { classNo: 1, seatNo: 45, name: '測試生' } }];
-    const d: Doc = { ...doc, examFiles: { [second.id]: { entries: [{ classNo: 1, seatNo: 45, name: '測試生', subjectIds: [] }], diffs } } };
+    const d: Doc = { ...doc, examFiles: { [second.id]: { entries: [{ classNo: 1, seatNo: 45, name: '測試生', subjectIds: ['chi'] }], diffs } } };
     const html = renderToString(<Step2 doc={d} exam={second} onChange={noop} onToRoster={noop} />);
     expect(html).toContain('還有 1 筆差異沒處理');
     expect(html).toContain('處理差異');
@@ -121,7 +121,7 @@ describe('步驟③ 教室設定', () => {
     const none = classCapacity(doc, second);
     expect(none).toMatchObject({ lines: [], noList: true });
     expect(renderToString(<Step3 doc={doc} exam={second} onChange={noop} />)).toContain('尚未匯入考試名單');
-    const some = doc.rosters.senior.slice(0, 3).map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: [] as string[] }));
+    const some = doc.rosters.senior.slice(0, 3).map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: ['chi'] }));
     const d: Doc = { ...doc, examFiles: { [second.id]: { entries: some, diffs: [] } } };
     const r = classCapacity(d, second);
     expect(r.noList).toBe(false);
@@ -129,7 +129,7 @@ describe('步驟③ 教室設定', () => {
   });
   it('卡片：狀態檢核（理組／文組分列＋預備教室）、班級文理組、教室與座位', () => {
     const { doc, second } = twoGsat();
-    const entries = doc.rosters.senior.map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: [] as string[] }));
+    const entries = doc.rosters.senior.map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: ['chi'] }));
     const withList: Doc = { ...doc, examFiles: { [second.id]: { entries, diffs: [] } } };
     const html = renderToString(<Step3 doc={withList} exam={second} onChange={noop} />);
     for (const t of ['狀態檢核', '理組教室座位', '文組教室座位', '預備教室容量', '班級', '理組</button>', '文組</button>', '教室與座位']) expect(html).toContain(t);
@@ -142,7 +142,7 @@ describe('步驟③ 教室設定', () => {
       { id: 'r1', name: '試場1', kind: 'class' as const, rows: 1, depth: 1, seatCount: 1, track: 'science' as const },
       { id: 'r2', name: '試場2', kind: 'class' as const, rows: 8, depth: 6, seatCount: 48, track: 'liberal' as const },
     ];
-    const entries = doc.rosters.senior.map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: [] as string[] }));
+    const entries = doc.rosters.senior.map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: ['chi'] }));
     const d: Doc = { ...doc, examFiles: { [second.id]: { entries, diffs: [] } }, settings: { ...doc.settings, classes: [...track, ...doc.settings.classes.filter((c) => c.division !== 'senior')], classrooms: rooms }, exams: doc.exams.map((e) => (e.id === second.id ? { ...e, classroomIds: ['r1', 'r2'] } : e)) };
     const { lines } = classCapacity(d, d.exams[1] as ExamConfig);
     expect(lines.map((l) => l.label)).toEqual(['理組', '文組']);

@@ -35,7 +35,7 @@ export function RoomList(p: {
         const on = p.selected?.includes(r.id) ?? false;
         return (
           <div key={r.id} class="rw">
-            <div class={`roomrow${p.selected ? (on ? ' on' : ' off') : ''}${r.kind === 'class' ? ' trk' : ''}`} onClick={() => setOpen(isOpen ? null : r.id)}>
+            <div class={`roomrow${p.selected ? (on ? ' on' : ' off') : ''}${r.kind === 'class' ? ' roomrow-cls' : ''}`} onClick={() => setOpen(isOpen ? null : r.id)}>
               {p.selected && p.onSelect ? (
                 <Switch label={r.kind === 'class' ? '列為考場' : '列為預備'} ariaLabel={`${r.kind === 'class' ? '列為考場' : '列為預備'}：${r.name}`} checked={on}
                   onChange={(v) => p.onSelect!(v ? [...p.selected!, r.id] : p.selected!.filter((x) => x !== r.id))} />

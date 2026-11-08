@@ -1,6 +1,6 @@
 /** 步驟③ 狀態檢核（原型「狀態檢核」卡）：高中部理組／文組各算一次、預備教室容量另算（D6、D69） */
 import type { ExamConfig, Track } from '../data';
-import { detachPreview, examEntries, examRooms } from './seating';
+import { detachPreview, examEntries, seatableEntries, examRooms } from './seating';
 import type { Doc } from './store';
 
 export interface CapacityLine { label: string; seats: number; students: number; ok: boolean; /** 通過時標籤之後的說明 */ detail: string; message: string }
@@ -20,8 +20,8 @@ const line = (label: string, seats: number, students: number): CapacityLine => {
 /** 班級教室的容量檢核：國中部合計一條；高中部理組、文組各一條，沒指定組別的教室另計 */
 export function classCapacity(doc: Doc, exam: ExamConfig): { lines: CapacityLine[]; untracked: number; /** 還沒匯入本次考試名單：沒有考生人數可比，不顯示 0（D82） */ noList: boolean } {
   const rooms = examRooms(doc, exam).filter((r) => r.kind === 'class');
-  const roster = examEntries(doc, exam);
-  if (roster.length === 0) return { lines: [], untracked: rooms.filter((r) => !r.track).length, noList: true };
+  const roster = seatableEntries(doc, exam);
+  if (examEntries(doc, exam).length === 0) return { lines: [], untracked: rooms.filter((r) => !r.track).length, noList: true };
   if (exam.division === 'junior') {
     return { lines: [line('全體', rooms.reduce((n, r) => n + r.seatCount, 0), roster.length)], untracked: 0, noList: false };
   }
