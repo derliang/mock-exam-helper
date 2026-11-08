@@ -3,7 +3,7 @@ import type { Division, Track } from '../../data';
 import { readXlsx, writeXlsx } from '../../import';
 import { Alert, Button, Modal } from '../components';
 import { downloadBytes, XLSX_MIME } from '../download';
-import { applyImport, exportRows, planImport, templateRows, type ImportPlan } from '../rosterIO';
+import { applyImport, exportRows, planImport, templateRows, type ImportPlan, type UnknownClassAction } from '../rosterIO';
 import { setClassTrack, type Doc } from '../store';
 import { parseRosterWorkbook } from '../step2';
 
@@ -14,6 +14,7 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
   const input = useRef<HTMLInputElement>(null);
   const [plan, setPlan] = useState<(ImportPlan & { layout: string; issues: string[]; tracks?: Record<number, Track> }) | null>(null);
   const [useTracks, setUseTracks] = useState(true);
+  const [unk, setUnk] = useState<UnknownClassAction>('add');
   const [err, setErr] = useState('');
   const [tpl, setTpl] = useState(false);
   const classNames = p.doc.settings.classes.filter((c) => c.division === p.division).map((c) => c.name);
@@ -27,6 +28,7 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
         setErr(r.issues[0]?.message ?? '檔案裡沒有讀到學生，請確認表頭有「座號」「姓名」');
         return;
       }
+      setUnk('add');
       setPlan({ ...planImport(p.doc, p.division, r.students), layout: r.layout, issues: r.issues.map((i) => i.message), tracks: r.classTracks });
     } catch (e) {
       setErr(`讀不了這個檔案：${e instanceof Error ? e.message : String(e)}。請確認是 .xlsx 檔`);
@@ -35,7 +37,7 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
 
   const confirm = () => {
     if (!plan) return;
-    let d = applyImport(p.doc, p.division, plan);
+    let d = applyImport(p.doc, p.division, plan, unk);
     if (useTracks && plan.tracks && p.division === 'senior') {
       for (const [no, t] of Object.entries(plan.tracks)) d = setClassTrack(d, 'senior', Number(no), t);
     }
@@ -71,9 +73,17 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
           actions={<><Button onClick={() => setPlan(null)}>取消</Button><Button kind="primary" onClick={confirm}>取代目前名單</Button></>}>
           <p>讀到 <strong>{plan.after}</strong> 人（目前 {plan.before} 人）。確定後會<strong>取代</strong>{DIV_NAME[p.division]}整份名單；之後可用「↶ 復原」回到匯入前。</p>
           <p class="muted small">版式：{plan.layout === 'blocks' ? '各班並排（區塊標題）' : plan.layout === 'wide' ? '各班並排（表頭欄位）' : '一人一列'}</p>
-          {plan.unknownClasses.length > 0 && (
-            <Alert tone="warn">名單裡有班級 {plan.unknownClasses.map((n) => String(n).padStart(2, '0')).join('、')}，目前「班級資料」裡沒有，請先新增班級，否則這些人無法排座。</Alert>
-          )}
+          {plan.unknownClasses.length > 0 && (() => {
+            const labels = plan.unknownClasses.map((n) => `${String(n).padStart(2, '0')} 班（${plan.unknownCounts[n] ?? 0} 人）`).join('、');
+            const total = plan.unknownClasses.reduce((a, n) => a + (plan.unknownCounts[n] ?? 0), 0);
+            return (
+              <Alert tone="warn">
+                <div>名單裡有「班級資料」沒有的班級：{labels}。請選一種處理方式：</div>
+                <label class="small" style="display:block;margin-top:6px"><input type="radio" name="unk" checked={unk === 'add'} onChange={() => setUnk('add')} /> 新增這些班級（名稱先用「第NN班」，之後可到「班級資料」改名、改色），這 {total} 人照常匯入、可以排座</label>
+                <label class="small" style="display:block"><input type="radio" name="unk" checked={unk === 'skip'} onChange={() => setUnk('skip')} /> 略過這些學生：這 {total} 人不會匯入名單，因此<strong>無法排座</strong>；之後要補，得先新增班級再重新匯入</label>
+              </Alert>
+            );
+          })()}
           {plan.issues.length > 0 && <Alert tone="warn">有 {plan.issues.length} 列已略過：{plan.issues.slice(0, 3).join('；')}{plan.issues.length > 3 ? '…' : ''}</Alert>}
           {plan.tracks && p.division === 'senior' && (
             <label class="small" style="display:block;margin-top:8px">

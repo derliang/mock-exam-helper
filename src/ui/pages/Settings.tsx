@@ -7,7 +7,7 @@ import { RoomList } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
 import { RosterIO } from './RosterIO';
 import { allFeatures, withFeature } from '../features';
-import { addStudent, removeStudent, searchStudents, setClassColor, setClassTrack, updateStudent, type Doc } from '../store';
+import { addClass, addStudent, nextClassNo, validateClassName, classUsage, removeClass, removeStudent, renameClass, searchStudents, setClassColor, setClassTrack, updateStudent, type Doc } from '../store';
 
 type Tab = 'roster' | 'classes' | 'school' | 'rooms' | 'features';
 const TABS: { value: Tab; label: string }[] = [
@@ -170,22 +170,29 @@ function Classes({ doc, onChange, division }: Props) {
   const list = doc.settings.classes.filter((c) => c.division === division);
   const trackOpts: { value: Track; label: string }[] = [{ value: 'science', label: '理組' }, { value: 'liberal', label: '文組' }];
   const isJ = division === 'junior';
+  const [err, setErr] = useState('');
+  const [adding, setAdding] = useState(false);
+  const run = (r: ReturnType<typeof addClass>) => { if (r.ok) { setErr(''); onChange(r.doc); } else setErr(r.error); };
   return (
     <div class="card stack">
       <div>
         <h3>班級資料（{isJ ? '國中部' : '高中部'}）</h3>
         <p class="small muted">班級名稱、{isJ ? '班級色' : '文理組、班級色'}，所有模擬考共用。</p>
       </div>
+      <div class="row"><Button small kind="primary" onClick={() => setAdding(true)}>＋ 新增班級</Button></div>
+      {err && <Alert tone="danger">{err}</Alert>}
+      {adding && <AddClassModal doc={doc} division={division} onClose={() => setAdding(false)} onAdd={(r) => { run(r); if (r.ok) setAdding(false); }} />}
       <div class="scroll">
         <table class="t compact nw">
-          <thead><tr><th>班級</th><th>名稱</th>{!isJ && <th>文理組</th>}<th>班級色（{CLASS_COLOR_COUNT} 色）</th></tr></thead>
+          <thead><tr><th>班級</th><th>名稱</th>{!isJ && <th>文理組</th>}<th>班級色（{CLASS_COLOR_COUNT} 色）</th><th>操作</th></tr></thead>
           <tbody>
             {list.map((c) => {
               const clash = colorConflicts(list, c.no, c.colorIndex);
               return (
                 <tr key={c.no}>
                   <td><ClassChip colorIndex={c.colorIndex}>{String(c.no).padStart(2, '0')} {c.name}</ClassChip></td>
-                  <td><input class="input" style="min-width:90px;max-width:120px" value={c.name} aria-label={`第${c.no}班名稱`} disabled /></td>
+                  <td><input class="input" style="min-width:90px;max-width:120px" value={c.name} aria-label={`第${c.no}班名稱`}
+                    onChange={(e) => run(renameClass(doc, division, c.no, e.currentTarget.value))} /></td>
                   {!isJ && <td><Seg<Track> label={`${c.name}班文理組`} value={c.track ?? 'science'} options={trackOpts} onChange={(tr) => onChange(setClassTrack(doc, division, c.no, tr))} /></td>}
                   <td>
                     <div class="swatches" role="group" aria-label={`${c.name}班班級色`}>
@@ -197,14 +204,40 @@ function Classes({ doc, onChange, division }: Props) {
                     </div>
                     {clash.length > 0 && <div class="hint">⚠ 與 {clash.map((n) => String(n).padStart(2, '0')).join('、')} 班同色，黑白列印請靠班級字分辨</div>}
                   </td>
+                  <td>{(() => {
+                    const u = classUsage(doc, division, c.no);
+                    return u.roster + u.examEntries > 0
+                      ? <span class="hint">班上有 {u.roster || u.examEntries} 人，不能刪除</span>
+                      : <ConfirmButton small copy={confirmCopy.deleteClass(c.name)} onConfirm={() => run(removeClass(doc, division, c.no))}>刪除</ConfirmButton>;
+                  })()}</td>
                 </tr>
               );
             })}
           </tbody>
         </table>
       </div>
-      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，改色會套用到座位表與標籤。每格都另印班級字，黑白列印也分得出班；班級名稱（溫良恭儉勤誠）固定。</p>
+      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，改色會套用到座位表與標籤。每格都另印班級字，黑白列印也分得出班；班級名稱可改，同一部別不可重名。</p>
     </div>
+  );
+}
+
+function AddClassModal(p: { doc: Doc; division: Division; onClose: () => void; onAdd: (r: ReturnType<typeof addClass>) => void }) {
+  const [name, setName] = useState('');
+  const [track, setTrack] = useState<Track>('science');
+  const isJ = p.division === 'junior';
+  const bad = name.trim() ? validateClassName(p.doc, p.division, name) : null;
+  return (
+    <Modal title={`新增班級（${isJ ? '國中部' : '高中部'}）`} onClose={p.onClose}
+      actions={<><Button onClick={p.onClose}>取消</Button><Button kind="primary" disabled={!!bad} onClick={() => p.onAdd(addClass(p.doc, p.division, { name, track }))}>新增</Button></>}>
+      <div class="stack">
+        <div class={`field${bad ? ' err' : ''}`}><label for="f-cname">班級名稱</label>
+          <input id="f-cname" class="input" value={name} onInput={(e) => setName(e.currentTarget.value)} placeholder="例如：溫" />
+          <span class="hint" role={bad ? 'alert' : undefined}>{bad || `不填就用「第${String(nextClassNo(p.doc, p.division)).padStart(2, '0')}班」；班級序號自動接在最後`}</span></div>
+        {!isJ && <div class="field"><span class="label">文理組</span>
+          <Seg<Track> label="新班級文理組" value={track} options={[{ value: 'science', label: '理組' }, { value: 'liberal', label: '文組' }]} onChange={setTrack} /></div>}
+        <p class="small muted">班級色會自動挑目前最少人用的一色，之後可以改。</p>
+      </div>
+    </Modal>
   );
 }
 
