@@ -1,0 +1,312 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>模擬考小幫手 拉皮方案稿</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+<style>
+/* 版面概念：先講規則，再看元件，最後兩個步驟③版型方案並排。沿用專案 tokens，不另創色。 */
+:root{
+  --bg:#F5F2EA; --surface:#FFFDF8; --sunken:#F1EDE3; --line:#E4DECF; --line-2:#CFC7B2;
+  --text:#22201B; --text-2:#4F493D; --text-3:#6F6858;
+  --accent:#274690; --accent-on:#FFFFFF; --accent-soft:#E8EDF8; --accent-ink:#1F3877; --accent-line:#B9C6E6;
+  --danger:#C81E45; --danger-soft:#FDECEF; --danger-ink:#9B1237;
+  --warn-soft:#FBF0D5; --warn-ink:#6B4300; --warn-line:#E3C07A;
+  --ok-soft:#E3F2E0; --ok-ink:#1F5A1A; --ok-line:#A5D39D;
+  --fmt-word:#2A6AC8; --fmt-pdf:#B8423A; --fmt-xls:#1F7A47;
+  --fmt-word-soft:#E6EEFB; --fmt-pdf-soft:#FBEAE8; --fmt-xls-soft:#E3F2E8;
+  --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
+  --r-sm:8px; --r-md:12px; --r-lg:16px;
+  --f-ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-head:"Noto Serif TC","Noto Sans TC","PMingLiU",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F; --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --danger:#F0617F; --danger-soft:#3A1A22; --danger-ink:#F7B2C0;
+  --warn-soft:#3A2E12; --warn-ink:#F3D690; --warn-line:#6F5620;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-line:#3B6B3C;
+  --fmt-word:#5B93E6; --fmt-pdf:#E0766E; --fmt-xls:#4DB57A;
+  --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5); color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F; --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --danger:#F0617F; --danger-soft:#3A1A22; --danger-ink:#F7B2C0;
+  --warn-soft:#3A2E12; --warn-ink:#F3D690; --warn-line:#6F5620;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-line:#3B6B3C;
+  --fmt-word:#5B93E6; --fmt-pdf:#E0766E; --fmt-xls:#4DB57A;
+  --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
+  --shadow-1:0 1px 2px rgba(0,0,0,.5); color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f-ui);font-size:14px;line-height:1.7;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:32px 72px}
+.wrap{max-width:1100px;margin:0 auto;display:flex;flex-direction:column;gap:56px}
+h1,h2,h3{font-family:var(--f-head);margin:0;text-wrap:balance;line-height:1.35}
+h1{font-size:28px} h2{font-size:22px} h3{font-size:17px}
+p{margin:0}
+.t-note{font-size:13px;color:var(--text-3)}
+.lead{font-size:15px;color:var(--text-2);max-width:62ch}
+.sec{display:flex;flex-direction:column;gap:20px}
+.sec>header{display:flex;flex-direction:column;gap:6px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--accent-ink)}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-1);min-width:0;display:flex;flex-direction:column;gap:14px}
+.card.flat{box-shadow:none}
+/* 可按性：連結＝accent 字＋底線；說明＝灰字、沒有底線 */
+.lnk{color:var(--accent-ink);font-weight:700;text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1.5px;cursor:pointer;background:none;border:0;padding:0;font:inherit;font-weight:700}
+.lnk:hover{background:var(--accent-soft)}
+.lnk::after{content:" →"}
+.btn{font:inherit;font-weight:700;min-height:40px;padding:0 16px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap}
+.btn:hover{background:var(--sunken)}
+.btn.pri{background:var(--accent);color:var(--accent-on);border-color:var(--accent)}
+.btn.pri:hover{filter:brightness(1.12);background:var(--accent)}
+.btn.sm{min-height:32px;padding:0 12px;font-size:13px}
+.btn.dng{background:var(--danger-soft);color:var(--danger-ink);border-color:var(--danger)}
+.btn:focus-visible,.sw input:focus-visible+.trk,.fmt input:focus-visible+span,.lnk:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+/* 開關 */
+.swf{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.swf .cap{font-size:12px;font-weight:700;color:var(--text-2)}
+.sw{display:inline-flex;align-items:center;gap:10px;cursor:pointer}
+.sw input{position:absolute;opacity:0;width:1px;height:1px}
+.trk{width:46px;height:26px;border-radius:99px;background:var(--line-2);position:relative;transition:background .15s;flex:none}
+.trk::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-1);transition:transform .15s}
+.sw input:checked+.trk{background:var(--accent)}
+.sw input:checked+.trk::after{transform:translateX(20px)}
+.sw .st{font-size:13px;font-weight:700;color:var(--text-3);min-width:3.5em}
+.sw input:checked~.st{color:var(--accent-ink)}
+/* 格式鈕 */
+.fmts{display:flex;gap:10px;flex-wrap:wrap}
+.fmt{cursor:pointer}
+.fmt input{position:absolute;opacity:0;width:1px;height:1px}
+.fmt span{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 18px 0 12px;border-radius:var(--r-md);border:1.5px solid var(--line-2);background:var(--surface);font-weight:700;color:var(--text)}
+.fmt:hover span{background:var(--sunken)}
+.fmt svg{width:26px;height:26px;flex:none}
+.fmt.w input:checked+span{background:var(--fmt-word-soft);border-color:var(--fmt-word)}
+.fmt.p input:checked+span{background:var(--fmt-pdf-soft);border-color:var(--fmt-pdf)}
+.fmt.x input:checked+span{background:var(--fmt-xls-soft);border-color:var(--fmt-xls)}
+.ic-bg-w{fill:var(--fmt-word)} .ic-bg-p{fill:var(--fmt-pdf)} .ic-bg-x{fill:var(--fmt-xls)}
+/* 字級示範 */
+.scale{display:flex;flex-direction:column}
+.scale>div{display:grid;grid-template-columns:110px 1fr;gap:16px;align-items:baseline;padding:12px 0;border-top:1px solid var(--line)}
+.scale>div:first-child{border-top:0}
+.scale .k{font-size:12px;font-weight:700;color:var(--text-3)}
+.tbl{width:100%;border-collapse:collapse;font-size:13px}
+.tbl th,.tbl td{text-align:left;padding:10px 12px;border-top:1px solid var(--line);vertical-align:top}
+.tbl th{font-size:12px;color:var(--text-3);font-weight:700;border-top:0}
+.tbl td:first-child{font-weight:700;white-space:nowrap}
+.scroll{overflow-x:auto}
+.pill{display:inline-flex;font-size:12px;font-weight:700;padding:2px 10px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2)}
+.pill.ok{background:var(--ok-soft);color:var(--ok-ink);border-color:var(--ok-line)}
+.pill.warn{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn-line)}
+/* 步驟③ 示範 */
+.frame{border:1px solid var(--line-2);border-radius:var(--r-lg);background:var(--bg);padding:20px;display:flex;flex-direction:column;gap:16px;min-width:0}
+.fr-label{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.fr-label b{font-family:var(--f-head);font-size:18px}
+.stepcard{display:flex;justify-content:space-between;gap:16px;align-items:center;flex-wrap:wrap}
+.stepcard .tx{display:flex;flex-direction:column;gap:2px;min-width:0}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);overflow:hidden}
+.stats>div{padding:14px 18px;display:flex;flex-direction:column;gap:2px;border-left:1px solid var(--line)}
+.stats>div:first-child{border-left:0}
+.stats small{font-size:13px;color:var(--text-3);font-weight:700}
+.stats strong{font-size:30px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stats strong.bad{color:var(--danger-ink)}
+.room{display:grid;grid-template-columns:auto minmax(150px,1fr) auto auto;gap:16px 24px;align-items:center;padding:16px 0;border-top:1px solid var(--line)}
+.room:first-of-type{border-top:0}
+.room .nm{display:flex;align-items:center;gap:12px;min-width:0}
+.dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:14px;flex:none}
+.stp{display:flex;align-items:center;gap:8px}
+.stp .cap{font-size:12px;font-weight:700;color:var(--text-2);display:block;margin-bottom:4px}
+.stp button{width:34px;height:34px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface);font:inherit;font-weight:700;font-size:16px;color:var(--text)}
+.stp output{min-width:28px;text-align:center;font-weight:700;font-size:17px;font-variant-numeric:tabular-nums}
+.room .off{opacity:.55}
+.rooms-head{display:flex;justify-content:space-between;gap:12px;align-items:baseline;flex-wrap:wrap}
+.guide{display:flex;flex-direction:column;gap:0}
+.guide .g{display:grid;grid-template-columns:28px 1fr;gap:10px;padding:12px 0;border-top:1px solid var(--line)}
+.guide .g:first-child{border-top:0}
+.guide .n{width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:13px;font-weight:700;border:1.5px solid var(--line-2);color:var(--text-2)}
+.guide .g.done .n{background:var(--ok-soft);border-color:var(--ok-line);color:var(--ok-ink)}
+.guide .g.now .n{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}
+.guide b{display:block;font-size:14px}
+.two{display:grid;grid-template-columns:260px 1fr;gap:20px;align-items:start}
+.two>*{min-width:0}
+@media (max-width:760px){.two{grid-template-columns:1fr}.stats strong{font-size:24px}.room{grid-template-columns:1fr auto}.room .nm{grid-column:1/-1}}
+ul.rules{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px}
+ul.rules li::marker{color:var(--text-3)}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center}
+</style>
+
+<div class="wrap">
+<header class="sec">
+  <span class="eyebrow">拉皮方案稿・待你定案</span>
+  <h1>模擬考小幫手 整體拉皮</h1>
+  <p class="lead">依你的五點要求，先把「說話方式」定下來：字級、區塊、可按與不可按的長相，再把教室開關與 Word／PDF／Excel 格式鈕畫出來，最後用步驟③ 比較兩種版型。定案後才會改 DESIGN.md 並派施工者逐頁改。</p>
+</header>
+
+<section class="sec">
+  <header><span class="eyebrow">第一部分</span><h2>一套設計語言（對應你的要求 1、2、4）</h2><p class="t-note">每一頁都只用下面四級字、三種區塊，不另外發明。</p></header>
+  <div class="grid2">
+    <div class="card">
+      <h3>字級四級</h3>
+      <div class="scale">
+        <div><span class="k">頁標　26 襯線</span><span style="font-family:var(--f-head);font-weight:700;font-size:26px;line-height:1.3">教室設定</span></div>
+        <div><span class="k">區塊標　18 襯線</span><span style="font-family:var(--f-head);font-weight:700;font-size:18px">班級教室座位統計</span></div>
+        <div><span class="k">內文　14</span><span>勾選本次使用的教室，座位數會自動合計。</span></div>
+        <div><span class="k">說明　13 灰</span><span class="t-note">預備教室的座位另計，不併入班級教室合計。</span></div>
+      </div>
+      <p class="t-note">說明字由 12 放大到 13，避免太小擠成一團；一行說明不超過約 40 字，超過就拆成兩句。</p>
+    </div>
+    <div class="card">
+      <h3>可按與不可按，一眼分得出（要求 5）</h3>
+      <div class="scale">
+        <div><span class="k">主要動作</span><span><button class="btn pri">完成此步，前往 ④</button></span></div>
+        <div><span class="k">次要動作</span><span><button class="btn">編輯座位表</button></span></div>
+        <div><span class="k">文字連結</span><span><button class="lnk">去 ② 匯入考試名單</button></span></div>
+        <div><span class="k">說明文字</span><span class="t-note">這句是說明，灰色、沒有底線、沒有箭頭，點了不會有反應。</span></div>
+      </div>
+      <p class="t-note">規則：可按的字一定是「藍色粗體＋底線＋箭頭」或有外框的按鈕；說明字一律灰色，不得用藍色或底線。</p>
+    </div>
+  </div>
+  <div class="card">
+    <h3>區塊與間距（要求 1、3）</h3>
+    <ul class="rules">
+      <li><b>一個區塊一張卡</b>：卡內由上而下固定是「區塊標題、一句引導、內容、動作」。</li>
+      <li><b>間距三級</b>：卡內元素 14px、卡與卡 20px、頁面大段落 56px；區塊之間一定比區塊內寬。</li>
+      <li><b>主按鈕只有一顆</b>：每個步驟頁，「完成此步，前往 ○」放在頁面最上方的步驟標題卡右側（D58）。</li>
+      <li><b>狀態只講一次</b>：警示只在最上面出現，其他地方只用小標籤。</li>
+    </ul>
+  </div>
+</section>
+
+<section class="sec">
+  <header><span class="eyebrow">第二部分</span><h2>控制元件怎麼選（對應 TODO-16）</h2><p class="t-note">每種控制只管一件事，選錯元件視為 Bug。</p></header>
+  <div class="card scroll">
+    <table class="tbl">
+      <thead><tr><th>元件</th><th>用在什麼時候</th><th>本站例子</th></tr></thead>
+      <tbody>
+        <tr><td>按鈕</td><td>觸發一個動作（儲存、下載、刪除、前往）</td><td>完成此步、編輯座位表、刪除</td></tr>
+        <tr><td>開關</td><td>某個東西「納入／不納入」，切換後立刻生效</td><td>列為考場、列為預備</td></tr>
+        <tr><td>選項卡</td><td>少數幾個彼此獨立的大選項，要看清楚說明</td><td>新增模擬考的學期、考試種類</td></tr>
+        <tr><td>分段鈕</td><td>二到三個短選項，互斥、同一件事的不同值</td><td>淺／深色、部別</td></tr>
+        <tr><td>格式鈕</td><td>檔案格式，帶各自的顏色與圖示</td><td>Word、PDF、Excel</td></tr>
+        <tr><td>勾選框</td><td>從清單中勾多項，要按「套用」才生效</td><td>匯入時挑要處理的筆數</td></tr>
+        <tr><td>下拉</td><td>選項多於 3 個且是單選</td><td>學年度、班級</td></tr>
+        <tr><td>文字連結</td><td>跳到別處、不改變資料</td><td>去 ② 匯入考試名單</td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="sec">
+  <header><span class="eyebrow">第三部分</span><h2>兩個新元件</h2></header>
+  <div class="grid2">
+    <div class="card">
+      <h3>列為考場／列為預備開關</h3>
+      <p class="t-note">標示文字在開關上方；開關旁邊用文字說明目前狀態，不只靠顏色。班級教室新增時預設開，預備教室預設關。</p>
+      <div class="row" style="gap:32px;align-items:flex-start">
+        <div class="swf"><span class="cap">列為考場</span><label class="sw"><input type="checkbox" checked><span class="trk"></span><span class="st">已列入</span></label></div>
+        <div class="swf"><span class="cap">列為考場</span><label class="sw"><input type="checkbox"><span class="trk"></span><span class="st">未列入</span></label></div>
+        <div class="swf"><span class="cap">列為預備</span><label class="sw"><input type="checkbox"><span class="trk"></span><span class="st">未列入</span></label></div>
+      </div>
+      <p class="t-note">可以直接點擊試試。關掉的教室整列變淡，座位不計入合計。</p>
+    </div>
+    <div class="card">
+      <h3>下載格式鈕</h3>
+      <p class="t-note">Word 藍、PDF 磚紅、Excel 綠；拿掉「主要／輔助」。紅色只用在圖示與選中底色，文字維持深色，避免被當成錯誤。</p>
+      <div class="fmts" role="radiogroup" aria-label="格式">
+        <label class="fmt w"><input type="radio" name="f" checked><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-w" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M6.5 11l2 7 2.2-5.5L12.9 18l2-7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Word</span></label>
+        <label class="fmt p"><input type="radio" name="f"><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-p" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><text x="12.5" y="19" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Noto Sans TC,sans-serif">PDF</text></svg>PDF</span></label>
+        <label class="fmt x"><input type="radio" name="f"><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-x" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M8 11.5l9 7M17 11.5l-9 7" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>Excel</span></label>
+      </div>
+      <p class="t-note">Excel 用在設定頁學生名單的下載。三個圖示是自己畫的，不使用任何商標原圖。</p>
+    </div>
+  </div>
+</section>
+
+<section class="sec">
+  <header><span class="eyebrow">第四部分</span><h2>步驟③ 教室設定：兩種版型</h2><p class="t-note">內容、字級、元件完全相同，只有整頁的安排不同。請選一個。</p></header>
+
+  <div class="frame" id="A">
+    <div class="fr-label"><b>方案 A　單欄卡片堆疊</b><span class="pill">最接近現在、改動最小</span></div>
+    <div class="card">
+      <div class="stepcard">
+        <div class="tx"><h2>③ 教室設定</h2><p class="t-note">決定這次要用哪些教室，座位要夠所有考生。</p></div>
+        <button class="btn pri">完成此步，前往 ④ 標示與抽離規則</button>
+      </div>
+    </div>
+    <div class="card" style="border-color:var(--warn-line);background:var(--warn-soft);flex-direction:row;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px">
+      <p style="color:var(--warn-ink);font-weight:700">② 考試名單還沒有匯入，座位數無法核對。</p>
+      <button class="lnk">去 ② 匯入考試名單</button>
+    </div>
+    <div class="stats"><div><small>班級教室座位</small><strong>72</strong></div><div><small>考生</small><strong>237</strong></div><div><small>預備教室座位（另計）</small><strong>0</strong></div></div>
+    <div class="card">
+      <div class="rooms-head"><div><h3>班級教室</h3><p class="t-note">新增的教室預設列為考場，座位自動計入。</p></div><div class="row"><button class="btn sm">新增班級教室</button></div></div>
+      <div>
+        <div class="room">
+          <div class="swf"><span class="cap">列為考場</span><label class="sw"><input type="checkbox" checked><span class="trk"></span><span class="st">已列入</span></label></div>
+          <div class="nm"><span class="dot" style="background:#FBE7C6;color:#6B4300">溫</span><div><b>溫</b><div class="t-note">座位 42／42</div></div></div>
+          <div class="row" style="gap:20px"><div class="stp"><div><span class="cap">橫排（左右）</span><div class="row" style="gap:6px"><button>−</button><output>6</output><button>＋</button></div></div></div><div class="stp"><div><span class="cap">深位（前後）</span><div class="row" style="gap:6px"><button>−</button><output>7</output><button>＋</button></div></div></div></div>
+          <div class="row"><button class="btn sm">編輯座位表</button><button class="btn sm dng">刪除</button></div>
+        </div>
+        <div class="room">
+          <div class="swf"><span class="cap">列為考場</span><label class="sw"><input type="checkbox"><span class="trk"></span><span class="st">未列入</span></label></div>
+          <div class="nm off"><span class="dot" style="background:#D8EFD3;color:#1F5A1A">良</span><div><b>良</b><div class="t-note">座位 30／30</div></div></div>
+          <div class="row off" style="gap:20px"><div class="stp"><div><span class="cap">橫排（左右）</span><div class="row" style="gap:6px"><button>−</button><output>5</output><button>＋</button></div></div></div><div class="stp"><div><span class="cap">深位（前後）</span><div class="row" style="gap:6px"><button>−</button><output>6</output><button>＋</button></div></div></div></div>
+          <div class="row"><button class="btn sm">編輯座位表</button><button class="btn sm dng">刪除</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="card"><div class="rooms-head"><div><h3>預備教室</h3><p class="t-note">預備教室不計入班級合計，預設不列入，需要時再打開。</p></div><button class="btn sm">新增預備教室</button></div><p class="t-note">目前沒有預備教室。</p></div>
+  </div>
+
+  <div class="frame" id="B">
+    <div class="fr-label"><b>方案 B　左側引導＋右側工作區</b><span class="pill warn">引導感最強、改動較大</span></div>
+    <div class="two">
+      <div class="card" style="gap:6px">
+        <h3>這一步要做的事</h3>
+        <p class="t-note">依序完成，右邊就是操作區。</p>
+        <div class="guide">
+          <div class="g done"><span class="n">✓</span><div><b>匯入考試名單</b><span class="t-note">237 位考生</span></div></div>
+          <div class="g now"><span class="n">2</span><div><b>列入要用的教室</b><span class="t-note">目前 72 個座位，還差 165 個</span></div></div>
+          <div class="g"><span class="n">3</span><div><b>檢查座位是否足夠</b><span class="t-note">座位要不少於考生</span></div></div>
+        </div>
+        <button class="btn pri" style="margin-top:8px" disabled>完成此步</button>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+        <div class="stats"><div><small>班級教室座位</small><strong class="bad">72</strong></div><div><small>考生</small><strong>237</strong></div><div><small>預備（另計）</small><strong>0</strong></div></div>
+        <div class="card">
+          <div class="rooms-head"><h3>班級教室</h3><button class="btn sm">新增班級教室</button></div>
+          <div>
+            <div class="room">
+              <div class="swf"><span class="cap">列為考場</span><label class="sw"><input type="checkbox" checked><span class="trk"></span><span class="st">已列入</span></label></div>
+              <div class="nm"><span class="dot" style="background:#FBE7C6;color:#6B4300">溫</span><div><b>溫</b><div class="t-note">座位 42／42</div></div></div>
+              <div class="row" style="gap:20px"><div class="stp"><div><span class="cap">橫排</span><div class="row" style="gap:6px"><button>−</button><output>6</output><button>＋</button></div></div></div><div class="stp"><div><span class="cap">深位</span><div class="row" style="gap:6px"><button>−</button><output>7</output><button>＋</button></div></div></div></div>
+              <div class="row"><button class="btn sm">編輯座位表</button></div>
+            </div>
+            <div class="room">
+              <div class="swf"><span class="cap">列為考場</span><label class="sw"><input type="checkbox"><span class="trk"></span><span class="st">未列入</span></label></div>
+              <div class="nm off"><span class="dot" style="background:#D8EFD3;color:#1F5A1A">良</span><div><b>良</b><div class="t-note">座位 30／30</div></div></div>
+              <div class="row off" style="gap:20px"><div class="stp"><div><span class="cap">橫排</span><div class="row" style="gap:6px"><button>−</button><output>5</output><button>＋</button></div></div></div><div class="stp"><div><span class="cap">深位</span><div class="row" style="gap:6px"><button>−</button><output>6</output><button>＋</button></div></div></div></div>
+              <div class="row"><button class="btn sm">編輯座位表</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card flat">
+    <h3>兩案差別</h3>
+    <ul class="rules">
+      <li><b>A</b>：每頁都是「標題卡、警示、統計、內容卡」往下排，六個步驟長得一樣，學起來最快；缺點是引導靠文字。</li>
+      <li><b>B</b>：左邊用清單帶使用者一步步做，狀況一眼看到；缺點是每一步都要設計左欄內容，窄螢幕會變成上下堆疊，施工量大。</li>
+      <li>我的建議：<b>方案 A</b>。你要求的是一致與有區隔，A 在六個步驟都能套同一個版型；B 的引導清單可以之後挑少數複雜的步驟（②、⑤）單獨加。</li>
+    </ul>
+  </div>
+</section>
+</div>
+
+</html>
