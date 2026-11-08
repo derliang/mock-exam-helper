@@ -248,13 +248,14 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
           width: { size: colW, type: WidthType.DXA },
           verticalAlign: VerticalAlign.CENTER,
           margins: { top: 20, bottom: 20, left: 30, right: 30 },
-          // 標籤一律白底，細實線相鄰共用（P12）；班級用文字印出，黑白也分得出（D39）
-          borders: allBorders(thin('666666')),
+          // 標籤底色用各班代表色（使用者 2026-11-08 定案，取代原 P12 的白底）；班級仍用文字印出，黑白列印也分得出（D39）
+          shading: m ? { type: ShadingType.CLEAR, fill: m.colorBg, color: 'auto' } : undefined,
+          borders: allBorders(m ? thin(m.colorLine) : thin('666666')),
           children: m
             ? [
-                para([run(m.coord, { size: sizeSmall }, mode)], AlignmentType.RIGHT),
-                para([run(m.code, { size: codeSz, bold: true }, mode)]),
-                para([run(`${m.classLabel}｜${m.name}`, { size: nameSz, color: '000000' }, mode)]),
+                para([run(m.coord, { size: sizeSmall, color: m.colorFg }, mode)], AlignmentType.RIGHT),
+                para([run(m.code, { size: codeSz, bold: true, color: m.colorFg }, mode)]),
+                para([run(`${m.classLabel}｜${m.name}`, { size: nameSz, color: m.colorFg }, mode)]),
                 ...tagParagraphs(m, tagSz, mode),
               ]
             : [para([])],

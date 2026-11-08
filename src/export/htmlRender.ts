@@ -60,7 +60,7 @@ function labelHtml(p: LabelPageModel, o: HtmlOptions): string {
     const m = p.cells[i];
     cells.push(
       m
-        ? `<div class="lab"><div class="coord">${esc(m.coord)}</div><div class="code" style="font-size:${(cell.w * 0.8).toFixed(1)}pt">${esc(m.code)}</div><div class="who" style="font-size:${(cell.w * 0.4).toFixed(1)}pt">${esc(m.classLabel)}｜${esc(m.name)}</div>${tagHtml(m)}</div>`
+        ? `<div class="lab" style="background:${m.colorBg};border-color:${m.colorLine};color:${m.colorFg}"><div class="coord">${esc(m.coord)}</div><div class="code" style="font-size:${(cell.w * 0.8).toFixed(1)}pt">${esc(m.code)}</div><div class="who" style="font-size:${(cell.w * 0.4).toFixed(1)}pt">${esc(m.classLabel)}｜${esc(m.name)}</div>${tagHtml(m)}</div>`
         : '<div class="lab"></div>',
     );
   }
