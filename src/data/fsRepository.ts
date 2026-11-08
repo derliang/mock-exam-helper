@@ -6,7 +6,8 @@
 import type { Repository } from '../ui/repository';
 import type { Doc } from '../ui/store';
 import { createHandleFS, type DirFS } from './dirfs';
-import { loadDoc, saveDoc } from './folder';
+import type { ExamFiles } from './folder';
+import { loadDoc, loadExamFile, saveDoc, saveExamFile } from './folder';
 
 const DB = 'mock-exam-helper';
 const STORE = 'handles';
@@ -98,6 +99,14 @@ export function createFsRepository(): FsRepository {
     },
     async save(doc) {
       await saveDoc(need(), doc);
+    },
+    async loadExamFile<K extends keyof ExamFiles>(examId: string, key: K): Promise<ExamFiles[K] | null> {
+      const r = await loadExamFile(need(), examId, key);
+      if (r?.warning) warning = r.warning;
+      return r ? r.data : null;
+    },
+    async saveExamFile<K extends keyof ExamFiles>(examId: string, key: K, data: ExamFiles[K]): Promise<void> {
+      await saveExamFile(need(), examId, key, data);
     },
   };
 }
