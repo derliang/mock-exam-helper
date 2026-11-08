@@ -33,3 +33,14 @@ describe('匯入規劃', () => {
     expect(doc.rosters.senior).toHaveLength(0);
   });
 });
+
+describe('組別與特殊生需求（只作紀錄）', () => {
+  it('匯入取代名單時，同班同座號同姓名的組別與特殊生需求沿用', () => {
+    const doc = withDefaults(emptyDoc());
+    const withOld = { ...doc, rosters: { ...doc.rosters, senior: [{ classNo: 1, seatNo: 1, name: '測試甲', groupCode: 'D', special: 'x數A' }, { classNo: 1, seatNo: 2, name: '測試乙', special: '舊' }] } };
+    const plan = planImport(withOld, 'senior', [{ classNo: 1, seatNo: 1, name: '測試甲' }, { classNo: 1, seatNo: 2, name: '改名了' }]);
+    const next = applyImport(withOld, 'senior', plan).rosters.senior;
+    expect(next[0]).toMatchObject({ groupCode: 'D', special: 'x數A' });
+    expect(next[1]).toEqual({ classNo: 1, seatNo: 2, name: '改名了' }); // 姓名不同＝不同人，不沿用
+  });
+});

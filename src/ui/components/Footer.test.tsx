@@ -9,7 +9,7 @@ describe('頁尾元件', () => {
     expect(html).toContain('模擬考小幫手');
     expect(html).toContain('v0.1.0-beta.1');
     expect(html).toContain('pf-pre');
-    expect(html).toContain('© 2026');
+    expect(html).toContain('© 版權所有');
   });
   it('正式版沒有預發布標籤', () => {
     expect(renderToString(<Footer version="1.0.0" buildDate="" />)).not.toContain('pf-pre');

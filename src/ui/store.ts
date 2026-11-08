@@ -29,6 +29,8 @@ export function validateStudent(doc: Doc, division: Division, s: Student, replac
 const clean = (s: Student): Student => {
   const o: Student = { classNo: s.classNo, seatNo: s.seatNo, name: s.name.trim() };
   if (s.schoolId?.trim()) o.schoolId = s.schoolId.trim();
+  if (s.groupCode?.trim()) o.groupCode = s.groupCode.trim();
+  if (s.special?.trim()) o.special = s.special.trim();
   return o;
 };
 export const sortRoster = (l: Student[]): Student[] => [...l].sort((a, b) => a.classNo - b.classNo || a.seatNo - b.seatNo);
