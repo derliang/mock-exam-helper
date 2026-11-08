@@ -52,7 +52,7 @@ export function Lookup(p: { doc: Doc; examId?: string; onGoStep: (examId: string
 
   return (
     <section class="stack">{header}
-      {isStale(doc, exam) && <Alert tone="warn" action={<Button small onClick={() => p.onGoStep(exam.id, 5)}>到 ⑤ 重新排座</Button>}>名單或設定在排座後改過，下面的座位可能不是最新的。</Alert>}
+      {isStale(doc, exam) && <Alert tone="warn" action={<Button small onClick={() => p.onGoStep(exam.id, 5)}>到 ⑤ 重新排座</Button>}>名單或設定在排座後改過，下面的座位可能不是最新的，請到 ⑤ 重新排座。</Alert>}
       <div class="field" style="max-width:480px"><label for="lk-q">輸入考生編號、座號、學號或姓名</label>
         <input id="lk-q" class="input" type="search" autofocus value={q} placeholder="例如 0305、3 5、王小明" onInput={(e) => { setQ(e.currentTarget.value); setPick(''); }} />
         <span class="hint">考生編號 4 碼（班級＋座號）；也可打「班級 座號」或姓名的一部分。</span>

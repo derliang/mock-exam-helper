@@ -21,7 +21,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
   const [division, setDivision] = useState<Division>(p.division ?? 'senior');
   return (
     <section>
-      <h2>設定</h2>
+      <h2>共用設定</h2>
       <div class="utabs" role="group" aria-label="設定項目" style="margin:12px 0">
         {TABS.map((t) => <button type="button" key={t.value} aria-pressed={tab === t.value} onClick={() => setTab(t.value)}>{t.label}</button>)}
       </div>
@@ -70,7 +70,7 @@ function Roster({ doc, onChange, division }: Props) {
     <div class="card stack">
       <div>
         <h3>學生名單（{isJ ? '國中部' : '高中部'}）</h3>
-        <p class="small muted">一年一份，只存班級、座號、姓名，另有選填的學號；考科來自每次的考試名單（D62）。轉學生、復學生直接新增並自己輸入座號。共 {all.length} 人。</p>
+        <p class="small muted">一年一份，只存班級、座號、姓名，另有選填的學號；考科來自每次的考試名單。轉學生、復學生直接新增並自己輸入座號。共 {all.length} 人；刪除學生不會更動其他人的考生編號。</p>
       </div>
       <div class="row">
         <div class="seg" role="group" aria-label="班級篩選">
@@ -114,9 +114,9 @@ function Roster({ doc, onChange, division }: Props) {
         </table>
       </div>
       {all.length === 0 && (
-        <EmptyState title="這個部別還沒有學生" action={<Button kind="primary" onClick={() => setEditing('new')}>新增第一位學生</Button>}>可以一位一位新增，或用上方「下載 Excel 範本」填好後「匯入 Excel」。名單是之後考試名單比對的依據。</EmptyState>
+        <EmptyState title="這個部別還沒有學生" action={<Button kind="primary" onClick={() => setEditing('new')}>新增第一位學生</Button>}>可以一位一位新增，或用上方「下載名單範本」填好後「匯入學生名單」。名單是之後考試名單比對的依據。</EmptyState>
       )}
-      <p class="small muted">空號用斜紋底表示：刪除學生後座號保留，不會自動補號（D41）。座號由使用者輸入。學號沒匯入就留空，不影響排座與考生編號。</p>
+      <p class="small muted">斜紋底的列是目前沒有學生的座號：刪除學生後座號會空著，不會自動遞補。座號由你輸入。學號沒匯入就留空，不影響排座與考生編號。</p>
       {editing && (
         <StudentForm doc={doc} division={division} {...(editing === 'new' ? {} : 'name' in editing ? { student: editing } : { prefill: editing })} onClose={() => setEditing(null)}
           onSave={(d) => { onChange(d); setEditing(null); }} />
@@ -195,7 +195,7 @@ function Classes({ doc, onChange, division }: Props) {
                           onClick={() => onChange(setClassColor(doc, division, c.no, i + 1))} />
                       ))}
                     </div>
-                    {clash.length > 0 && <div class="hint">⚠ 與 {clash.map((n) => String(n).padStart(2, '0')).join('、')} 班同色，黑白列印請靠班級字分辨</div>}
+                    {clash.length > 0 && <div class="hint">⚠ 與 {clash.map((n) => String(n).padStart(2, '0')).join('、')} 班同色；黑白列印時請核對班級字</div>}
                   </td>
                 </tr>
               );
@@ -203,7 +203,7 @@ function Classes({ doc, onChange, division }: Props) {
           </tbody>
         </table>
       </div>
-      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，改色會套用到座位表與標籤。每格都另印班級字，黑白列印也分得出班；班級名稱（溫良恭儉勤誠）固定。</p>
+      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，改色會套用到座位表與標籤。每格另印班級字；兩班同色時只能靠這個字分辨，黑白列印後請核對。班級名稱（溫良恭儉勤誠）固定。</p>
     </div>
   );
 }
@@ -234,12 +234,12 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
 }
 
 
-/** 選用功能（D75）：逐項勾選；預設全關，關掉的功能在導覽、匯出頁與步驟中完全不出現 */
+/** 選用功能（D75）：逐項勾選；預設全關，關掉的功能在導覽、下載頁與步驟中完全不出現 */
 function Features({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const list = allFeatures();
   return (
     <div class="stack">
-      <p class="muted">以下功能不一定每個學校都需要，用得到的再打開。關掉的功能不會出現在畫面上，也不影響排座、標籤、座位表與匯出這些基本功能。</p>
+      <p class="muted">以下功能不一定每個學校都需要，用得到的再打開。關掉的功能不會出現在畫面上，也不影響排座、標籤、座位表與下載這些基本功能。</p>
       {list.map((f) => {
         const on = doc.settings.features?.[f.id] === true;
         return (

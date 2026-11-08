@@ -11,7 +11,7 @@ const Checks = (p: { checks: QuickCheck[] }) => (
   <ul class="nextlist" aria-label="快速模式檢查">{p.checks.map((c) => <li key={c.key}>{MARK[c.state]} {c.text}</li>)}</ul>
 );
 
-/** ② 考試名單頁下方的「會考快速模式」（選用功能 bcct-quick-mode，H7）：沿用上次、貼上名單、看檢核、匯出 */
+/** ② 考試名單頁下方的「會考快速模式」（選用功能 bcct-quick-mode，H7）：沿用上次、貼上名單、看檢核、下載 */
 export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => void; onStep?: (n: 1 | 2 | 3 | 4 | 5 | 6) => void }) {
   const { doc, exam } = p;
   const [text, setText] = useState('');
@@ -51,10 +51,10 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
         <Alert tone="info"><b>這次不能用快速模式，請照一般六步驟做。</b>原因：<Checks checks={base.checks.filter((c) => c.state === 'fail')} /></Alert>
       ) : (
         <>
-          <p class="small muted">沿用「{base.previous?.name}」的設定。貼上這次的考試名單，四項檢查都過就自動排座，你只要看檢核再匯出。</p>
+          <p class="small muted">沿用「{base.previous?.name}」的設定。貼上這次的考試名單，四項檢查都過，就會直接用它取代本次的考試名單並自動排座；請看過檢核結果再下載。</p>
           <Checks checks={(tried ?? base).checks} />
           {tried?.status === 'unavailable' && (
-            <Alert tone="warn"><b>退回一般六步驟：</b>{tried.checks.filter((c) => c.state === 'fail').map((c) => c.text).join('　')}請改用上面的「匯入考試名單 Excel」，逐步處理。</Alert>
+            <Alert tone="warn"><b>退回一般六步驟：</b>{tried.checks.filter((c) => c.state === 'fail').map((c) => c.text).join('　')}請改用上面的「匯入本次考試名單」，逐步處理。</Alert>
           )}
           {pending && (
             <Alert tone="warn" action={<><Button small kind="primary" onClick={apply}>確認取代並排座</Button><Button small onClick={() => setPending(null)}>取消</Button></>}>
@@ -66,7 +66,7 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
               <div class="field"><label for="qm-paste">貼上考試名單</label>
                 <textarea id="qm-paste" class="input" rows={6} value={text} placeholder="從 Excel 複製整張表（含表頭）後貼在這裡" onInput={(e) => setText(e.currentTarget.value)} />
               </div>
-              <div class="btnrow"><Button kind="primary" onClick={run}>檢查並套用</Button></div>
+              <div class="btnrow"><Button kind="primary" onClick={run}>檢查，並更新名單與排座</Button></div>
             </>
           )}
           {errs.length > 0 && <Alert tone="danger"><ul>{errs.map((e) => <li key={e}>{e}</li>)}</ul></Alert>}
@@ -75,7 +75,7 @@ export function QuickPanel(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) =
               <p class="small muted">已套用。若不對，按頁首的「復原」可回到套用前的名單與排座。</p>
               <p class="small">其餘步驟：① 考試設定、③ 教室、④ 標示、⑤ 排座　<Badge>沿用上次</Badge></p>
               {flow.issues.length === 0
-                ? <Alert tone="ok" action={<Button small kind="primary" onClick={() => p.onStep?.(6)}>前往 ⑥ 匯出</Button>}><b>檢核全部通過。</b>考生 {flow.summary.students}、座位 {flow.summary.seats}，可以匯出。</Alert>
+                ? <Alert tone="ok" action={<Button small kind="primary" onClick={() => p.onStep?.(6)}>前往 ⑥ 下載</Button>}><b>檢核全部通過。</b>考生 {flow.summary.students}、座位 {flow.summary.seats}，可以前往下載。</Alert>
                 : flow.issues.map((i) => (
                   <Alert key={i.text} tone="warn" action={<Button small onClick={() => p.onStep?.(i.step)}>{i.fix}</Button>}>{i.text}</Alert>
                 ))}

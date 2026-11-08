@@ -61,7 +61,7 @@ export function searchExaminees(doc: Doc, exam: ExamConfig, raw: string): Search
       const roster = doc.rosters[exam.division].filter((s) => s.schoolId === q);
       found = roster.flatMap((s) => byCode(s.classNo, s.seatNo));
     }
-    hint = '請確認考生編號是 4 碼（班級 2 碼＋座號 2 碼，例如 0305）、或「班級 座號」（例如 3 5）；學號要與設定頁學生名單一致。';
+    hint = '請確認考生編號是 4 碼（班級 2 碼＋座號 2 碼，例如 0305）、或「班級 座號」（例如 3 5）；學號要與共用設定的學生名單一致。';
   } else if (sep) {
     found = byCode(Number(sep[1]), Number(sep[2]));
     hint = '請確認班級與座號有沒有打對。';
@@ -106,13 +106,13 @@ export function lookupExaminee(doc: Doc, exam: ExamConfig, result: SeatingResult
       const seat = det.purpose === 'exam' && det.seat ? seatLabel(det.seat) : undefined;
       return {
         ...row, kind: det.purpose === 'exam' ? 'detach-exam' : 'detach-study', place: roomName(det.roomId), seat,
-        note: det.purpose === 'exam' ? '抽離考試（到預備教室考）' : '抽離自習（不考這科，到這間自習）',
+        note: det.purpose === 'exam' ? '到預備教室考試' : '不考這科，到指定地點自習',
       } as LookupRow;
     }
-    if (!e.subjectIds.includes(s.id)) return { ...row, kind: 'not-taking', place: '', note: '這科不考' } as LookupRow;
+    if (!e.subjectIds.includes(s.id)) return { ...row, kind: 'not-taking', place: '', note: '本科不考' } as LookupRow;
     return {
       ...row, kind: 'class', place: home ? roomName(home.classroomId) : '（尚無座位）', seat: home ? seatLabel(home) : undefined,
-      note: '在班級教室考',
+      note: '在原教室考試',
     } as LookupRow;
   });
   return { ...base, allAbsent: false, rows };

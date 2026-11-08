@@ -24,16 +24,16 @@ export type Prepared =
 /** 組輸入並排座；缺教室、缺學生或排座被擋時回 errors（中文，只含考生編號） */
 export function prepareExport(doc: Doc, exam: ExamConfig): Prepared {
   const students = doc.rosters[exam.division];
-  if (students.length === 0) return { ok: false, errors: ['缺學生名單：請先到「設定 → 學生名單」匯入或新增學生，再回來匯出。'] };
+  if (students.length === 0) return { ok: false, errors: ['缺學生名單：請先到「共用設定 → 學生名單」匯入或新增學生，再回來下載。'] };
   const rooms = exam.classroomIds
     .map((id) => doc.settings.classrooms.find((c) => c.id === id))
     .filter((c): c is NonNullable<typeof c> => !!c);
-  if (rooms.length === 0) return { ok: false, errors: ['缺教室：這次考試還沒勾選教室，請先到 ③ 教室設定勾選要用的教室，再回來匯出。'] };
+  if (rooms.length === 0) return { ok: false, errors: ['缺教室：這次考試還沒勾選教室，請先到 ③ 教室設定勾選要用的教室，再回來下載。'] };
   const entries = entriesOf(doc, exam);
-  if (!entries || entries.length === 0) return { ok: false, errors: ['缺考試名單：請先到 ② 考試名單匯入大考中心的考生資料 Excel，再回來匯出。'] };
+  if (!entries || entries.length === 0) return { ok: false, errors: ['缺考試名單：請先到 ② 考試名單匯入大考中心的考生資料 Excel，再回來下載。'] };
   const result = examResult(doc, exam);
-  if (!result) return { ok: false, errors: ['缺排座結果：請先到 ⑤ 排座並完成驗證，再回來匯出。'] };
-  if (isStale(doc, exam)) return { ok: false, errors: ['排座已過期：名單或設定在排座之後改過，請先到 ⑤ 重新排座，再回來匯出。'] };
+  if (!result) return { ok: false, errors: ['缺排座結果：請先到 ⑤ 排座並完成驗證，再回來下載。'] };
+  if (isStale(doc, exam)) return { ok: false, errors: ['排座已過期：名單或設定在排座之後改過，請先到 ⑤ 重新排座，再回來下載。'] };
   return { ok: true, warnings: [], input: { settings: doc.settings, exam, students, entries, result } };
 }
 
