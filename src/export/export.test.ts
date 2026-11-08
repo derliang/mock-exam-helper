@@ -224,3 +224,64 @@ describe('PDF 列印 HTML（D29）', () => {
     expect(html).not.toContain('<b>&');
   });
 });
+
+describe('PDF 列印 HTML：照稿件版面（設計系統成品頁「座位表與標籤」）', () => {
+  const html = (o: Parameters<typeof makeFixture>[0] = {}, kind: 'seat' | 'label' = 'seat') => {
+    const f = makeFixture(o);
+    return renderPrintHtml(kind === 'seat' ? { seat: buildSeatPages(f, 'class') } : { label: buildLabelPages(f, 'class') }, meta);
+  };
+
+  it('座位表：A4 滿版頁（邊界自己留）、頁首、小標籤、講臺、統計表、頁尾', () => {
+    const h = html();
+    expect(h).toContain('page:a4full');
+    expect(h).toContain('<div class="pp-h2">座位表</div>');
+    expect(h).toContain('不考英文 1 人');
+    expect(h).toContain('加考數學 1 人');
+    expect(h).toContain('講臺');
+    expect(h).toContain('<table class="pp-st">');
+    expect(h).toContain('資料版本碼：A1B2C3D4');
+  });
+
+  it('座位表：深位 1 在最下列、沒人的位置畫斜線底、有標示的格子加框', () => {
+    const h = html();
+    expect(h.indexOf('>0105<')).toBeGreaterThan(-1);
+    expect(h).toContain('pp-e'); // 空位
+    expect(h).toContain('pp-c mk'); // 有標示
+    expect(h).toContain('<span class="pp-mk x">X 英文</span>');
+    expect(h).toContain('<span class="pp-mk add">＋ 數學</span>');
+  });
+
+  it('統計表：每班人數相同的科目合併成一列', () => {
+    const f = makeFixture();
+    const p = buildSeatPages(f, 'class')[0]!;
+    const h = renderPrintHtml({ seat: [p] }, meta);
+    expect(h).toMatch(/<td>考[^<]*、[^<]*<\/td>/);
+    expect(p.stats.table.rows[0]!.label).toBe('本教室考生人數');
+  });
+
+  it('標籤：全白底、特殊情形一律淺黃、頁面紙張與格數對、注意事項固定', () => {
+    const h = html({ paper: 'A3', labelCols: 7, labelRows: 7 }, 'label');
+    expect(h).toContain('page:a3');
+    expect(h).toContain('background:#FFE08A');
+    expect(h).toContain('background:#fff');
+    expect(h).not.toMatch(/background:#FBE7C6/); // 標籤不用班級色
+    expect(h).toContain('repeat(7,35mm)');
+    expect(h).toContain('注意事項：');
+    expect(h).toContain('請使用<b>透明膠帶</b>黏貼');
+  });
+
+  it('標籤：B4 格高最多 35mm、頁寬等於紙張', () => {
+    const h = html({ paper: 'B4', labelCols: 6, labelRows: 8 }, 'label');
+    expect(h).toContain('page:b4');
+    expect(h).toContain('height:35mm');
+    expect(h).toContain('width:250mm');
+  });
+
+  it('抽離考試座位表：柔和單色、小標「抽離考試 科目」', () => {
+    const f = makeFixture();
+    const p = buildSeatPages(f).find((x) => x.detachStyle)!;
+    const h = renderPrintHtml({ seat: [p] }, meta);
+    expect(h).toContain('#E6EBF7');
+    expect(h).toContain('抽離考試 英文');
+  });
+});
