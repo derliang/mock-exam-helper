@@ -113,9 +113,23 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
   const totalW = columnWidths.reduce((a, b) => a + b, 0);
   const rowH = mmToTwip(Math.min(24, 190 / (page.depth + 1)));
 
-  const sizeCode = Math.min(18, (colW / 1440) * 25.4 * 0.62);
-  const sizeSmall = Math.min(9, (colW / 1440) * 25.4 * 0.36);
+  let sizeCode = Math.min(18, (colW / 1440) * 25.4 * 0.62);
+  let sizeSmall = Math.min(9, (colW / 1440) * 25.4 * 0.36);
   const sizeCoord = 7;
+  const sizeTag = 7;
+  // 格內有「X 不考／＋ 加考」標示時，內容會比列高多：Word 的列高是固定值，超出的部分會被裁掉，
+  // 只剩一條線（使用者回報的「不正確的線條」）。這裡先算內容需要多高，不夠就把考生編號與姓名縮小，標示字維持可讀。
+  // 中文字型行高約為字級的 1.5 倍，另加上下邊距。
+  const LH = 1.5;
+  const maxTags = Math.max(0, ...[...page.cells.values()].map((c) => c.tags.length));
+  const availPt = rowH / 20 - 6;
+  const fixedPt = (sizeCoord + sizeTag * maxTags) * LH;
+  const flexPt = (sizeCode + sizeSmall) * LH;
+  if (fixedPt + flexPt > availPt) {
+    const k = Math.max(0.5, (availPt - fixedPt) / flexPt);
+    sizeCode *= k;
+    sizeSmall *= k;
+  }
 
   const rows: TableRow[] = [];
   // 深位由上到下：最大深位在上、1 在下（講臺在下方，0101 在左下角）
@@ -138,7 +152,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
             para([run(cell.coord, { size: sizeCoord, color: pal!.fg }, mode)], AlignmentType.RIGHT),
             para([run(cell.code, { size: sizeCode, bold: true, color: pal!.fg }, mode)]),
             para([run(`${cell.classLabel}｜${cell.name}`, { size: sizeSmall, color: pal!.fg }, mode)]),
-            ...tagParagraphs(cell, 7, mode),
+            ...tagParagraphs(cell, sizeTag, mode),
           ]
         : [para([run(usable ? '' : '空位', { size: 7, color: '999999' }, mode)])];
       cells.push(
@@ -152,7 +166,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
         }),
       );
     }
-    rows.push(new TableRow({ height: { value: rowH, rule: HeightRule.EXACT }, cantSplit: true, children: cells }));
+    rows.push(new TableRow({ height: { value: rowH, rule: HeightRule.ATLEAST }, cantSplit: true, children: cells }));
   }
   // 底部標「第N排」
   rows.push(
@@ -190,7 +204,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
       para([run(page.title, { size: 16, bold: true }, mode)], AlignmentType.CENTER, { spacing: { before: 0, after: 120 } }),
       new Table({ width: { size: totalW, type: WidthType.DXA }, columnWidths, layout: TableLayoutType.FIXED, rows }),
       para([run('▲ 講臺在座位表下方（0101 在左下角）　座標＝排－深位', { size: 8, color: '555555' }, mode)], AlignmentType.CENTER, { spacing: { before: 60, after: 60 } }),
-      ...statsLines.map((l) => para([run(l, { size: 10 }, mode)], AlignmentType.LEFT)),
+      ...statsLines.map((l) => para([run(l, { size: 13 }, mode)], AlignmentType.LEFT, { spacing: { before: 0, after: 60 } })),
     ],
   };
 }
