@@ -7,7 +7,7 @@ import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, typ
 import type { FontData } from '../../export/docxRender';
 import { Alert, Badge, Button, FormatPick, Seg } from '../components';
 import { enabledExportItems, useIsEnabled } from '../features';
-import { prepareExport, unresolvedDiffsOf } from '../exportInput';
+import { prepareExport, relevantIssues, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
 import type { Doc } from '../store';
 import { defaultLabelLayout } from '../../export/model';
@@ -114,8 +114,9 @@ export function Step6(p: {
 
   // 字集檢查要字型字集；先用「全部通過」，載入後再重算（使用者按匯出前就會載入）
   const has = fontState?.has ?? (() => true);
-  const issues = (prepared.ok ? preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, has) : [])
-    .filter((i) => !(mainNone && chosenExtras.length > 0 && i.text.startsWith('還沒勾選')));
+  // 「至少選一項」：核心項目全不選但有勾選用文件時算有選；畫面與按下去用同一條件
+  const relevant = (list: ReturnType<typeof preflight>) => relevantIssues(list, mainNone, chosenExtras.length);
+  const issues = relevant(prepared.ok ? preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, has) : []);
   const blocked = !prepared.ok || issues.some((i) => i.level === 'block');
   const files = prepared.ok && !blocked && !mainNone ? planFiles(prepared.input, o) : [];
 
@@ -127,8 +128,9 @@ export function Step6(p: {
       const env = fontState ?? (await loader());
       setFontState(env);
       // 載入字型後字集檢查可能出現新警告：有新的擋下項目就停
-      const again = preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, env.has);
-      if (again.some((i) => i.level === 'block')) return;
+      const again = relevant(preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, env.has));
+      const hit = again.filter((i) => i.level === 'block');
+      if (hit.length) { setErr(`無法下載：${hit.map((i) => i.text).join('；')}`); return; }
       const out = mainNone ? [] : await runExport(prepared.input, o, { fonts: env.fonts });
       for (const x of chosenExtras) out.push(...(await x.run({ doc: p.doc, exam, format: o.format })));
       for (const f of out) {
@@ -160,7 +162,7 @@ export function Step6(p: {
           <ul>{prepared.errors.map((e) => <li key={e}>{e}</li>)}</ul>
           <div class="row" style="margin-top:8px">
             {prepared.errors.some((e) => e.startsWith('缺考試名單')) && <Button small kind="primary" onClick={() => p.onGoStep(2)}>去 ② 匯入考試名單</Button>}
-            {prepared.errors.some((e) => e.startsWith('缺排座結果') || e.startsWith('排座已過期')) && <Button small kind="primary" onClick={() => p.onGoStep(5)}>回 ⑤ 排座</Button>}
+            {prepared.errors.some((e) => e.startsWith('缺排座結果') || e.startsWith('排座已過期') || e.startsWith('排座驗證未通過')) && <Button small kind="primary" onClick={() => p.onGoStep(5)}>回 ⑤ 排座</Button>}
             {prepared.errors.some((e) => e.startsWith('缺教室')) && <Button small kind="primary" onClick={() => p.onGoStep(3)}>去 ③ 勾選教室</Button>}
           </div>
         </Alert></div>

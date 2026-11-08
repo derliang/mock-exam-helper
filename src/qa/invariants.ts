@@ -5,7 +5,7 @@
 import { classroomSeats, parseStudentCode, seatLabel, studentCode } from '../data/helpers';
 import type { Classroom, SeatingResult } from '../data/types';
 import { isListeningSubject, type RunSeatingInput } from '../core';
-import type { SpecialPlacement } from '../core/detach';
+import { mixedMarkCodes, overridePurpose, type SpecialPlacement } from '../core/detach';
 
 const codeOfEntry = (e: { classNo: number; seatNo: number }) => studentCode(e.classNo, e.seatNo);
 /** D79：實際應排座的名單（預設排除全科缺考者） */
@@ -150,7 +150,7 @@ export function checkMarksAndDetach(input: RunSeatingInput, r: SeatingResult, sp
     const k = `${s.code}/${s.subjectId}`;
     place.set(k, (place.get(k) ?? 0) + 1);
     if (s.location !== override.get(s.code)?.location) bad.push(`INV-9 特例地點不符 ${s.code}`);
-    if (s.purpose !== override.get(s.code)?.purpose) bad.push(`INV-9b 特例歸類沒有依手動設定 ${s.code}`); // D80
+    if (s.purpose !== overridePurpose(override.get(s.code)!, s.subjectId, r.marks.find((x) => x.code === s.code && x.subjectId === s.subjectId)!.mode, mixedMarkCodes(r.marks).has(s.code))) bad.push(`INV-9b 特例歸類沒有依手動設定 ${s.code}`); // D80
   }
   for (const m of r.marks) {
     const n = place.get(`${m.code}/${m.subjectId}`) ?? 0;

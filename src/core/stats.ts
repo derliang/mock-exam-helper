@@ -5,6 +5,7 @@
  */
 import type { Detach, ExamEntry, SeatAssignment, SeatingResult, Subject } from '../data/types';
 import { studentCode } from '../data/helpers';
+import { mixedMarkCodes, overridePurpose } from './detach';
 
 export interface SubjectCount {
   subjectId: string;
@@ -82,8 +83,9 @@ export function detachRoomCounts(detaches: readonly Detach[], subjectId: string,
 /** 單人特例由結果的標示與覆寫推回（結果只存覆寫，不存 special）：被覆寫的人，他每個被標示的科目都改去自填地點 */
 export function specialOf(result: SeatingResult): { code: string; subjectId: string; purpose: 'exam' | 'study'; location: string }[] {
   const o = new Map(result.overrides.map((x) => [x.code, x]));
+  const mixed = mixedMarkCodes(result.marks);
   return result.marks.filter((m) => o.has(m.code)).map((m) => ({
-    code: m.code, subjectId: m.subjectId, purpose: o.get(m.code)!.purpose, location: o.get(m.code)!.location,
+    code: m.code, subjectId: m.subjectId, purpose: overridePurpose(o.get(m.code)!, m.subjectId, m.mode, mixed.has(m.code)), location: o.get(m.code)!.location,
   }));
 }
 

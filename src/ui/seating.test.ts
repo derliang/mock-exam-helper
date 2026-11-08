@@ -78,9 +78,9 @@ describe('④ 標示規則', () => {
 
   it('組別對照表', () => {
     expect(groupTable(doc(), exam())).toEqual([
-      { code: '0', count: 3, subjectIds: ['soc', 'sci', 'lis'] },
-      { code: '6', count: 2, subjectIds: ['sci', 'lis'] },
-      { code: '8', count: 2, subjectIds: ['soc', 'lis'] },
+      { code: '0', count: 3, subjectIds: ['soc', 'sci', 'lis'], differing: 0 },
+      { code: '6', count: 2, subjectIds: ['sci', 'lis'], differing: 0 },
+      { code: '8', count: 2, subjectIds: ['soc', 'lis'], differing: 0 },
     ]);
   });
 
