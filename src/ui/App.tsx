@@ -1,13 +1,16 @@
 import { useEffect, useState } from 'preact/hooks';
 import { Footer } from './components/Footer';
-import { Alert, Seg, StepNav, TopBar, type StepState } from './components';
-import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
+import { Alert, Badge, Button, EmptyState, Seg, StepFooter, StepNav, SummaryBar, TopBar } from './components';
+import { flowOf, nextAction } from './flow';
+import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
 import { Init } from './pages/Init';
 import { Settings } from './pages/Settings';
 import { Step1 } from './pages/Step1';
 import { Step2 } from './pages/Step2';
 import { Step3 } from './pages/Step3';
+import { Step4 } from './pages/Step4';
+import { Step5 } from './pages/Step5';
 import { Step6 } from './pages/Step6';
 import { createFsRepository, isFsAccessSupported } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
@@ -69,7 +72,7 @@ export function App() {
   return (
     <>
       <header class="pbar">
-        <span class="brand">模擬考小幫手</span>
+        <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge></span>
         {r.page !== 'init' && (
           <nav class="nav" aria-label="主要導覽">
             <button type="button" onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
@@ -85,7 +88,7 @@ export function App() {
         {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
         {r.page === 'exams' && <Exams doc={hist.present} onChange={edit} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} />}
         {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} />}
-        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRoster={() => go2({ page: 'settings', tab: 'roster' }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} />}
+        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRoster={() => go2({ page: 'settings', tab: 'roster' }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onExams={() => go({ page: 'exams' })} />}
         {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
       <Footer />
@@ -103,13 +106,26 @@ export function pageName(r: Route, doc: Doc): string {
   }
 }
 
-function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: () => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void }) {
+function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: () => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onExams: () => void }) {
   const exam = p.doc.exams.find((e) => e.id === p.route.examId);
-  const steps = STEP_NAMES.map((name, i) => ({ no: i + 1, name, state: (i + 1 === p.route.step ? 'cur' : 'todo') as StepState }));
+  if (!exam) {
+    return <section><h2>{stepTitle(p.route.step)}</h2><EmptyState title="找不到這個模擬考" action={<Button kind="primary" onClick={p.onExams}>回模擬考列表</Button>}>它可能已被刪除，或資料夾換了。</EmptyState></section>;
+  }
+  const flow = flowOf(p.doc, exam, p.route.step);
+  const step = p.route.step;
   return (
     <div class="ws wide">
-      <aside class="side"><StepNav steps={steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
-      {exam && p.route.step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} /> : exam && p.route.step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 6 ? <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} /> : <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">{exam ? '施工中' : '找不到這個模擬考'}</p></section>}
+      <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
+      <div class="stack" style="min-width:0">
+        <SummaryBar flow={flow} onGo={p.onStep} />
+        {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
+          : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} />
+          : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} />
+          : step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
+          : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
+          : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} onExams={p.onExams} />}
+        <StepFooter action={nextAction(flow, step)} onGo={p.onStep} />
+      </div>
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, typ
 import type { FontData } from '../../export/docxRender';
 import { Alert, Badge, Button, Seg } from '../components';
 import { prepareExport, unresolvedDiffsOf } from '../exportInput';
+import { afterExport } from '../flow';
 import type { Doc } from '../store';
 
 type Loaded = { fonts: FontData; has: (ch: string) => boolean };
@@ -40,6 +41,8 @@ export function Step6(p: {
   /** 考試名單差異未處理數（② 提供） */
   unresolvedDiffs?: number;
   onGoStep: (n: 2 | 3 | 5) => void;
+  /** 完成後「回模擬考列表」 */
+  onExams?: () => void;
   /** 測試或預覽可注入字型載入；預設延遲載入真實字型 */
   loadFonts?: () => Promise<Loaded>;
 }) {
@@ -157,6 +160,17 @@ export function Step6(p: {
           </table></div>
           <p class="small muted">資料版本碼：<Badge>{prepared.ok ? prepared.input.result.dataVersion : ''}</Badge>（印在每頁頁尾）</p>
           {o.format === 'word' && <Alert tone="warn">Word 檔匯出後若手動編輯，就不再受驗證器保護（D29）。</Alert>}
+          <div>
+            <h3>接下來該做什麼</h3>
+            <ol class="nextlist">
+              {afterExport(o.format, o.paper).map((i) => (
+                <li key={i.text}>{i.text}{' '}
+                  {i.step && <Button small onClick={() => p.onGoStep(i.step as 5)}>回 ⑤ 排座</Button>}
+                  {i.nav && p.onExams && <Button small kind="primary" onClick={p.onExams}>回模擬考列表</Button>}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       )}
     </section>

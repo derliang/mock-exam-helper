@@ -1,10 +1,11 @@
 import { useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, RosterDiff, RosterDiffChoice } from '../../data';
 import { studentCode } from '../../data';
-import { allResolved, applyDiffs, compareRosters, readXlsx } from '../../import';
-import { Alert, Badge, Button, StatsBar } from '../components';
+import { allResolved, applyDiffs, compareRosters, readXlsx, type Sheet } from '../../import';
+import { Alert, Badge, Button, ConfirmButton, EmptyState, StatsBar } from '../components';
+import { confirmCopy } from '../flow';
 import type { Doc } from '../store';
-import { FIELD_LABEL, parseExamWorkbook, type ExamImport } from '../step2';
+import { ImportWizard } from './ImportWizard';
 
 const KIND_TEXT: Record<RosterDiff['kind'], string> = {
   'only-in-exam': '考試名單有、學生名單沒有',
@@ -23,7 +24,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   /** 考試名單與比對結果存在 doc.examFiles，隨整份快照復原 */
   const save = (patch: Partial<NonNullable<Doc['examFiles']>[string]>, extra: Partial<Doc> = {}) =>
     p.onChange({ ...doc, ...extra, examFiles: { ...doc.examFiles, [exam.id]: { ...files, ...patch } } });
-  const [pending, setPending] = useState<ExamImport | null>(null);
+  const [sheets, setSheets] = useState<Sheet[] | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [err, setErr] = useState('');
   const input = useRef<HTMLInputElement>(null);
@@ -34,18 +35,18 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const onFile = async (file: File) => {
     setErr('');
     try {
-      const r = parseExamWorkbook(await readXlsx(await file.arrayBuffer()), exam, classNames);
-      if (r.entries.length === 0) setErr(r.issues[0]?.message ?? '沒有讀到任何考生，請確認檔案是大考中心格式的考生資料名單');
-      else setPending(r);
+      const s = await readXlsx(await file.arrayBuffer());
+      if (s.length === 0) setErr('檔案裡沒有工作表');
+      else setSheets(s);
     } catch (e) {
       setErr(`讀不了這個檔案：${e instanceof Error ? e.message : String(e)}。請確認是 .xlsx 檔`);
     }
   };
 
-  const adopt = () => {
-    if (!pending) return;
-    save({ entries: pending.entries, diffs: compare(pending.entries).diffs });
-    setPending(null);
+  const adopt = (list: ExamEntry[], markMap: Record<string, string>) => {
+    const settings = { ...doc.settings, markMap };
+    save({ entries: list, diffs: compare(list).diffs }, { settings });
+    setSheets(null);
   };
 
   const setChoice = (code: string, choice: RosterDiffChoice, edited?: RosterDiff['edited']) =>
@@ -74,30 +75,22 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="btnrow">
-        <Button kind="primary" onClick={() => input.current?.click()}>{entries ? '重新匯入考試名單' : '匯入考試名單 Excel'}</Button>
+        {entries
+          ? <ConfirmButton kind="primary" undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>重新匯入考試名單</ConfirmButton>
+          : <Button kind="primary" onClick={() => input.current?.click()}>匯入考試名單 Excel</Button>}
         {exam.participation === 'partial' && <Badge tone="info">部分參加：沒報名的人不算差異</Badge>}
         {done && <Badge tone="ok">已完成</Badge>}
         <input ref={input} type="file" accept=".xlsx" hidden aria-label="選擇考試名單 Excel 檔"
           onChange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ''; if (f) void onFile(f); }} />
       </div>
       {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
+      {!entries && !sheets && (
+        <div style="margin-top:12px"><EmptyState title="還沒有匯入考試名單">按上方「匯入考試名單 Excel」，選大考中心提供的考生資料名單（.xlsx）。匯入後會自動和學生名單比對，有差異再逐筆處理。</EmptyState></div>
+      )}
 
-      {pending && (
-        <div class="card" style="margin-top:12px;padding:12px">
-          <h3>確認欄位對應</h3>
-          <p class="muted small">程式自動判斷如下，請確認沒有對錯欄。共讀到 {pending.entries.length} 位考生。</p>
-          <table class="t">
-            <thead><tr><th>用途</th><th>檔案中的欄位</th></tr></thead>
-            <tbody>{Object.entries(pending.headers).map(([f, h]) => <tr key={f}><td>{FIELD_LABEL[f] ?? f}</td><td>{h}</td></tr>)}</tbody>
-          </table>
-          {!pending.headers.classNo && <div style="margin-top:8px"><Alert tone="danger">找不到「班級」欄，無法匯入。</Alert></div>}
-          {pending.issues.length > 0 && <div style="margin-top:8px"><Alert tone="warn">{pending.issues.length} 列有問題：{pending.issues.slice(0, 3).map((i) => `第 ${i.row} 列 ${i.message}`).join('；')}{pending.issues.length > 3 ? '…' : ''}</Alert></div>}
-          {pending.droppedSubjects > 0 && <div style="margin-top:8px"><Alert tone="warn">有 {pending.droppedSubjects} 位考生的部分科目不在本次考科表，已略過這些科目。</Alert></div>}
-          <div class="btnrow" style="margin-top:12px">
-            <Button onClick={() => setPending(null)}>取消</Button>
-            <Button kind="primary" disabled={!pending.headers.classNo} onClick={adopt}>確認匯入並比對</Button>
-          </div>
-        </div>
+      {sheets && (
+        <ImportWizard sheets={sheets} exam={exam} classNames={classNames} previous={entries ?? undefined} saved={doc.settings.markMap ?? {}}
+          onCancel={() => setSheets(null)} onDone={adopt} />
       )}
 
       {entries && (

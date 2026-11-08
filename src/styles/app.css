@@ -38,6 +38,7 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(-
 .input:focus{border-color:var(--accent)}
 .hint{font-size:12px;color:var(--text-3)}
 .err .input{border-color:var(--danger)} .err .hint{color:var(--danger-ink)}
+.input.err{border-color:var(--danger)}
 .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;background:var(--sunken)}
 .seg button{font:inherit;font-weight:700;min-height:36px;padding:0 14px;border:0;background:transparent;color:var(--text-2);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-on)}
@@ -356,3 +357,24 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .pf-about dd{margin:0}
 @media (max-width:560px){.pfoot{flex-direction:column;gap:2px}}
 @media print{.pfoot{display:none}}
+
+/* ④⑤（施工B）：自原型移植；座位表在 .scroll 內等比縮小（最小 0.4 倍），再窄才在卡片內捲動 */
+.lab{font-size:12px;font-weight:700;color:var(--text-3);margin-bottom:8px;letter-spacing:.04em}
+.scroll{overflow-x:auto;max-width:100%}
+.cell[role="button"]{cursor:pointer}
+.blk-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}
+
+/* ── 引路（施工G，DESIGN 10.7） ── */
+.stepcount{font-size:13px;font-weight:700;color:var(--text-2);margin:0 0 8px}
+.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;position:sticky;top:60px;z-index:5}
+.sumbar b{font-family:var(--f-no);font-size:18px;font-variant-numeric:tabular-nums}
+.sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}
+.sumbar .ok{color:var(--ok-ink);font-weight:700}
+.sumbar .warnbtn{margin-left:auto;display:inline-flex;gap:4px;align-items:center;min-height:36px;padding:4px 12px;border:1.5px solid var(--warn-bar);border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn-ink);font:inherit;font-weight:700;cursor:pointer;text-align:left}
+.sumbar .warnbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.stepfoot{display:grid;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.empty{display:grid;gap:8px;justify-items:start;padding:20px;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--surface)}
+.empty strong{font-family:var(--f-head);font-size:18px}
+.empty p{margin:0}
+.field-msg{font-size:12px;color:var(--danger-ink);font-weight:700}
+.nextlist{margin:6px 0 0 18px;display:grid;gap:6px}

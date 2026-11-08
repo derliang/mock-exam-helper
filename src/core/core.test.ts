@@ -297,11 +297,17 @@ describe('座位表統計（D40）', () => {
         { classNo: 2, count: 1 },
       ],
       perSubject: [
-        { subjectId: 'soc', taking: 2, detachedOut: 0, inRoom: 2 },
-        { subjectId: 'sci', taking: 2, detachedOut: 1, inRoom: 1 },
-        { subjectId: 'lis', taking: 0, detachedOut: 0, inRoom: 0 },
+        { subjectId: 'soc', taking: 2, detachedOut: 0, inRoom: 2, inRoomPerClass: [{ classNo: 1, count: 1 }, { classNo: 2, count: 1 }] },
+        { subjectId: 'sci', taking: 2, detachedOut: 1, inRoom: 1, inRoomPerClass: [{ classNo: 1, count: 1 }] },
+        { subjectId: 'lis', taking: 0, detachedOut: 0, inRoom: 0, inRoomPerClass: [] },
       ],
     });
+  });
+
+  it('單人特例到他處考試，也不算在本教室考（D26）', () => {
+    const assignments: SeatAssignment[] = [{ classroomId: 'A', row: 1, depth: 1, code: '0101' }];
+    const s = roomStats('A', assignments, [entry(1, 1, ['sci'])], subjects, [], [{ code: '0101', subjectId: 'sci', purpose: 'exam' }]);
+    expect(s.perSubject[1]).toEqual({ subjectId: 'sci', taking: 1, detachedOut: 1, inRoom: 0, inRoomPerClass: [] });
   });
 });
 
