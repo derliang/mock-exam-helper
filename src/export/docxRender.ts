@@ -203,9 +203,9 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
   const { layout } = page;
   const paper = PAPER_MM[layout.paper];
   const cell = labelCellMm(layout, margin);
-  const colW = Math.floor(mmToTwip(paper.w - 2 * margin) / layout.cols);
+  const colW = Math.min(Math.floor((cell.w * 1440) / 25.4), Math.floor(mmToTwip(cell.w)));
   // 預留 3mm 給 Word 在表格後必須有的段落，避免多出一張空白頁
-  const rowH = Math.floor(mmToTwip(paper.h - 2 * margin - 3) / layout.rows);
+  const rowH = Math.min(Math.floor((cell.h * 1440) / 25.4), Math.floor(mmToTwip(cell.h)));
   const sizeCode = cell.w * 0.8;
   const sizeName = cell.w * 0.4;
   const sizeSmall = cell.w * 0.26;
