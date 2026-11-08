@@ -1,7 +1,7 @@
 import { syncDiffs } from '../store';
 import { useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
-import { studentCode } from '../../data';
+import { DEFAULT_LABEL_NOTES, LABEL_NOTE_MAX_CHARS, LABEL_NOTE_MAX_LINES, noteLineLength, studentCode } from '../../data';
 import { Alert, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg } from '../components';
 import { confirmCopy } from '../flow';
 import { RoomList } from '../components/RoomList';
@@ -242,6 +242,25 @@ function AddClassModal(p: { doc: Doc; division: Division; onClose: () => void; o
   );
 }
 
+/** 標籤下方「注意事項」框：每行一句，用 **粗體** 標粗體；清空＝標籤不印這個框；可還原預設 */
+function LabelNotesField(p: { value: string | undefined; onChange: (v: string | undefined) => void }) {
+  const text = p.value ?? DEFAULT_LABEL_NOTES;
+  const lines = text.split(/\r?\n/).filter((l) => l.trim());
+  const tooMany = lines.length > LABEL_NOTE_MAX_LINES;
+  const tooLong = lines.filter((l) => noteLineLength(l.trim()) > LABEL_NOTE_MAX_CHARS).length;
+  const isDefault = p.value === undefined || p.value === DEFAULT_LABEL_NOTES;
+  return (
+    <div class={`field${tooMany || tooLong ? ' err' : ''}`}>
+      <label for="s-notes">標籤注意事項</label>
+      <textarea id="s-notes" class="input" rows={5} value={text} onChange={(e) => p.onChange(e.currentTarget.value)} />
+      <span class="hint" role={tooMany || tooLong ? 'alert' : undefined}>
+        {tooMany ? `最多 ${LABEL_NOTE_MAX_LINES} 行，多的行不會印。` : tooLong ? `有 ${tooLong} 行超過 ${LABEL_NOTE_MAX_CHARS} 字，超過的字不會印。` : `印在標籤下方的框內，每行一句（最多 ${LABEL_NOTE_MAX_LINES} 行、每行 ${LABEL_NOTE_MAX_CHARS} 字），用 **粗體** 標粗體；全部清空就不印這個框。`}
+      </span>
+      <div><Button disabled={isDefault} onClick={() => p.onChange(undefined)}>還原預設</Button></div>
+    </div>
+  );
+}
+
 function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const s = doc.settings;
   const set = (patch: Partial<typeof s>) => onChange({ ...doc, settings: { ...s, ...patch } });
@@ -253,6 +272,7 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
       </div>
       <div class="field"><label for="s-name">學校名稱</label><input id="s-name" class="input" value={s.schoolName} onChange={(e) => set({ schoolName: e.currentTarget.value })} /><span class="hint">印在座位表與標籤表頭</span></div>
       <div class="field"><label for="s-head">表頭文字</label><input id="s-head" class="input" value={s.headerText} onChange={(e) => set({ headerText: e.currentTarget.value })} /><span class="hint">座位表與標籤共用的固定表頭</span></div>
+      <LabelNotesField value={s.labelNotes} onChange={(v) => set({ labelNotes: v })} />
       <div class="field"><span class="label">預設紙張</span>
         <div class="row">
           <span>座位表與名單：A4（固定）</span>

@@ -61,16 +61,19 @@ function labelHtml(p: LabelPageModel, o: HtmlOptions): string {
   const { layout } = p;
   const paper = PAPER_MM[layout.paper];
   // 稿件：格高最多 35mm，格子下方才留得出注意事項與頁尾（Word 版待下一步對齊後再共用）
-  const cell = labelBoxMm(layout, margin);
+  const cell = labelBoxMm(layout, margin, p.notes.length);
   const cells = labelGrid(p)
     .map((m) => cellHtml(m, cell.w, cell.h, 'label'))
     .join('');
   const padX = cell.padX;
+  const noteHtml = p.notes.length
+    ? `<div class="pp-note"><h4>注意事項：</h4>${p.notes.map((l) => `<div>${l.map((s) => (s.bold ? `<b>${esc(s.text)}</b>` : esc(s.text))).join('')}</div>`).join('')}</div>`
+    : '';
   const cls = layout.paper.toLowerCase();
   return `<section class="sheet pp pp-lab ${cls}" style="page:${cls};width:${paper.w}mm;height:${paper.h - 0.5}mm;padding:${margin}mm ${mm(padX)}">
 <div class="pp-hd" style="margin-bottom:3mm"><div><div class="pp-h1">${esc(p.examName)}　標籤</div></div><span class="pp-room" style="font-size:12pt;padding:1mm 4mm">${esc(p.roomName)}</span></div>
 <div class="pp-grid" style="grid-template-columns:repeat(${layout.cols},${mm(cell.w)})">${cells}</div>
-<div class="pp-note"><h4>注意事項：</h4><div>*<b>0101</b>開始為第一排第一個位置以此類推。</div><div>*請貼於桌面<b>右上角</b>。</div><div>*請使用<b>透明膠帶</b>黏貼。</div></div>
+${noteHtml}
 <div class="pp-foot">${esc(footerText(o.generatedAt, o.dataVersion))}</div></section>`;
 }
 

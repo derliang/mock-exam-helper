@@ -453,7 +453,7 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
   const margin = opts.labelMarginMm ?? 10;
   const { layout } = page;
   const paper = PAPER_MM[layout.paper];
-  const box = labelBoxMm(layout, margin);
+  const box = labelBoxMm(layout, margin, page.notes.length);
   const tw = (mm: number) => mmToTwip(mm);
   const isB4 = layout.paper === 'B4';
   const gridW = box.w * layout.cols;
@@ -488,12 +488,8 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
   // 注意事項（字數固定，框寬依字級估算）
   const notePt = isB4 ? 13 : 20;
   const h4Pt = isB4 ? 14 : 22;
-  const lines: [string, string, string][] = [
-    ['*', '0101', '開始為第一排第一個位置以此類推。'],
-    ['*請貼於桌面', '右上角', '。'],
-    ['*請使用', '透明膠帶', '黏貼。'],
-  ];
-  const noteTextW = Math.max(...lines.map(([a, b, c]) => textMm(a, notePt) + textMm(b, notePt, true) + textMm(c, notePt)));
+  const lines = page.notes;
+  const noteTextW = Math.max(textMm('注意事項：', h4Pt, true), ...lines.map((l) => l.reduce((w, s) => w + textMm(s.text, notePt, s.bold), 0)));
   const padX = isB4 ? 6 : 9;
   const padY = isB4 ? 3 : 5;
   const leftBar = isB4 ? 1.8 : 2.4;
@@ -516,7 +512,7 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
             margins: { top: tw(padY), bottom: tw(padY), left: tw(padX), right: tw(padX) },
             children: [
               line([run2('注意事項：', { size: h4Pt, bold: true, color: NAVY }, mode)], { h: h4Pt * 0.3528 * 1.75, align: AlignmentType.LEFT, after: isB4 ? 1 : 2 }),
-              ...lines.map(([a, b, c]) => line([run2(a, { size: notePt }, mode), run2(b, { size: notePt, bold: true }, mode), run2(c, { size: notePt }, mode)], { h: lh, align: AlignmentType.LEFT })),
+              ...lines.map((l) => line(l.map((s) => run2(s.text, { size: notePt, bold: s.bold }, mode)), { h: lh, align: AlignmentType.LEFT })),
             ],
           }),
         ],
@@ -536,8 +532,7 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
       headBlock({ widthMm: gridW, h1: `${page.examName}　標籤`, room: page.roomName, h1Pt: 15, roomPt: 12, padX: 4, padY: 1 }, mode),
       spacer(3),
       gridTable,
-      spacer(isB4 ? 5 : 8),
-      note,
+      ...(lines.length ? [spacer(isB4 ? 5 : 8), note] : []),
       line([], { h: 0.35 }),
     ],
   };
