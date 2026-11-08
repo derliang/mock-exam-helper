@@ -125,6 +125,8 @@ export interface ExamConfig {
   classroomIds: string[];
   labelLayout: LabelLayout;
   createdAt: string;
+  /** 最後修改時間（ISO）；舊資料沒有這個欄位時以 createdAt 代替 */
+  updatedAt?: string;
 }
 
 /** 考試名單一筆（D63）：誰參加、考什麼科 */

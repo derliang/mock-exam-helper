@@ -10,6 +10,7 @@ import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
+import { NewExam } from './pages/NewExam';
 import { Init } from './pages/Init';
 import { Lookup } from './pages/Lookup';
 import { Settings } from './pages/Settings';
@@ -21,7 +22,8 @@ import { Step5 } from './pages/Step5';
 import { Step6 } from './pages/Step6';
 import { createFsRepository, isFsAccessSupported } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
-import type { Doc } from './store';
+import { examLabel, stampModified, type Doc } from './store';
+import { APP_VERSION, formatVersion } from './version';
 import { canUndo, commit, newHistory, undo, type History } from './undo';
 
 type Theme = 'system' | 'light' | 'dark';
@@ -58,7 +60,14 @@ export function App() {
     setWarning(fsRepo?.lastWarning());
     if (d !== raw) void repo.save(d); // 全新資料夾：把預設班級存下來
   };
-  const edit = (d: Doc) => { setHist((h) => commit(h, d)); void repo.save(d); };
+  const edit = (d0: Doc) => {
+    const d = stampModified(hist.present, d0, new Date());
+    setHist((h) => commit(h, d)); void repo.save(d);
+  };
+  // 更換資料夾：重新選一個，成功才載入；使用者取消視窗不算錯誤
+  const changeFolder = async () => {
+    try { await repo.chooseFolder(); await load(); } catch (e) { if (!(e instanceof DOMException && e.name === 'AbortError')) setWarning('無法使用這個資料夾，請改選別的資料夾。'); }
+  };
   const onUndo = () => setHist((h) => { const n = undo(h); void repo.save(n.present); return n; });
   const undoCount = hist.past.length;
 
@@ -85,14 +94,14 @@ export function App() {
     <FeatureContext.Provider value={hist.present.settings}>
       <header class="pbar">
         <div class="pbar-in">
-          <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge></span>
+          <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge> <span class="ver" title="目前版本">{formatVersion(APP_VERSION)}</span></span>
           <nav class="nav" aria-label="主要導覽">
             <button type="button" onClick={() => go({ page: 'init' })} aria-current={r.page === 'init'}>初始化</button>
             <button type="button" disabled={!hasFolder} onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
             {hasFolder && enabledNav({ settings: hist.present.settings }).map((n) => (
               <button key={n.id} type="button" onClick={() => go2(n.route, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === n.route.page}>{n.label}</button>
             ))}
-            <button type="button" disabled={!hasFolder} onClick={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>設定</button>
+            <button type="button" disabled={!hasFolder} onClick={() => go2({ page: 'settings', ...(lastExam && r.page === 'step' ? { division: lastExam.division } : {}) }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>設定</button>
           </nav>
           <span class="spacer" />
           <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '系統' }, { value: 'light', label: '淺' }, { value: 'dark', label: '深' }]} />
@@ -100,6 +109,7 @@ export function App() {
         {hasFolder && lastExam && (
           <div class="pbar-in pbar-sub">
             <span class="cur-exam" title={lastExam.name}>{lastExam.name}</span>
+            <Badge>{examLabel(lastExam)}</Badge>
             <nav class="nav" aria-label="目前模擬考的步驟">
               {STEP_NAMES.map((name, i) => (
                 <button type="button" key={name} onClick={() => go({ page: 'step', examId: lastExam.id, step: (i + 1) as 1 | 2 | 3 | 4 | 5 | 6 })} aria-current={r.page === 'step' && r.examId === lastExam.id && r.step === i + 1}>{`${'①②③④⑤⑥'[i]} ${name}`}</button>
@@ -112,10 +122,11 @@ export function App() {
         {r.page !== 'init' && <TopBar backLabel={backLabel(nav)} onBack={back} undoCount={undoCount} onUndo={onUndo} />}
         {r.page === 'init' && <Init repo={repo} fsSupported={fsSupported} onRestore={fsRepo ? () => fsRepo.restore() : undefined} onDone={async () => { await load(); go({ page: 'exams' }); }} />}
         {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
-        {r.page === 'exams' && <Exams doc={hist.present} onChange={edit} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} />}
+        {r.page === 'exams' && <Exams doc={hist.present} folder={repo.folderName?.()} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} onNew={() => go({ page: 'new' })} onSettings={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} onChangeFolder={() => void changeFolder()} />}
+        {r.page === 'new' && <NewExam doc={hist.present} onCancel={() => go({ page: 'exams' })} onCreate={(d, examId) => { edit(d); go({ page: 'step', examId, step: 1 }); }} />}
         {r.page === 'lookup' && <Lookup doc={hist.present} examId={r.examId} onGoStep={(examId, step) => go({ page: 'step', examId, step })} onExams={() => go({ page: 'exams' })} />}
-        {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} />}
-        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRoster={() => go2({ page: 'settings', tab: 'roster' }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onExams={() => go({ page: 'exams' })} />}
+        {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} {...(r.division ? { division: r.division } : {})} />}
+        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRoster={(division) => go2({ page: 'settings', tab: 'roster', division }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onExams={() => go({ page: 'exams' })} />}
         {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
       <Footer />
@@ -127,6 +138,7 @@ export function App() {
 export function pageName(r: Route, doc: Doc): string {
   switch (r.page) {
     case 'exams': return '模擬考列表';
+    case 'new': return '新增模擬考';
     case 'settings': return '設定';
     case 'lookup': return '考生查詢';
     case 'step': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」${stepTitle(r.step)}`;
@@ -134,7 +146,7 @@ export function pageName(r: Route, doc: Doc): string {
   }
 }
 
-function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: () => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onExams: () => void }) {
+function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: (division: 'senior' | 'junior') => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onExams: () => void }) {
   const exam = p.doc.exams.find((e) => e.id === p.route.examId);
   if (!exam) {
     return <section><h2>{stepTitle(p.route.step)}</h2><EmptyState title="找不到這個模擬考" action={<Button kind="primary" onClick={p.onExams}>回模擬考列表</Button>}>它可能已被刪除，或資料夾換了。</EmptyState></section>;
@@ -147,7 +159,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       <div class="stack" style="min-width:0">
         <SummaryBar flow={flow} onGo={p.onStep} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
-          : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} />
+          : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
           : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} />
           : step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
           : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />

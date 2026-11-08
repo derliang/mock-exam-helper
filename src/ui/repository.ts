@@ -6,6 +6,8 @@ import type { Doc } from './store';
 
 export interface Repository {
   hasFolder(): boolean;
+  /** 目前資料夾的名稱（列表頁顯示用）；沒有或不支援時可省略 */
+  folderName?(): string;
   /** 用 showDirectoryPicker 選資料夾 */
   chooseFolder(): Promise<void>;
   /** 拖拉資料夾（UI-03）：回 false 表示拖進來的不是資料夾 */
@@ -60,6 +62,7 @@ export function createMemoryRepository(): Repository {
     loadExamFile: async <K extends keyof ExamFiles>(examId: string, key: K) => structuredClone((files.get(`${examId}/${key}`) ?? null) as ExamFiles[K] | null),
     saveExamFile: async <K extends keyof ExamFiles>(examId: string, key: K, data: ExamFiles[K]) => { files.set(`${examId}/${key}`, structuredClone(data)); },
     hasFolder: () => folder,
+    folderName: () => (folder ? '示範資料夾（記憶體）' : ''),
     chooseFolder: async () => { folder = true; },
     adoptDropped: async (items) => { const ok = items.length > 0; if (ok) folder = true; return ok; },
     load: async () => structuredClone(doc),
