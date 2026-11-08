@@ -5,7 +5,8 @@ import './featureRegister/attendance';
 import './featureRegister/alignment';
 import './featureRegister/quick';
 import { Footer } from './components/Footer';
-import { Alert, Badge, Button, EmptyState, Seg, StepNextContext, StepPending, SummaryBar, TopBar } from './components';
+import { StepSide, hasSide } from './pages/StepSide';
+import { Alert, Badge, Button, EmptyState, Seg, StepNav, StepNextContext, StepPending, SummaryBar, TopBar } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
@@ -186,7 +187,8 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
   const step = p.route.step;
   return (
     <StepNextContext.Provider value={{ action: nextAction(flow, step), onGo: p.onStep }}>
-      <div class="ws wide ws-one">
+      <div class={`ws${hasSide(step) ? '' : ' wide'}`}>
+      <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <div class="stack" style="min-width:0">
         <SummaryBar flow={flow} onGo={p.onStep} />
         <StepPending action={quietPending(nextAction(flow, step), step)} onGo={p.onStep} />
@@ -198,6 +200,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
           : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} onExams={p.onExams} />}
         {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange, onStep: p.onStep })}</div>)}
       </div>
+      {hasSide(step) && <aside class="side side-r"><StepSide step={step} doc={p.doc} exam={exam} /></aside>}
       </div>
     </StepNextContext.Provider>
   );

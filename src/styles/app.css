@@ -238,6 +238,14 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:var(-
 .lcell .mks{display:grid;justify-items:center;gap:.2cqw}
 .lcell .mk{font-size:2.1cqw;font-weight:700;padding:0 1cqw;line-height:3cqw;border-radius:3px;white-space:nowrap}
 .lcell.mk-x .mk{background:var(--att-fill);color:var(--att-on);border:.4cqw solid var(--att-fill)}
+/* ④ 右側「範例標示」（原型 .lprev）：兩種紙張的單一標籤依實際尺寸等比例縮小 */
+.lprev{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.lprev figure{margin:0}
+.lprev-box{overflow:hidden}
+.lsheet-one{container-type:inline-size}
+.lprev-cell{display:grid;border-top:1px solid var(--cut);border-left:1px solid var(--cut)}
+.lprev-cell .lcell{height:100%}
+.lprev figcaption{font-size:13px;color:var(--text-2);margin-top:6px;line-height:1.4}
 .lcell.mk-add .mk{background:var(--surface);color:var(--text);border:.4cqw solid var(--text)}
 .lcell.blank{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,var(--line-2) 5px 10px)}
 /* UI-23：抽離座位表改柔和單色（深淺色都用主色淡底），班級字與座標照印，黑白列印仍分得出 */
