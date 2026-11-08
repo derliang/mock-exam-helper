@@ -29,7 +29,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (!needsMarks(exam)) {
     return (
       <section class="stack">
-        <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
+        <StepHead title="④ 標示與抽離規則" />
         <Alert tone="info"><b>會考不需要這一步。</b>國中部每科都考，沒有選考，所以沒有標示，也沒有抽離。直接前往排座。</Alert>
       </section>
     );

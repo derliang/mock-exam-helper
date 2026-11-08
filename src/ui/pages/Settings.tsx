@@ -32,7 +32,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
           <div class="seg seg-soft" role="group" aria-label="部別">
             {([['senior', '高中部'], ['junior', '國中部']] as const).map(([v, l]) => <button type="button" key={v} aria-pressed={division === v} onClick={() => setDivision(v)}>{l}</button>)}
           </div>
-          <span class="small muted">{division === 'junior' ? '國中部：不分文理組，會考科目固定七科' : '高中部：每個班級分理組或文組'}</span>
+          <span class="small muted">{division === 'junior' ? '國中部：會考科目固定七科' : '高中部：每個班級分理組或文組'}</span>
         </div>
       )}
       {tab === 'roster' && <Roster {...p} onChange={(d) => p.onChange(syncDiffs(d))} division={division} />}
@@ -156,12 +156,10 @@ function StudentForm(p: { doc: Doc; division: Division; student?: Student; prefi
           <input id="f-name" class="input" value={name} onInput={(e) => setName(e.currentTarget.value)} /><span class="hint">必填</span></div>
         <div class="field"><label for="f-sid">學號（選填）</label>
           <input id="f-sid" class="input" value={schoolId} onInput={(e) => setSchoolId(e.currentTarget.value)} /><span class="hint">沒有就留空</span></div>
-        {isJ
-          ? <div class="field"><span class="label">組別</span><div class="input" style="display:flex;align-items:center;background:var(--surface)">國中部不分組</div><span class="hint">會考每科都考</span></div>
-          : <div class="field"><label for="f-group">組別（考哪些科）</label>
+        {!isJ && <div class="field"><label for="f-group">組別（考哪些科）</label>
             <input id="f-group" class="input" value={groupCode} onInput={(e) => setGroupCode(e.currentTarget.value)} placeholder="例如：D" /><span class="hint">只作紀錄；每次考試以考試名單的組別為準</span></div>}
         <div class="field"><label for="f-special">特殊生需求註明</label>
-          <input id="f-special" class="input" value={special} onInput={(e) => setSpecial(e.currentTarget.value)} placeholder="例如：x數A" /><span class="hint">只作紀錄，不影響標示</span></div>
+          <input id="f-special" class="input" value={special} onInput={(e) => setSpecial(e.currentTarget.value)} {...(isJ ? {} : { placeholder: '例如：x數A' })} /><span class="hint">只作紀錄，不影響標示</span></div>
       </div>
     </Modal>
   );

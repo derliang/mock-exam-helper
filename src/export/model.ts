@@ -43,17 +43,26 @@ export interface CellModel {
   colorFg: string;
   /** 個別考試標示（D39/D55）：文字加底色加粗框 */
   tags: { kind: 'absent' | 'extra'; text: string }[];
+  /** 同一批標示拆成「小標＋科目」，列印頁把同小標的科目合併成一個標示（例：X 數B、社會） */
+  marks: { kind: 'absent' | 'extra' | 'detach'; head: string; subject: string }[];
 }
 export interface StatsModel {
   perClass: { className: string; count: number }[];
   total: number;
   perSubject: { subjectName: string; count: number }[];
+  /** 統計表（列印頁用，D40）：欄＝班級，列＝本教室考生人數與各科考試人數 */
+  table: { classes: string[]; rows: { label: string; per: number[]; total: number }[] };
 }
 export interface SeatPageModel {
   kind: 'seat';
   title: string;
   /** 抽離考試座位表（預備教室）用柔和單色（UI-23） */
   detachStyle: boolean;
+  /** 標題拆開（列印頁版面：考試名稱、教室名稱分開放） */
+  examName: string;
+  roomName: string;
+  /** 頁首小標籤：共幾人、不考／加考各科人數 */
+  chips: string[];
   rows: number; // 排數（橫向欄）
   depth: number; // 深位數（縱向列）
   /** key = 排-深位；沒有的是空位或沒排人 */
@@ -65,6 +74,8 @@ export interface SeatPageModel {
 export interface LabelPageModel {
   kind: 'label';
   title: string;
+  examName: string;
+  roomName: string;
   layout: LabelLayout;
   /** 依座位順序，長度 ≤ cols*rows；其餘格空白 */
   cells: CellModel[];
@@ -174,7 +185,16 @@ function makeCell(code: string, seat: { row: number; depth: number }, ctx: Ctx):
     colorLine: col.line,
     colorFg: col.fg,
     tags,
+    marks: ctx.input.result.marks
+      .filter((m) => m.code === code)
+      .map((m) => ({ kind: m.mode, head: m.mode === 'absent' ? 'X' : '＋', subject: ctx.subjectName.get(m.subjectId) ?? '' })),
   };
+}
+
+/** 抽離考試格：標示只有「抽離考試 科目」一個（D55） */
+function detachMark(c: CellModel, sname: string): void {
+  c.tags = [{ kind: 'extra', text: `抽離考試 ${sname}` }];
+  c.marks = [{ kind: 'detach', head: '抽離考試', subject: sname }];
 }
 
 function usableOf(c: Classroom): Set<string> {
@@ -186,7 +206,28 @@ function fromRoomStats(rs: RoomStats, ctx: Ctx): StatsModel {
     total: rs.total,
     perClass: rs.perClass.map((c) => ({ className: ctx.classes.get(c.classNo)?.name ?? String(c.classNo), count: c.count })),
     perSubject: rs.perSubject.map((c) => ({ subjectName: ctx.subjectName.get(c.subjectId) ?? c.subjectId, count: c.inRoom })),
+    table: (() => {
+      const nos = rs.perClass.map((c) => c.classNo);
+      const pick = (l: { classNo: number; count: number }[]) => nos.map((n) => l.find((x) => x.classNo === n)?.count ?? 0);
+      return {
+        classes: nos.map((n) => ctx.classes.get(n)?.name ?? String(n)),
+        rows: [
+          { label: '本教室考生人數', per: pick(rs.perClass), total: rs.total },
+          ...rs.perSubject.map((s) => ({ label: ctx.subjectName.get(s.subjectId) ?? s.subjectId, per: pick(s.inRoomPerClass), total: s.inRoom })),
+        ],
+      };
+    })(),
   };
+}
+
+/** 頁首小標籤：共幾人、各科不考、各科加考的人數（依考試科目順序） */
+function chipsOf(total: number, cells: Iterable<CellModel>, subjects: { name: string }[]): string[] {
+  const n = { absent: new Map<string, number>(), extra: new Map<string, number>() };
+  for (const c of cells) for (const m of c.marks) if (m.kind !== 'detach') n[m.kind].set(m.subject, (n[m.kind].get(m.subject) ?? 0) + 1);
+  const order = subjects.map((s) => s.name);
+  const list = (k: 'absent' | 'extra', head: string) =>
+    [...n[k].entries()].sort((a, b) => order.indexOf(a[0]) - order.indexOf(b[0])).map(([s, c]) => `${head}${s} ${c} 人`);
+  return [`共 ${total} 人`, ...list('absent', '不考'), ...list('extra', '加考')];
 }
 
 /** 座位表：每間教室一頁；每間預備教室的每個抽離考試科目一頁（柔和單色） */
@@ -206,6 +247,9 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
     pages.push({
       kind: 'seat',
       title: `${input.exam.name}　${room.name}　座位表`,
+      examName: input.exam.name,
+      roomName: room.name,
+      chips: [],
       detachStyle: false,
       rows: room.rows,
       depth: room.depth,
@@ -213,6 +257,8 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
       usable: usableOf(room),
       stats: fromRoomStats(roomStats(id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches, specialOf(input.result)), ctx),
     });
+    const pg = pages[pages.length - 1]!;
+    pg.chips = chipsOf(pg.stats.total, cells.values(), input.exam.subjects);
   }
   const groups = new Map<string, typeof input.result.detaches>();
   for (const d of scope === 'class' ? [] : input.result.detaches) {
@@ -228,12 +274,15 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
     const cells = new Map<string, CellModel>();
     for (const d of ds) {
       const c = makeCell(d.code, d.seat!, ctx);
-      c.tags = [{ kind: 'extra', text: `抽離考試 ${sname}` }];
+      detachMark(c, sname);
       cells.set(`${d.seat!.row}-${d.seat!.depth}`, c);
     }
     pages.push({
       kind: 'seat',
       title: `${input.exam.name}　${room.name}　抽離考試（${sname}）`,
+      examName: input.exam.name,
+      roomName: `${room.name}　抽離考試（${sname}）`,
+      chips: [`共 ${ds.length} 人`],
       detachStyle: true,
       rows: room.rows,
       depth: room.depth,
@@ -245,6 +294,13 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
           total: dc.total,
           perClass: dc.perClass.map((c) => ({ className: ctx.classes.get(c.classNo)?.name ?? String(c.classNo), count: c.count })),
           perSubject: [{ subjectName: sname, count: dc.total }],
+          table: {
+            classes: dc.perClass.map((c) => ctx.classes.get(c.classNo)?.name ?? String(c.classNo)),
+            rows: [
+              { label: '本教室考生人數', per: dc.perClass.map((c) => c.count), total: dc.total },
+              { label: sname, per: dc.perClass.map((c) => c.count), total: dc.total },
+            ],
+          },
         };
       })(),
     });
@@ -292,6 +348,8 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
     pages.push({
       kind: 'label',
       title: `${input.exam.name}　${room.name}`,
+      examName: input.exam.name,
+      roomName: room.name,
       layout,
       cells: mine.map((a) => makeCell(a.code, a, ctx)),
     });
@@ -314,10 +372,12 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
       pages.push({
         kind: 'label',
         title: `${input.exam.name}　${room.name}　抽離考試（${sname}）`,
+        examName: input.exam.name,
+        roomName: `${room.name}　抽離考試（${sname}）`,
         layout,
         cells: sorted.map((d) => {
           const c = makeCell(d.code, d.seat!, ctx);
-          c.tags = [{ kind: 'extra', text: `抽離考試 ${sname}` }];
+          detachMark(c, sname);
           return c;
         }),
       });
@@ -395,4 +455,60 @@ export function findMissingChars(input: ExportInput, has: (ch: string) => boolea
   const out: { classNo: number; seatNo: number; ch: string }[] = [];
   for (const s of input.students) for (const ch of new Set(s.name)) if (!has(ch)) out.push({ classNo: s.classNo, seatNo: s.seatNo, ch });
   return out;
+}
+
+/* ---------- 座位表與標籤的版面尺寸（列印頁與 Word 共用，照設計系統稿件 #paper） ---------- */
+
+/** 同小標的科目合併成一個標示（例：X 數B、社會），格子才不擠 */
+export function groupMarks(c: CellModel): { kind: 'x' | 'add'; text: string }[] {
+  const g = new Map<string, { kind: 'x' | 'add'; subs: string[] }>();
+  for (const m of c.marks) {
+    const e = g.get(m.head) ?? { kind: m.kind === 'absent' ? 'x' : 'add', subs: [] };
+    e.subs.push(m.subject);
+    g.set(m.head, e);
+  }
+  return [...g.entries()].map(([h, e]) => ({ kind: e.kind, text: `${h} ${e.subs.join('、')}` }));
+}
+
+/** 統計表的列：各科人數與每班完全相同的科目合併成一列（例：考國文、英文） */
+export function statRows(p: SeatPageModel): { label: string; per: number[]; total: number }[] {
+  const out: { label: string; per: number[]; total: number; subs: string[] }[] = [];
+  const [first, ...rest] = p.stats.table.rows;
+  if (first) out.push({ ...first, subs: [] });
+  for (const r of rest) {
+    const same = out.find((x) => x.subs.length > 0 && x.total === r.total && x.per.join() === r.per.join());
+    if (same) same.subs.push(r.label);
+    else out.push({ ...r, subs: [r.label] });
+  }
+  return out.map((x) => ({ label: x.subs.length ? `考${x.subs.join('、')}` : x.label, per: x.per, total: x.total }));
+}
+
+export const SEAT_PAGE = { w: 210, h: 297, padX: 15, padY: 12 };
+
+/** 座位表的格子尺寸（mm）與統計列。統計表列數隨科目變：先扣掉標題、小標籤、講臺、統計表、頁尾，剩下的才給座位格 */
+export function seatGeometry(p: SeatPageModel): { cw: number; ch: number; st: ReturnType<typeof statRows> } {
+  const innerW = SEAT_PAGE.w - 2 * SEAT_PAGE.padX;
+  const cw = Math.min(25, +((innerW - 6.5) / p.rows).toFixed(2));
+  const st = statRows(p);
+  const fixed = 22 + 12 + 4 + 5 + 11 + (5 + 8 * (st.length + 1)) + 16;
+  const ch = Math.min(23, +((SEAT_PAGE.h - 2 * SEAT_PAGE.padY - fixed) / p.depth).toFixed(2));
+  return { cw, ch, st };
+}
+
+/** 標籤頁格子以外要留的高度（mm）：抬頭、注意事項框、頁尾。B4 的注意事項字較小 */
+function labelReserveMm(paper: LabelPaper): number {
+  const header = 15;
+  const note = paper === 'B4' ? 5 + 6 + 8.6 + 1 + 3 * 8 : 8 + 10 + 13.6 + 2 + 3 * 12.35;
+  const footer = 14;
+  return header + note + footer;
+}
+
+/** 標籤格尺寸：格高最多 35mm，而且要讓下方的注意事項與頁尾放得下（B4 排 8 列時會比 35mm 矮）；左右邊界讓整排置中 */
+export function labelBoxMm(layout: LabelLayout, margin: number): { w: number; h: number; padX: number } {
+  const paper = PAPER_MM[layout.paper];
+  const base = labelCellMm(layout, margin);
+  const w = base.w;
+  const fit = Math.floor(((paper.h - margin - labelReserveMm(layout.paper)) / layout.rows) * 10) / 10;
+  const h = Math.min(35, base.h, fit);
+  return { w, h, padX: Math.max(margin, +((paper.w - layout.cols * w) / 2).toFixed(2)) };
 }

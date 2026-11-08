@@ -142,7 +142,7 @@ describe('Word 輸出（D44/D45）', () => {
     );
     expect(doc).toContain('第4排');
     expect(doc).toContain('0101');
-    expect(doc).toContain('各科考試人數');
+    expect(doc).toContain('本教室考生人數');
     expect(doc).toContain('<w:b/>');
     const footers = await Promise.all(Object.keys(z.files).filter((n) => /word\/footer\d+\.xml/.test(n)).map((n) => text(n)));
     expect(footers.length).toBeGreaterThan(0);
@@ -166,22 +166,23 @@ describe('Word 輸出（D44/D45）', () => {
       const doc = await (await unzip(buf)).text('word/document.xml');
       const pg = [...doc.matchAll(/<w:pgSz w:w="(\d+)" w:h="(\d+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
       expect(pg).toEqual(Array(2).fill([mmToTwip(250), mmToTwip(353)]));
-      const grid = [...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)][0]![1]!;
-      const widths = [...grid.matchAll(/w:w="(\d+)"/g)].map((m) => Number(m[1]));
-      expect(widths).toHaveLength(cols);
+      // 版面有抬頭表、格子表、注意事項框：格子表是欄數等於 cols 的那個（每頁一個）
+      const grids = [...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)].map((m) => [...m[1]!.matchAll(/w:w="(\d+)"/g)].map((x) => Number(x[1]))).filter((w) => w.length === cols);
+      expect(grids).toHaveLength(2);
+      const widths = grids[0]!;
       expect(new Set(widths).size).toBe(1);
       expect(widths[0]! * cols).toBeLessThanOrEqual(mmToTwip(250 - 20));
       const heights = [...doc.matchAll(/<w:trHeight w:val="(\d+)" w:hRule="exact"/g)].map((m) => Number(m[1]));
       expect(heights).toHaveLength(rows * 2);
       expect(new Set(heights).size).toBe(1);
-      expect(heights[0]! * rows).toBeLessThanOrEqual(mmToTwip(353 - 20));
+      expect(heights[0]!).toBeLessThanOrEqual(mmToTwip(35)); // 稿件：格高最多 35mm，格子下方留給注意事項
     }
   });
 
   it('A3 7×7：每格 35mm 正方、格子大小不隨人數變', async () => {
     const f = makeFixture({ paper: 'A3', labelCols: 7, labelRows: 7 });
     const doc = await (await unzip(await renderDocx({ label: buildLabelPages(f, 'class') }, { fonts, ...meta }))).text('word/document.xml');
-    const widths = [...[...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)][0]![1]!.matchAll(/w:w="(\d+)"/g)].map((m) => Number(m[1]));
+    const widths = [...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)].map((m) => [...m[1]!.matchAll(/w:w="(\d+)"/g)].map((x) => Number(x[1]))).find((w) => w.length === 7)!;
     expect(widths).toEqual(Array(7).fill(mmToTwip(35)));
     const heights = new Set([...doc.matchAll(/<w:trHeight w:val="(\d+)" w:hRule="exact"/g)].map((m) => Number(m[1])));
     expect([...heights]).toEqual([mmToTwip(35)]);
@@ -222,5 +223,69 @@ describe('PDF 列印 HTML（D29）', () => {
     expect(html).toContain('資料版本碼：A1B2C3D4');
     expect(html).toContain('&lt;b&gt;&amp;');
     expect(html).not.toContain('<b>&');
+  });
+});
+
+describe('PDF 列印 HTML：照稿件版面（設計系統成品頁「座位表與標籤」）', () => {
+  const html = (o: Parameters<typeof makeFixture>[0] = {}, kind: 'seat' | 'label' = 'seat') => {
+    const f = makeFixture(o);
+    return renderPrintHtml(kind === 'seat' ? { seat: buildSeatPages(f, 'class') } : { label: buildLabelPages(f, 'class') }, meta);
+  };
+
+  it('座位表：A4 滿版頁（邊界自己留）、頁首、小標籤、講臺、統計表、頁尾', () => {
+    const h = html();
+    expect(h).toContain('page:a4full');
+    expect(h).toContain('<div class="pp-h2">座位表</div>');
+    expect(h).toContain('不考英文 1 人');
+    expect(h).toContain('加考數學 1 人');
+    expect(h).toContain('講臺');
+    expect(h).toContain('<table class="pp-st">');
+    expect(h).toContain('資料版本碼：A1B2C3D4');
+  });
+
+  it('座位表：深位 1 在最下列、沒人的位置畫斜線底、有標示的格子加框', () => {
+    const h = html();
+    expect(h.indexOf('>0105<')).toBeGreaterThan(-1);
+    expect(h).toContain('pp-e'); // 空位
+    expect(h).toContain('pp-c mk'); // 有標示
+    expect(h).toContain('<span class="pp-mk x">X 英文</span>');
+    expect(h).toContain('<span class="pp-mk add">＋ 數學</span>');
+  });
+
+  it('統計表：每班人數相同的科目合併成一列', () => {
+    const f = makeFixture();
+    const p = buildSeatPages(f, 'class')[0]!;
+    const h = renderPrintHtml({ seat: [p] }, meta);
+    expect(h).toMatch(/<td>考[^<]*、[^<]*<\/td>/);
+    expect(p.stats.table.rows[0]!.label).toBe('本教室考生人數');
+  });
+
+  it('標籤：全白底、特殊情形一律淺黃、頁面紙張與格數對、注意事項固定', () => {
+    const h = html({ paper: 'A3', labelCols: 7, labelRows: 7 }, 'label');
+    expect(h).toContain('page:a3');
+    expect(h).toContain('background:#FFE08A');
+    expect(h).toContain('background:#fff');
+    expect(h).not.toMatch(/background:#FBE7C6/); // 標籤不用班級色
+    expect(h).toContain('repeat(7,35mm)');
+    expect(h).toContain('注意事項：');
+    expect(h).toContain('請使用<b>透明膠帶</b>黏貼');
+  });
+
+  it('標籤：B4 格高最多 35mm、頁寬等於紙張；排 8 列時縮到放得下注意事項與頁尾', () => {
+    const h7 = html({ paper: 'B4', labelCols: 6, labelRows: 7 }, 'label');
+    expect(h7).toContain('page:b4');
+    expect(h7).toContain('height:35mm');
+    expect(h7).toContain('width:250mm');
+    const h8 = html({ paper: 'B4', labelCols: 6, labelRows: 8 }, 'label');
+    expect(h8).not.toContain('height:35mm');
+    expect(h8).toContain('height:33.6mm');
+  });
+
+  it('抽離考試座位表：柔和單色、小標「抽離考試 科目」', () => {
+    const f = makeFixture();
+    const p = buildSeatPages(f).find((x) => x.detachStyle)!;
+    const h = renderPrintHtml({ seat: [p] }, meta);
+    expect(h).toContain('#E6EBF7');
+    expect(h).toContain('抽離考試 英文');
   });
 });

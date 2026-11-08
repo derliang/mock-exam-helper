@@ -78,7 +78,9 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   };
 
   const resolved = diffs.filter((d) => d.choice !== undefined && (d.choice !== 'manual' || d.edited)).length;
-  const done = entries !== null && diffs.length === 0;
+  /** 會考全員參加：沒匯入名單時，學生名單就是考試名單，這一步視為完成 */
+  const bcctAll = exam.kind === 'bcct' && entries === null;
+  const done = bcctAll ? roster.length > 0 : entries !== null && diffs.length === 0;
   const notJoin = entries && exam.participation === 'partial' ? compare(entries).notParticipating : 0;
   const classes = doc.settings.classes.filter((c) => c.division === exam.division);
   /** 「恭班 45 號　張小翔」：班名＋座號＋姓名（原型寫法） */
@@ -130,7 +132,11 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     );
   }
 
-  const status = !entries
+  const status = !entries && bcctAll
+    ? (roster.length > 0
+      ? <Alert tone="ok" action={<Button onClick={() => input.current?.click()}>仍要匯入考試名單</Button>}><b>全員參加，不需匯入。</b>會考每位同學都考，學生名單就是考試名單（共 {roster.length} 人）；只有要記錄缺考時才需要匯入。</Alert>
+      : <Alert tone="warn" action={<Button kind="primary" onClick={p.onToRoster}>去匯入學生名單</Button>}><b>共用學生名單是空的。</b>會考不需匯入考試名單，請先到「共用設定」匯入國中部學生名單。</Alert>)
+    : !entries
     ? <Alert tone="warn" action={<Button kind="primary" onClick={() => input.current?.click()}>匯入本次考試名單</Button>}><b>還沒有匯入本次考試名單。</b>匯入後會和共用學生名單比對，排座前要處理完所有差異。</Alert>
     : diffs.length > 0
       ? <Alert tone="warn" action={<Button kind="primary" onClick={() => setShowCmp(true)}>處理差異</Button>}><b>還有 {diffs.length - resolved} 筆差異沒處理</b>：共 {diffs.length} 筆，全部處理完才能繼續排座。</Alert>
@@ -147,7 +153,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         <div><h3>本次考試名單</h3><p class="small muted">匯入大考中心格式的考試名單，只管「這次誰參加、考什麼科」。</p></div>
         <div class="row">
           <Badge>Excel（.xlsx）</Badge>
-          <span class="muted small">{entries ? `已匯入 ${entries.length} 筆` : '尚未匯入'}</span>
+          <span class="muted small">{entries ? `已匯入 ${entries.length} 筆` : bcctAll ? `不需匯入（全員 ${roster.length} 人）` : '尚未匯入'}</span>
           {done && <Badge tone="ok">已完成</Badge>}
           {entries && diffs.length > 0 && (
             <ConfirmButton kind="default" small undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>重新匯入</ConfirmButton>
@@ -183,7 +189,9 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           <div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:8px"><span>合計</span><b class="num" style="font-size:18px">{roster.length}</b></div>
         </div>
         <div class="card stack"><div class="lab">名單比對</div>
-          {!entries
+          {!entries && bcctAll
+            ? <p class="small muted">會考全員參加，不需比對；考生 {roster.length} 人，與共用學生名單相同。</p>
+            : !entries
             ? <p class="small muted">匯入考試名單後，這裡會逐筆列出和共用學生名單的差異。</p>
             : diffs.length > 0
               ? <Alert tone="warn">差異 {diffs.length} 筆，已處理 {resolved} 筆。</Alert>

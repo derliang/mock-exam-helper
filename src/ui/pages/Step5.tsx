@@ -91,7 +91,8 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const model = room ? chartModel(doc, exam, result, room) : null;
   const present = model ? [...new Set(model.lines.flat().flatMap((c) => (c.kind === 'student' ? [c.classNo] : [])))].sort((a, b) => a - b) : [];
   const stat = room ? roomStatTable(doc, exam, result, room.id) : null;
-  const trackOf = (t?: string) => (exam.division === 'senior' && t ? (t === 'science' ? '（理）' : '（文）') : '');
+  const senior = exam.division === 'senior'; // 會考沒有標示、抽離、個別覆寫（單人特例）
+  const trackOf = (t?: string) => (senior && t ? (t === 'science' ? '（理）' : '（文）') : '');
   const vcode = <div class="vcode">產生 {taipei(result.generatedAt)}　資料版本 {result.dataVersion}（名單或設定改了，版本碼就會變）</div>;
 
   return (
@@ -101,7 +102,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         { label: '考生', value: seatableEntries(doc, exam).length },
         { label: '座位', value: seats },
         { label: '班級教室', value: `${classRooms.length} 間` },
-        { label: '預備教室', value: `${rooms.length - classRooms.length} 間` },
+        ...(senior ? [{ label: '預備教室', value: `${rooms.length - classRooms.length} 間` }] : []),
         { label: '驗證', value: stale ? '需重新排座' : allPass ? '通過' : '不通過', bad: !stale && !allPass },
       ]} />
       {stale && (
@@ -115,7 +116,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       {room && model && (
         <div class="card stack">
           <div class="btnrow" style="justify-content:space-between">
-            <div><h3>座位表預覽</h3><p class="small muted">班級底色；橫排（左右）與深位（前後），講臺在下方。{!stale && '點任一位考生可設定個別覆寫（只改指定考科的去處，不是換座位）。'}</p></div>
+            <div><h3>座位表預覽</h3><p class="small muted">班級底色；橫排（左右）與深位（前後），講臺在下方。{senior && !stale && '點任一位考生可設定個別覆寫（只改指定考科的去處，不是換座位）。'}</p></div>
             <ConfirmButton kind="default" copy={confirmCopy.reseat(overrides.length)} onConfirm={run}>重新排座</ConfirmButton>
           </div>
           {classRooms.length > 1 && (
@@ -129,11 +130,11 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             title={`【${exam.name}】座位表`}
             sub={`${room.name}　考生 ${model.count} 人`}
             onlyClass={only ? Number(only) : undefined}
-            onPick={stale ? undefined : (code, co) => setEditing({ code, co })}
+            onPick={stale || !senior ? undefined : (code, co) => setEditing({ code, co })}
           />
-          <ChartLegend override={overrides.length > 0} />
+          <ChartLegend override={overrides.length > 0} marks={exam.division === 'senior'} />
           {vcode}
-          <p class="small muted">不開放拖曳換座位：會破壞「同班編號沿座位遞增」的規則。「個別覆寫」不是換座位，只改指定考科的去處。</p>
+          <p class="small muted">不開放拖曳換座位：會破壞「同班編號沿座位遞增」的規則。{senior && '「個別覆寫」不是換座位，只改指定考科的去處。'}</p>
           {stat && (
             <div>
               <div class="lab">座位表統計（這間教室）</div>
@@ -158,7 +159,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           : <Alert tone="warn">需要重新排座：名單或設定已變更，舊座位表不能下載，重新排座後才會驗證。</Alert>}
       </div>
 
-      <div class="card stack">
+      {senior && <div class="card stack">
         <div><h3>個別覆寫（單人特例）</h3><p class="small muted">保留原教室座位（不是換座位），只把這個人被標示的那幾節考科改到自填地點，不佔預備教室；改了會自動重排並再驗證。在上面的座位表點考生就能設定。</p></div>
         {overrides.length === 0
           ? <p class="small muted">目前沒有個別覆寫。</p>
@@ -168,9 +169,9 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               <Button small onClick={() => p.onChange(afterOverrideChange(removeOverride(doc, exam, o.code), exam, new Date().toISOString()))}>移除此設定</Button>
             </div>
           ))}
-      </div>
+      </div>}
 
-      {exam.division === 'senior' && (
+      {senior && (
         <div class="card stack">
           <div><h3>預備教室與抽離</h3><p class="small muted">標「X」的人這科不考，該節改到自習地點（只出名單）；標「＋」的人這科要考，該節改到預備教室。與座位表同一份資料。</p></div>
           {summary.length === 0

@@ -92,7 +92,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   const steps: FlowStep[] = STEPS.map((no) => ({
     no,
     name: STEP_NAMES[no - 1]!,
-    state: no === current ? 'cur' : done[no],
+    state: no === current ? 'cur' : no === 4 && !needsMarks(exam) ? 'skip' : done[no],
     ...(no === 4 && !needsMarks(exam) ? { note: '會考不需要' } : {}),
   }));
   return { steps, issues, summary: { students, seats: classSeats, spare, warnings: issues.length } };
