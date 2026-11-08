@@ -443,6 +443,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .lsheet-wrap{display:grid;gap:8px;justify-items:center}
 .lsheet-box{max-width:100%}
 .lsheet{container-type:inline-size;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));aspect-ratio:250/353;width:100%;border-top:1px solid var(--cut);border-left:1px solid var(--cut);background:var(--surface);box-shadow:var(--shadow-2)}
+.lprev{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
+.lprev figure{margin:0}
+.lprev-box{overflow:hidden}
+.lsheet-one{container-type:inline-size}
+.lprev-cell{display:grid;border-top:1px solid var(--cut);border-left:1px solid var(--cut)}
+.lprev-cell .lcell{height:100%}
+.lprev figcaption{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.4}
 .lcell{position:relative;display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:center;border-right:1px solid var(--cut);border-bottom:1px solid var(--cut);padding:1cqw .4cqw .8cqw;text-align:center;font-family:var(--f-no);overflow:hidden;min-width:0;color:var(--text);line-height:1.15}
 .lcell .no{font-size:5.4cqw;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding-top:2.4cqw}
 .lcell .nm{font-size:2.8cqw;font-weight:700;white-space:nowrap}
@@ -982,7 +989,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var e=S.cur;if(e.type==='會考')return '<div class="card stack"><div class="lab">說明</div><p class="small muted">會考沒有選考，這一步顯示「不需要」。</p></div>';
     var n=0;groups(e).forEach(function(g){subjList(e).forEach(function(s){if(rule(e,g[0],s).need)n++})});
     return '<div class="card stack"><div class="lab">待處理</div>'+(n?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>有 '+n+' 項接近一半的科目要選。</span><span></span></div>':'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span>沒有要選的項目。</span><span></span></div>')+'</div>'+
-      '<div class="card stack"><div class="lab">範例標示</div><div class="chart"><div class="cg" style="display:inline-grid">'+cellHTML2(sortStu(D().stu).filter(function(s){return marksOf(e,s).length})[0]||null,'1-1')+'</div></div><p class="small muted">座位表與標籤上的樣子（用文字加粗框）。</p></div>'}
+      '<div class="card stack"><div class="lab">範例標示</div><div class="lprev">'+['B4','A3'].map(function(p){var a=p==='A3',st=sortStu(D().stu).filter(function(s){return marksOf(e,s).length})[0],W=a?297:250,H=a?420:353;return '<figure><div class="lprev-box" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px"><div class="lsheet-one" style="width:'+(W*2.4).toFixed(1)+'px;height:'+(H*2.4).toFixed(1)+'px"><div class="lprev-cell" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px">'+(st?labelHTML(st,'1-1'):'')+'</div></div></div><figcaption><b>'+p+'</b>（'+(a?'大標籤':'小標籤')+'）<br>'+(W/6).toFixed(1)+'×'+(H/8).toFixed(1)+' mm</figcaption></figure>'}).join('')+'</div><p class="small muted">標籤上的樣子（用文字加粗框）。兩張依實際尺寸等比例並排：A3 的格子比 B4 大約寬 19%、高 19%。座位表上的樣子相同，只是不分紙張。</p></div>'}
   /* ---------- 工作區外框 ---------- */
   function vWs(){
     var e=S.cur,view=stepView(),s=STEPS[S.step-1],wide=view.side==='';
