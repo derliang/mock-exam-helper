@@ -16,9 +16,9 @@ const TABS: { value: Tab; label: string }[] = [
 ];
 
 /** 設定頁（D61）：部別切換（UI-07/08）；改動都走 onChange，由 App 記入復原 */
-export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab }) {
+export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; division?: Division }) {
   const [tab, setTab] = useState<Tab>(p.tab ?? 'roster');
-  const [division, setDivision] = useState<Division>('senior');
+  const [division, setDivision] = useState<Division>(p.division ?? 'senior');
   return (
     <section>
       <h2>設定</h2>

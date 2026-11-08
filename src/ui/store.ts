@@ -1,9 +1,9 @@
 /** 畫面層的文件狀態與純函式變更（可單元測試；復原以整份快照為單位） */
-import type { ClassInfo, Division, ExamConfig, ExamKind, Settings, Student, Track } from '../data';
+import type { ClassInfo, Division, ExamConfig, ExamKind, Semester, Settings, Student, Track } from '../data';
 import { studentCode } from '../data';
 import type { ExamFiles } from '../data/folder';
 import { defaultLabelLayout } from '../export/model';
-import { defaultSubjects } from './subjects';
+import { defaultSubjects, isCustomized } from './subjects';
 
 export interface Doc {
   settings: Settings;
@@ -70,19 +70,75 @@ export function setClassTrack(doc: Doc, division: Division, no: number, track: T
   return mapClass(doc, no, division, (c) => ({ ...c, track }));
 }
 
-export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date): Result<Doc> {
+export interface NewExamOptions {
+  semester?: Semester;
+  /** 沿用上一次同類型模擬考的設定（教室、標示規則、參加方式、標籤格式、自訂考科） */
+  prev?: ExamConfig;
+}
+
+export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts: NewExamOptions = {}): Result<Doc> {
   const n = name.trim();
   if (!n) return fail('請輸入考試名稱');
   if (kind === 'ast') return fail('分科即將推出');
   if (doc.exams.some((e) => e.name === n)) return fail('已有同名的模擬考');
   const division: Division = kind === 'bcct' ? 'junior' : 'senior';
+  const round = kind === 'gsat' ? doc.exams.filter((e) => e.kind === 'gsat').length + 1 : undefined;
+  const prev = opts.prev && opts.prev.kind === kind ? opts.prev : undefined;
   const exam: ExamConfig = {
-    id: `exam-${now.getTime()}`, name: n, kind, division, semester: 'first', round: kind === 'gsat' ? 1 : undefined,
-    participation: 'all', subjects: defaultSubjects(kind, kind === 'gsat' ? 1 : undefined), markRules: [], classroomIds: [],
+    id: `exam-${now.getTime()}`, name: n, kind, division, semester: opts.semester ?? 'first', round,
+    participation: prev?.participation ?? 'all',
+    subjects: prev && isCustomized(prev.subjects) ? structuredClone(prev.subjects) : defaultSubjects(kind, round),
+    markRules: prev ? structuredClone(prev.markRules) : [], classroomIds: prev ? [...prev.classroomIds] : [],
     // 標籤格數待使用者定案（D72），這裡只是預設值，一律由參數帶
-    labelLayout: defaultLabelLayout(doc.settings.defaultLabelPaper), createdAt: now.toISOString(),
+    labelLayout: prev ? structuredClone(prev.labelLayout) : defaultLabelLayout(doc.settings.defaultLabelPaper),
+    ...(prev?.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
+    createdAt: now.toISOString(), updatedAt: now.toISOString(),
   };
   return { ok: true, doc: { ...doc, exams: [...doc.exams, exam] } };
+}
+
+/** 新增頁預設的名稱：「學測第三次」「會考第一次」，已被用掉就往後找（資料夾名稱會用它） */
+export function suggestExamName(doc: Doc, kind: ExamKind): string {
+  const cn = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+  const base = KIND_LABEL[kind].replace(/（.*）/, '');
+  for (let i = doc.exams.filter((e) => e.kind === kind).length + 1; i < 100; i++) {
+    const name = `${base}第${cn[i] ?? i}次`;
+    if (!doc.exams.some((e) => e.name === name)) return name;
+  }
+  return base;
+}
+
+/** 台灣學年度：8 月起算新學年（與原型一致） */
+export function schoolYear(d: Date): number {
+  const y = d.getFullYear() - 1911;
+  return d.getMonth() >= 7 ? y : y - 1;
+}
+
+/** 這次沿用的對象：同類型最近一次修改的模擬考 */
+export function previousExam(doc: Doc, kind: ExamKind): ExamConfig | undefined {
+  return doc.exams.filter((e) => e.kind === kind).sort((a, b) => lastModified(b).localeCompare(lastModified(a)))[0];
+}
+
+export const lastModified = (e: ExamConfig): string => e.updatedAt ?? e.createdAt;
+
+/** 比較前後兩份文件，有變動的模擬考（本體或底下的檔案）蓋上最後修改時間 */
+export function stampModified(prev: Doc, next: Doc, now: Date): Doc {
+  const iso = now.toISOString();
+  const before = new Map(prev.exams.map((e) => [e.id, e]));
+  let changed = false;
+  const exams = next.exams.map((e) => {
+    const old = before.get(e.id);
+    const same = old && old === e && prev.examFiles?.[e.id] === next.examFiles?.[e.id];
+    if (!old || same || e.updatedAt !== old.updatedAt) return e;
+    changed = true;
+    return { ...e, updatedAt: iso };
+  });
+  return changed ? { ...next, exams } : next;
+}
+
+/** 「高中部・學測」「國中部・會考」：頁首與列表用，一眼看出是哪個部別、哪種考試 */
+export function examLabel(e: Pick<ExamConfig, 'division' | 'kind'>): string {
+  return `${e.division === 'senior' ? '高中部' : '國中部'}・${KIND_LABEL[e.kind].replace(/（.*）/, '')}`;
 }
 
 export const KIND_LABEL: Record<ExamKind, string> = { gsat: '學測', ast: '分科（即將推出）', bcct: '會考' };
