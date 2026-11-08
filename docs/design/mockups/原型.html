@@ -34,9 +34,13 @@
   --c10-bg:#EBDCCB; --c10-line:#C09A72; --c10-ink:#5C3A17;
   --c11-bg:#DFE3E8; --c11-line:#9AA5B1; --c11-ink:#2F3B48;
   --c12-bg:#F8D3DC; --c12-line:#E08AA0; --c12-ink:#7A1B38;
-  --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
-  --shadow-2:0 4px 14px rgba(34,32,27,.10);
-  --shadow-3:0 16px 40px rgba(34,32,27,.22);
+  --shadow-1:0 1px 2px rgba(34,32,27,.07),0 2px 6px -2px rgba(34,32,27,.06);
+  --shadow-2:0 2px 4px rgba(34,32,27,.06),0 10px 24px -8px rgba(34,32,27,.16);
+  --shadow-3:0 4px 8px rgba(34,32,27,.08),0 24px 48px -12px rgba(34,32,27,.30);
+  --shadow-accent:0 1px 2px rgba(39,70,144,.35),0 5px 12px -5px rgba(39,70,144,.50);
+  --shadow-inset:inset 0 1px 2px rgba(34,32,27,.08);
+  --shadow-bar:0 8px 14px -12px rgba(34,32,27,.40);
+  --ease:cubic-bezier(.2,.7,.2,1); --dur:.16s;
   --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
   --f-ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --f-head:"Noto Serif TC","Noto Sans TC","PMingLiU",serif;
@@ -66,7 +70,8 @@
   --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
   --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
-  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
+  --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#13120E; --surface:#1C1A15; --sunken:#17150F;
@@ -92,7 +97,8 @@
   --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
   --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
-  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
+  --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -496,6 +502,81 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .chart.pull .cell:not(.empty-seat) .no{font-size:25px}
 .chart.pull .cell:not(.empty-seat) .meta{font-size:13px;font-weight:700}
 .chart.pull .cell .mk{font-size:12px}
+/* ===== 第二輪拉皮（D90，2026-11-09）：只改外觀——層次、主次、回饋。不動結構、欄數、內容、字級（仍四級）===== */
+/* 層次：頁面底 < 卡片（shadow-1）< 懸停／展開（shadow-2）< 對話框、提示（shadow-3）。主要動作才用 shadow-accent */
+.btn,.icon-btn{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.btn:hover,.icon-btn:hover{box-shadow:var(--shadow-2)}
+.btn:active,.icon-btn:active{transform:translateY(1px);box-shadow:none}
+.btn-primary{box-shadow:var(--shadow-accent)}
+.btn-primary:hover{box-shadow:var(--shadow-accent),0 8px 16px -8px rgba(39,70,144,.45)}
+.btn-primary:active{filter:brightness(.94);box-shadow:none}
+.btn-ghost,.btn-ghost:hover,.btn[disabled],.btn[disabled]:hover{box-shadow:none}
+.btn[disabled]:active{transform:none}
+.btn-danger:hover{box-shadow:var(--shadow-1)}
+
+/* 輸入：凹陷底＋聚焦轉成表面色 */
+.input{box-shadow:var(--shadow-inset);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.input:focus{background:var(--surface);border-color:var(--accent)}
+
+/* 分段鈕、開關、格式鈕 */
+.seg{box-shadow:var(--shadow-inset)}
+.seg button{transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+.seg button:hover:not([aria-pressed="true"]):not(:disabled){background:var(--line);color:var(--text)}
+.seg button[aria-pressed="true"]{box-shadow:inset 0 -2px 0 rgba(0,0,0,.22)}
+.seg.seg-soft button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.trk{box-shadow:inset 0 1px 2px rgba(0,0,0,.18)}
+.trk::after{box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform var(--dur) var(--ease)}
+.sw:hover input:not(:checked)+.trk{background:var(--text-3)}
+.sw:hover input:checked+.trk{filter:brightness(1.12)}
+.fmt span{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.fmt:hover span{box-shadow:var(--shadow-2)}
+.fmt.w input:checked+span{box-shadow:0 0 0 1px var(--fmt-word),var(--shadow-1)}
+.fmt.p input:checked+span{box-shadow:0 0 0 1px var(--fmt-pdf),var(--shadow-1)}
+.fmt.x input:checked+span{box-shadow:0 0 0 1px var(--fmt-xls),var(--shadow-1)}
+
+/* 步驟導覽：目前位置加左側色條與立體環，已完成／過期用細環 */
+.step{transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.step.cur{box-shadow:inset 3px 0 0 var(--accent),var(--shadow-1)}
+.step.cur .no{box-shadow:0 0 0 3px var(--accent-line)}
+.step.done .no{box-shadow:inset 0 0 0 1px var(--ok-bar)}
+.step.stale .no{box-shadow:inset 0 0 0 1px var(--warn-bar)}
+.step:not(.cur):hover .no{border-color:var(--accent);color:var(--accent-ink)}
+
+/* 統計列：每格頂端一小段色條，異常格用警示色；整體浮起一層 */
+.stats{box-shadow:var(--shadow-1)}
+.stats>div{position:relative;padding-top:13px}
+.stats>div::before{content:"";position:absolute;left:14px;top:0;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--accent-line)}
+.stats .bad::before{background:var(--danger)}
+
+/* 提示條：左側 4px 色條表達語氣，不再只靠底色 */
+.alert{box-shadow:inset 4px 0 0 var(--bar,var(--line-2));padding-left:18px}
+.a-info{--bar:var(--accent)} .a-warn{--bar:var(--warn-bar)} .a-err{--bar:var(--danger)} .a-ok{--bar:var(--ok-bar)}
+
+/* 表格：表頭加粗底線、列懸停有過渡 */
+.t th{border-bottom:2px solid var(--line-2)}
+.t tbody tr{transition:background var(--dur) var(--ease)}
+
+/* 可點的卡片：懸停浮起、選中有外環 */
+.exam,.tcard,.roomrow{transition:box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur) var(--ease),background var(--dur) var(--ease)}
+.exam:hover{box-shadow:var(--shadow-2);border-color:var(--line-2)}
+.tcard:hover:not(:disabled){box-shadow:var(--shadow-2);transform:translateY(-1px)}
+.tcard[aria-pressed="true"]{box-shadow:0 0 0 1px var(--accent),var(--shadow-2)}
+.roomrow:hover{border-color:var(--line-2);box-shadow:var(--shadow-1)}
+.roomrow.on{box-shadow:inset 3px 0 0 var(--accent)}
+.fakepick button{transition:background var(--dur) var(--ease)}
+.dropzone{transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.dropzone:hover,.dropzone.over{box-shadow:var(--shadow-2)}
+
+/* 頁首列與對話框 */
+.pbar{box-shadow:var(--shadow-bar)}
+.pbar .nav button{transition:background var(--dur) var(--ease)}
+.pbar .nav button[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--accent)}
+.mfade{backdrop-filter:blur(2px)}
+.utabs button{transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+/* 層次補強：外框底改用凹陷色，卡片（surface）才浮得起來；表格隔列淡底方便橫向對讀 */
+.wrap{background:var(--sunken);border-color:var(--line)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap){background:rgba(111,104,88,.06)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap):hover{background:var(--accent-soft)}
 </style>
 
 <div class="pbar">
