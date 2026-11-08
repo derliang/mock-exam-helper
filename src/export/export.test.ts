@@ -77,7 +77,7 @@ describe('版面模型', () => {
     expect(f48.h).toBeCloseTo((353 - 3) / 8, 5);
     expect(labelCellMm({ paper: 'A3', cols: 7, rows: 7 }, 0)).toEqual({ w: 35, h: 35 });
     expect(labelCellMm({ paper: 'B4', cols: 7, rows: 7 }, 0).w).toBeCloseTo(250 / 7, 5);
-    const pages = buildLabelPages(makeFixture({ labelCols: 7, labelRows: 7 }));
+    const pages = buildLabelPages(makeFixture({ labelCols: 7, labelRows: 7 }), 'class');
     expect(pages).toHaveLength(2);
     expect(pages[0]!.cells.slice(0, 3).map((c) => c.coord)).toEqual(['1-1', '1-2', '1-3']);
     expect(pages[0]!.cells).toHaveLength(18);
@@ -120,7 +120,8 @@ describe('Word 輸出（D44/D45）', () => {
     expect(await text('word/settings.xml')).toContain('embedTrueTypeFonts');
     const ft = await text('word/fontTable.xml');
     expect(ft).toContain(`w:name="${FONT}"`);
-    expect(ft).toContain(`w:name="${FONT_BOLD}"`);
+    expect(ft).toContain('<w:embedBold ');
+    expect(ft).not.toContain(FONT_BOLD);
     const doc = await text('word/document.xml');
     expect([...doc.matchAll(/<w:pgSz w:w="(\d+)" w:h="(\d+)"/g)].map((m) => [m[1], m[2]])).toEqual(
       Array(3).fill([String(mmToTwip(210)), String(mmToTwip(297))]),
@@ -128,7 +129,7 @@ describe('Word 輸出（D44/D45）', () => {
     expect(doc).toContain('第4排');
     expect(doc).toContain('0101');
     expect(doc).toContain('各科考試人數');
-    expect(doc).toContain(`w:ascii="${FONT_BOLD}"`);
+    expect(doc).toContain('<w:b/>');
     const footers = await Promise.all(Object.keys(z.files).filter((n) => /word\/footer\d+\.xml/.test(n)).map((n) => text(n)));
     expect(footers.length).toBeGreaterThan(0);
     for (const x of footers) expect(x).toContain('資料版本碼：A1B2C3D4');
@@ -147,7 +148,7 @@ describe('Word 輸出（D44/D45）', () => {
   it('標籤：B4 紙張、欄寬相等、列高固定、7×7 與 6×8 都能出', async () => {
     for (const [cols, rows] of [[6, 8], [7, 7]] as const) {
       const f = makeFixture({ labelCols: cols, labelRows: rows });
-      const buf = await renderDocx({ label: buildLabelPages(f) }, { fonts, ...meta, labelMarginMm: 10 });
+      const buf = await renderDocx({ label: buildLabelPages(f, 'class') }, { fonts, ...meta, labelMarginMm: 10 });
       const doc = await (await unzip(buf)).text('word/document.xml');
       const pg = [...doc.matchAll(/<w:pgSz w:w="(\d+)" w:h="(\d+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
       expect(pg).toEqual(Array(2).fill([mmToTwip(250), mmToTwip(353)]));
@@ -165,20 +166,20 @@ describe('Word 輸出（D44/D45）', () => {
 
   it('A3 7×7：每格 35mm 正方、格子大小不隨人數變', async () => {
     const f = makeFixture({ paper: 'A3', labelCols: 7, labelRows: 7 });
-    const doc = await (await unzip(await renderDocx({ label: buildLabelPages(f) }, { fonts, ...meta }))).text('word/document.xml');
+    const doc = await (await unzip(await renderDocx({ label: buildLabelPages(f, 'class') }, { fonts, ...meta }))).text('word/document.xml');
     const widths = [...[...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)][0]![1]!.matchAll(/w:w="(\d+)"/g)].map((m) => Number(m[1]));
     expect(widths).toEqual(Array(7).fill(mmToTwip(35)));
     const heights = new Set([...doc.matchAll(/<w:trHeight w:val="(\d+)" w:hRule="exact"/g)].map((m) => Number(m[1])));
     expect([...heights]).toEqual([mmToTwip(35)]);
   });
 
-  it('embed-bold 後處理：Bold 掛在同一家族下，不再有獨立 Bold 家族', async () => {
-    const buf = await renderDocx({ seat: buildSeatPages(makeFixture()) }, { fonts, ...meta, boldMode: 'embed-bold' });
+  it('備案 separate-family：Bold 是獨立家族，粗體字用該家族', async () => {
+    const buf = await renderDocx({ seat: buildSeatPages(makeFixture()) }, { fonts, ...meta, boldMode: 'separate-family' });
     const { text } = await unzip(buf);
     const ft = await text('word/fontTable.xml');
-    expect(ft).toContain('<w:embedBold ');
-    expect(ft).not.toContain(FONT_BOLD);
-    expect(await text('word/document.xml')).not.toContain(`w:ascii="${FONT_BOLD}"`);
+    expect(ft).toContain(`w:name="${FONT_BOLD}"`);
+    expect(ft).not.toContain('<w:embedBold ');
+    expect(await text('word/document.xml')).toContain(`w:ascii="${FONT_BOLD}"`);
   });
 
   it('抽離名單合併成一個檔，表頭重複', async () => {
