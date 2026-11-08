@@ -22,7 +22,7 @@ function Side1(p: { exam: ExamConfig }) {
         <div class="lab">本次摘要</div>
         <div class="stats" style="grid-template-columns:1fr 1fr">
           <div><small>考科</small><strong>{exam.subjects.length}</strong></div>
-          <div><small>學期</small><strong style="font-size:24px">{term}學期</strong></div>
+          <div><small>學期</small><strong>{term}學期</strong></div>
         </div>
         <p class="small muted">{KIND_LABEL[exam.kind].replace(/（.*）/, '')}・{schoolYear(new Date(exam.createdAt))} 學年・{exam.division === 'senior' ? '高中部' : '國中部'}</p>
       </div>

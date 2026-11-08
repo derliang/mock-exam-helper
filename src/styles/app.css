@@ -466,3 +466,5 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 /* 教室列：預備教室、國中部班級教室（沒有組別欄）與有組別欄的列用同一套可換行排法，不再突出卡片 */
 .roomrow.notrack{display:flex;flex-wrap:wrap}.roomrow.notrack>.field:nth-of-type(1){flex:1 1 180px}.roomrow.notrack>.field{flex:0 1 auto}.roomrow.notrack .info{flex:1 1 auto}
 .roomrow>.btnrow{flex:0 0 auto;margin-left:auto}
+/* 步驟標題卡：說明文字可收縮，「下一步」鈕留在右側（原型稿的位置）；放不下才換行，不再因說明較長就掉到標題下面 */
+.stephead>div:first-child{flex:1 1 260px;min-width:0}
