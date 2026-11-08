@@ -2,6 +2,8 @@ import type { ExamConfig, Track } from '../../data';
 import { Alert, Button, Seg } from '../components';
 import { RoomList } from '../components/RoomList';
 import { classCapacity, reserveCheck } from '../capacity';
+import { roomsMissingTrack } from '../rooms';
+import { examRooms } from '../seating';
 import { setClassTrack, updateExam, type Doc } from '../store';
 
 /** ③ 教室設定：標題卡、狀態檢核卡（理組／文組分列＋預備教室）、班級（文理組）卡、教室與座位卡（原型 v3） */
@@ -9,7 +11,8 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const { doc, exam } = p;
   const rooms = doc.settings.classrooms;
   const senior = exam.division === 'senior';
-  const { lines, untracked } = classCapacity(doc, exam);
+  const { lines } = classCapacity(doc, exam);
+  const missing = roomsMissingTrack(examRooms(doc, exam), exam.division);
   const reserve = reserveCheck(doc, exam);
   const roster = doc.rosters[exam.division];
   const classes = doc.settings.classes.filter((c) => c.division === exam.division);
@@ -24,7 +27,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <div class="card stack">
         <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排（D69）。{senior ? '高中部理組、文組各自計算，預備教室不納入。' : ''}</p></div>
         {lines.map((l) => <Alert key={l.label} tone={l.ok ? 'ok' : 'danger'}>{l.ok ? <><b>{l.label}：</b>{l.detail}</> : l.message}</Alert>)}
-        {untracked > 0 && <Alert tone="warn">有 {untracked} 間班級教室還沒指定理組或文組，不計入上面的座位數；請在教室列設定組別。</Alert>}
+        {missing.length > 0 && <Alert tone="danger"><b>高中部排座要先指定教室的組別。</b>「{missing.map((r) => r.name).join('、')}」還沒選理組或文組，請在下面該列的「組別」按鈕選一個（預備教室不用選）。</Alert>}
         <Alert tone={reserve.tone}>{reserve.message}</Alert>
       </div>
 

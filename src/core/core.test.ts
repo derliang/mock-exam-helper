@@ -370,3 +370,24 @@ describe('runSeating 整合入口', () => {
     expect(r).toEqual({ ok: false, errors: ['理組沒有可用的教室'] });
   });
 });
+
+describe('validateSeating：有 disabled 教室（Classroom.disabled，"排-深位"）', () => {
+  // A 教室 2 排 × 2 深位，「1-2」不排 → 可用座位順序 1-1、2-1、2-2
+  const rooms = [room('A', 2, 2, 3, { disabled: ['1-2'] })];
+  const base = { classrooms: rooms, classes: classes(2), codes: ['0101', '0102', '0201'], checkTrack: false };
+  const at = (code: string, row: number, depth: number): SeatAssignment => ({ classroomId: 'A', row, depth, code });
+
+  it('跳過不排的座位連續排：沒有錯誤，不會被當成中間空位', () => {
+    expect(validateSeating({ ...base, assignments: [at('0101', 1, 1), at('0102', 2, 1), at('0201', 2, 2)] })).toEqual([]);
+  });
+  it('擋下坐在不排的座位上', () => {
+    const errs = validateSeating({ ...base, assignments: [at('0101', 1, 1), at('0102', 1, 2), at('0201', 2, 1)] });
+    expect(errs.some((e) => e.includes('座位不存在'))).toBe(true);
+  });
+  it('不排的座位在中間，仍擋下真正的中間空位', () => {
+    const errs = validateSeating({ ...base, assignments: [at('0101', 1, 1), at('0102', 2, 1)], codes: ['0101', '0102'] });
+    expect(errs).toEqual([]); // 只坐前兩個可用座位，最後一個空著是允許的
+    const hole = validateSeating({ ...base, assignments: [at('0101', 1, 1), at('0102', 2, 2)], codes: ['0101', '0102'] });
+    expect(hole).toEqual(['A 中間有空位（空位只能在最後）']);
+  });
+});
