@@ -85,7 +85,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
         expect(page!.stats.perClass.reduce((a, c) => a + c.count, 0)).toBe(mine.length);
         cellTotal += page!.cells.size;
       }
-      expect(cellTotal, `seed=${seed}`).toBe(input.entries.length);
+      expect(cellTotal, `seed=${seed}`).toBe(input.result.assignments.length);
 
       // INV-14 標示：每格的標示文字數＝結果裡該考生的標示數
       for (const p of mainPages)
@@ -105,7 +105,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
 
       // INV-16 標籤：每間有人的教室一張，順序與座位表一致，格數不超過
       const labels = buildLabelPages(input, 'class');
-      expect(labels.reduce((a, p) => a + p.cells.length, 0), `seed=${seed}`).toBe(input.entries.length);
+      expect(labels.reduce((a, p) => a + p.cells.length, 0), `seed=${seed}`).toBe(input.result.assignments.length);
       for (const p of labels) {
         const coords = p.cells.map((c) => c.coord);
         const sorted = [...coords].sort((a, b) => {
@@ -127,7 +127,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
     let checked = 0;
     for (let seed = 1; seed <= 200 && checked < 25; seed++) {
       const x = exportInputOf(seed);
-      if (!x || x.input.entries.length === 0) continue;
+      if (!x || x.input.result.assignments.length === 0) continue;
       checked++;
       const { input } = x;
       const seat = buildSeatPages(input);

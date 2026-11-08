@@ -113,6 +113,8 @@ export interface ExamConfig {
   /** 學測第幾次（1～4）；決定數學是否分 A/B 與英聽（D36/D52） */
   round?: number;
   participation: Participation;
+  /** D79：全科缺考者仍排座（預設不排） */
+  seatFullyAbsent?: boolean;
   subjects: Subject[];
   markRules: MarkRule[];
   /** 本次勾選的教室 id（D65） */

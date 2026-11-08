@@ -61,8 +61,9 @@ export function allocateDetaches(input: DetachInput): DetachResult {
     const study: StudentCode[] = [];
     for (const m of input.marks) {
       if (m.subjectId !== subject.id) continue;
-      const purpose = m.mode === 'extra' ? 'exam' : 'study';
       const o = overrideOf.get(m.code);
+      // D80：有手動覆寫就以覆寫的 purpose 為準，否則依標示方向
+      const purpose = o ? o.purpose : m.mode === 'extra' ? 'exam' : 'study';
       if (o) special.push({ code: m.code, subjectId: subject.id, purpose, location: o.location });
       else (purpose === 'exam' ? exam : study).push(m.code);
     }

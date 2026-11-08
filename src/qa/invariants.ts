@@ -8,13 +8,16 @@ import { isListeningSubject, type RunSeatingInput } from '../core';
 import type { SpecialPlacement } from '../core/detach';
 
 const codeOfEntry = (e: { classNo: number; seatNo: number }) => studentCode(e.classNo, e.seatNo);
+/** D79：實際應排座的名單（預設排除全科缺考者） */
+export const seatableEntries = <E extends { classNo: number; seatNo: number; subjectIds: string[] }>(input: { entries: readonly E[]; seatFullyAbsent?: boolean }): E[] =>
+  input.entries.filter((e) => input.seatFullyAbsent || e.subjectIds.length > 0);
 
 /** 主座位表不變式（INV-1～INV-6） */
 export function checkMainSeating(input: RunSeatingInput, r: SeatingResult): string[] {
   const bad: string[] = [];
   const rooms = new Map(input.classrooms.map((c) => [c.id, c]));
   const classTrack = new Map(input.classes.map((c) => [c.no, c.track]));
-  const expected = input.entries.map(codeOfEntry);
+  const expected = seatableEntries(input).map(codeOfEntry);
 
   // INV-1 每位考生恰一座：人數相等、無重複、無遺漏、無多餘
   const seenCode = new Map<string, number>();
@@ -56,7 +59,7 @@ export function checkMainSeating(input: RunSeatingInput, r: SeatingResult): stri
   for (const [cls, l] of byClass) {
     l.sort((x, y) => x.room - y.room || x.ord - y.ord);
     for (let i = 1; i < l.length; i++) if (l[i - 1]!.seatNo >= l[i]!.seatNo) bad.push(`INV-4 班 ${cls} 學號沒有遞增`);
-    const want = input.entries.filter((e) => e.classNo === cls).map((e) => e.seatNo).sort((a, b) => a - b);
+    const want = seatableEntries(input).filter((e) => e.classNo === cls).map((e) => e.seatNo).sort((a, b) => a - b);
     if (JSON.stringify(l.map((x) => x.seatNo)) !== JSON.stringify(want)) bad.push(`INV-4 班 ${cls} 學號集合與名單不同`);
   }
 
@@ -120,7 +123,7 @@ export function checkMarksAndDetach(input: RunSeatingInput, r: SeatingResult, sp
 
   // INV-8 標示完全由規則決定：不考→absent、加考→extra；英聽永不標；沒有重複
   const want = new Set<string>();
-  for (const e of input.entries) {
+  for (const e of seatableEntries(input)) {
     const code = codeOfEntry(e);
     for (const rule of input.markRules) {
       if (rule.track !== classTrack.get(e.classNo) || listening.has(rule.subjectId)) continue;
@@ -138,7 +141,7 @@ export function checkMarksAndDetach(input: RunSeatingInput, r: SeatingResult, sp
   for (const d of r.detaches) {
     const m = r.marks.find((x) => x.code === d.code && x.subjectId === d.subjectId);
     if (!m) bad.push(`INV-9 抽離沒有對應標示 ${d.code}/${d.subjectId}`);
-    else if ((m.mode === 'extra' ? 'exam' : 'study') !== d.purpose) bad.push(`INV-9 抽離目的與標示不符 ${d.code}/${d.subjectId}`);
+    else if (!override.has(d.code) && (m.mode === 'extra' ? 'exam' : 'study') !== d.purpose) bad.push(`INV-9 抽離目的與標示不符 ${d.code}/${d.subjectId}`);
     if (override.has(d.code)) bad.push(`INV-9 單人特例又被抽離 ${d.code}`);
     const k = `${d.code}/${d.subjectId}`;
     place.set(k, (place.get(k) ?? 0) + 1);
@@ -147,6 +150,7 @@ export function checkMarksAndDetach(input: RunSeatingInput, r: SeatingResult, sp
     const k = `${s.code}/${s.subjectId}`;
     place.set(k, (place.get(k) ?? 0) + 1);
     if (s.location !== override.get(s.code)?.location) bad.push(`INV-9 特例地點不符 ${s.code}`);
+    if (s.purpose !== override.get(s.code)?.purpose) bad.push(`INV-9b 特例歸類沒有依手動設定 ${s.code}`); // D80
   }
   for (const m of r.marks) {
     const n = place.get(`${m.code}/${m.subjectId}`) ?? 0;
