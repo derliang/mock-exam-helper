@@ -63,14 +63,14 @@ function PreviewCard(p: { prepared: Extract<ReturnType<typeof prepareExport>, { 
   return (
     <div class="card stack" style="margin-top:12px">
       <div class="row" style="justify-content:space-between">
-        <div><h3>預覽</h3><p class="small muted">{room ? room.name : '沒有班級教室'}，與匯出檔案同一份版面。</p></div>
+        <div><h3>預覽</h3><p class="small muted">{room ? room.name : '沒有班級教室'}，與下載檔同一份版面。</p></div>
         <div class="row"><Seg<PreviewKind> label="預覽類型" value={kind} onChange={setKind} options={kinds} /></div>
       </div>
       {rooms.length > 1 && (
         <div class="row"><Seg<string> label="預覽教室" value={String(idx)} onChange={(v) => setRi(Number(v))} options={rooms.map((r, i) => ({ value: String(i), label: r.name }))} /></div>
       )}
       {html
-        ? <iframe class="pvframe" title="匯出預覽" sandbox="" srcdoc={html} style={`width:100%;height:${kind === 'label' ? 660 : 620}px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--sunken)`} />
+        ? <iframe class="pvframe" title="下載預覽" sandbox="" srcdoc={html} style={`width:100%;height:${kind === 'label' ? 660 : 620}px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--sunken)`} />
         : <Alert tone="info">這間教室沒有可預覽的內容。</Alert>}
       <p class="small muted">{cap}</p>
     </div>
@@ -153,10 +153,10 @@ export function Step6(p: {
 
   return (
     <section>
-      <h2>⑥ 匯出</h2>
+      <h2>⑥ 下載</h2>
       {!prepared.ok && (
         <div style="margin-top:12px"><Alert tone="danger">
-          <b>還不能匯出：</b>
+          <b>還不能下載：</b>
           <ul>{prepared.errors.map((e) => <li key={e}>{e}</li>)}</ul>
           <div class="row" style="margin-top:8px">
             {prepared.errors.some((e) => e.startsWith('缺考試名單')) && <Button small kind="primary" onClick={() => p.onGoStep(2)}>去 ② 匯入考試名單</Button>}
@@ -172,12 +172,12 @@ export function Step6(p: {
           </Alert>
         </div>
       ))}
-      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>檢查通過：</b>可以匯出。</Alert></div>}
+      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>檢查通過：</b>可以下載。</Alert></div>}
 
       <div class="card stack" style="margin-top:12px">
         <div>
-          <h3>匯出內容</h3>
-          <p class="small muted">每一類合併成<b>一個多頁檔案</b>，不是一個座位表或一個標籤一個檔。Word 為主要成品，方便你編輯；PDF 給確定不再編輯、想避免格式跑掉時使用（D29）。</p>
+          <h3>下載內容</h3>
+          <p class="small muted">每一類合併成<b>一個多頁檔案</b>，不是一個座位表或一個標籤一個檔。Word 為主要成品，方便你編輯，每類下載一個檔；PDF 是先開啟列印用頁面，再用瀏覽器的列印另存成 PDF，適合確定不再編輯、想避免格式跑掉時使用。</p>
         </div>
         <div class="field"><span class="label">格式</span>
           <div class="row"><Seg<ExportFormat> label="格式" value={o.format} onChange={(v) => set({ format: v })} options={[{ value: 'word', label: 'Word（主要）' }, { value: 'pdf', label: 'PDF（輔助）' }]} /></div>
@@ -191,7 +191,7 @@ export function Step6(p: {
             <span class="hint">兩種紙張的標籤格大小各自固定，不隨班級人數變；用不到的格子空白。</span>
           </div>
           {!junior && ck('study', '抽離自習名單（A4）', '合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')}
-          {!junior && ck('reserve', '預備教室的座位表（A4）與標籤', '抽離考試，每科每間預備教室一頁；有勾標籤時一併產生預備教室標籤')}
+          {!junior && ck('reserve', '預備教室的座位表（A4）', '抽離考試，每科每間預備教室一頁；要同時勾選上面的「標籤」，才會一併產生預備教室標籤')}
         </div>
         {extras.length > 0 && (
           <div class="stack">
@@ -205,12 +205,12 @@ export function Step6(p: {
           </div>
         )}
         <div class="row" style="justify-content:space-between">
-          <span class="muted">將產生 <b class="num">{(o.format === 'pdf' && files.length ? 1 : files.length) + chosenExtras.length}</b> 個檔案</span>
+          <span class="muted">{o.format === 'pdf' ? '將開啟' : '將下載'} <b class="num">{(o.format === 'pdf' && files.length ? 1 : files.length) + chosenExtras.length}</b> {o.format === 'pdf' ? '個列印頁' : '個檔案'}</span>
           <button type="button" class="btn btn-primary btn-lg" disabled={blocked || busy || (files.length === 0 && chosenExtras.length === 0)} onClick={go}>
-            {busy ? '產生中…' : p.stale ? '排座過期，先重新排座' : o.format === 'word' ? '匯出 Word' : '開啟列印頁（存成 PDF）'}
+            {busy ? '產生中…' : p.stale ? '需先重新排座' : o.format === 'word' ? '下載 Word' : '開啟列印頁（存成 PDF）'}
           </button>
         </div>
-        <p class="small muted">要列印時，請開啟匯出的 Word 或 PDF 再列印，本程式不直接列印（D69）。頁尾印有產生時間與資料版本碼，可事後核對表是否對應現在的名單與設定（D66）。</p>
+        <p class="small muted">要列印時，請開啟下載的 Word 檔（或另存的 PDF）再列印，本程式不直接列印。頁尾印有產生時間與資料版本碼，可事後核對表是否對應現在的名單與設定。</p>
       </div>
 
       {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
@@ -220,7 +220,7 @@ export function Step6(p: {
       {results && (
         <div class="card stack" style="margin-top:12px">
           <Alert tone="ok">
-            <b>{o.format === 'word' ? `已匯出 ${results.length} 個檔案` : '已開啟列印用頁面'}</b>
+            <b>{o.format === 'word' ? `已下載 ${results.length} 個檔案` : '已開啟列印用頁面'}</b>
             {o.format === 'word' ? '，請看瀏覽器的下載資料夾。' : '，請在新視窗選「列印」→ 目的地選「另存為 PDF」。'}
           </Alert>
           <div style="overflow-x:auto"><table class="t compact">
@@ -230,7 +230,7 @@ export function Step6(p: {
             ))}</tbody>
           </table></div>
           <p class="small muted">資料版本碼：<Badge>{prepared.ok ? prepared.input.result.dataVersion : ''}</Badge>（印在每頁頁尾）</p>
-          {o.format === 'word' && <Alert tone="warn">Word 檔匯出後若手動編輯，就不再受驗證器保護（D29）。</Alert>}
+          {o.format === 'word' && <Alert tone="warn">Word 檔下載後若手動編輯，就不再受驗證器保護，請自行重新核對。</Alert>}
           <div>
             <h3>接下來該做什麼</h3>
             <ol class="nextlist">

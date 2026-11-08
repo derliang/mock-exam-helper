@@ -82,9 +82,9 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (entries && diffs.length > 0 && showCmp) {
     return (
       <section class="stack" style="max-width:860px">
-        <div class="card stephead"><div><h2>名單比對</h2><p class="small muted">② 考試名單：和設定頁的學生名單逐筆比對。</p></div></div>
+        <div class="card stephead"><div><h2>名單比對</h2><p class="small muted">② 考試名單：和共用學生名單逐筆比對。</p></div></div>
         <Alert tone="info">
-          匯入「{exam.name}」考試名單後，和設定頁的學生名單比對，找到 <b>{diffs.length}</b> 筆差異。每一筆三選一：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯；全部處理完才能繼續排座（D42、D54）。
+          匯入「{exam.name}」考試名單後，和共用學生名單比對，找到 <b>{diffs.length}</b> 筆差異。每一筆三選一：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯；全部處理完才能繼續排座。
         </Alert>
         <StatsBar items={[{ label: '差異', value: diffs.length }, { label: '已處理', value: resolved }, { label: '未處理', value: diffs.length - resolved, bad: diffs.length - resolved > 0 }]} />
         {diffs.map((d, i) => {
@@ -110,7 +110,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         <div class="row" style="justify-content:flex-end">
           <Button onClick={() => setShowCmp(false)}>先不處理</Button>
           <Button kind="primary" disabled={!allResolved(diffs)} onClick={() => { apply(); setShowCmp(false); }}>
-            {allResolved(diffs) ? '套用選擇' : `還有 ${diffs.length - resolved} 筆沒選`}
+            {allResolved(diffs) ? `套用 ${diffs.length} 筆核對結果` : `還有 ${diffs.length - resolved} 筆沒選`}
           </Button>
         </div>
         <p class="small muted">按鈕在全部選完前停用。</p>
@@ -119,14 +119,14 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   }
 
   const status = !entries
-    ? <Alert tone="warn" action={<Button kind="primary" onClick={() => input.current?.click()}>匯入並比對</Button>}><b>還沒有匯入本次考試名單。</b>匯入後會和設定頁的學生名單比對，排座前要處理完所有差異。</Alert>
+    ? <Alert tone="warn" action={<Button kind="primary" onClick={() => input.current?.click()}>匯入本次考試名單</Button>}><b>還沒有匯入本次考試名單。</b>匯入後會和共用學生名單比對，排座前要處理完所有差異。</Alert>
     : diffs.length > 0
       ? <Alert tone="warn" action={<Button kind="primary" onClick={() => setShowCmp(true)}>處理差異</Button>}><b>還有 {diffs.length - resolved} 筆差異沒處理</b>：共 {diffs.length} 筆，全部處理完才能繼續排座。</Alert>
       : <Alert tone="ok" action={<ConfirmButton kind="default" undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>再匯入一次</ConfirmButton>}><b>已比對：</b>考試名單與學生名單沒有未處理的差異。</Alert>;
 
   return (
     <section class="stack">
-      <div class="card stephead"><div><h2>② 考試名單</h2><p class="small muted">這次誰參加、考什麼科。匯入大考中心格式的考生資料名單，再和設定頁的學生名單比對。</p></div></div>
+      <div class="card stephead"><div><h2>② 考試名單</h2><p class="small muted">這次誰參加、考什麼科。匯入大考中心格式的考生資料名單，再和共用學生名單比對。</p></div></div>
       {status}
       {filePick}
       {err && <Alert tone="danger">{err}</Alert>}
@@ -148,29 +148,29 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="card stack">
-        <div><h3>誰會參加</h3><p class="small muted">學測、會考預設全員參加；分科預設部分參加（D64）。</p></div>
+        <div><h3>誰會參加</h3><p class="small muted">學測、會考預設全員參加；分科預設部分參加。</p></div>
         <Seg<Participation> label="參加模式" value={exam.participation}
           onChange={(v) => { const r = updateExam(doc, exam.id, { participation: v }); if (r.ok) p.onChange(r.doc); }}
           options={[{ value: 'all', label: '全員參加' }, { value: 'partial', label: '部分參加' }]} />
         {exam.participation === 'partial'
-          ? <Alert tone="info">沒報名的人<b>不算差異</b>，只在統計列顯示「未參加 {notJoin} 人」，不排座、不出現在座位表。</Alert>
-          : <Alert tone="info">學生名單有、考試名單沒有的人，會列為差異，逐筆處理。</Alert>}
+          ? <Alert tone="info">共用學生名單裡有、但不在本次考試名單的人，<b>不視為名單錯誤</b>，只在統計列顯示「未參加 {notJoin} 人」，不排座、不出現在座位表。</Alert>
+          : <Alert tone="info">共用學生名單有、考試名單沒有的人，會列為差異，逐筆處理。</Alert>}
         {fullyAbsent > 0 && (
           <Alert tone="info">
             有 {fullyAbsent} 人全科缺考：{exam.seatFullyAbsent ? '目前照樣排座。' : '預設不排座、不計領卷份數。'}
             <label style="margin-left:12px"><input type="checkbox" checked={!!exam.seatFullyAbsent}
-              onChange={(e) => { const r = updateExam(doc, exam.id, { seatFullyAbsent: (e.target as HTMLInputElement).checked }); if (r.ok) p.onChange(r.doc); }} /> 仍排座</label>
+              onChange={(e) => { const r = updateExam(doc, exam.id, { seatFullyAbsent: (e.target as HTMLInputElement).checked }); if (r.ok) p.onChange(r.doc); }} /> 全科缺考者仍排座</label>
           </Alert>
         )}
       </div>
 
       <div class="grid">
-        <div class="card stack"><div class="lab">各班人數</div>
+        <div class="card stack"><div class="lab">各班人數（共用學生名單）</div>
           {perClass.map(({ c, n }) => <div class="row" style="justify-content:space-between" key={c.no}><ClassChip colorIndex={c.colorIndex}>{c.name}</ClassChip><b class="num">{n}</b></div>)}
-          {perClass.length === 0 && <p class="small muted">設定頁還沒有這個部別的班級。</p>}
+          {perClass.length === 0 && <p class="small muted">共用設定還沒有這個部別的班級。</p>}
           <div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:8px"><span>合計</span><b class="num" style="font-size:20px">{roster.length}</b></div>
         </div>
-        <div class="card stack"><div class="lab">名單比對（D42）</div>
+        <div class="card stack"><div class="lab">名單比對</div>
           {!entries
             ? <Alert tone="warn"><b>尚未比對本次考試名單</b>。排座前要處理完所有差異。</Alert>
             : diffs.length > 0
@@ -182,10 +182,10 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       <div class="card stack">
         <div class="row" style="justify-content:space-between">
-          <div><h3>學生名單快照</h3><p class="small muted">建立這次模擬考時存了一份學生名單（{roster.length} 人），之後名單改了不影響這次；要改名單請到設定頁。</p></div>
-          <Button onClick={p.onToRoster}>到設定頁看學生名單</Button>
+          <div><h3>共用學生名單</h3><p class="small muted">這是「共用設定」裡的學生名單（{roster.length} 人），所有模擬考共用；在那裡改了名單，之後的名單比對也會跟著變。</p></div>
+          <Button onClick={p.onToRoster}>查看／編輯共用學生名單</Button>
         </div>
-        {roster.length === 0 && <Alert tone="warn">學生名單是空的，比對時所有考生都會列為差異。請先到設定頁匯入學生名單。</Alert>}
+        {roster.length === 0 && <Alert tone="warn">共用學生名單是空的，比對時所有考生都會列為差異。請先到「共用設定」匯入學生名單。</Alert>}
       </div>
     </section>
   );

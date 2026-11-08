@@ -17,22 +17,20 @@ function markText(r: MarkRow): string {
 }
 
 function StateBadge(p: { r: MarkRow }) {
-  if (p.r.state === 'undecided') return <Badge tone="warn">接近一半，待選</Badge>;
-  if (p.r.state === 'locked') return <Badge tone="info">已鎖定</Badge>;
+  if (p.r.state === 'undecided') return <Badge tone="warn">待選擇</Badge>;
+  if (p.r.state === 'locked') return <Badge tone="info">已手動指定</Badge>;
   return <Badge tone="ok">系統建議（可改）</Badge>;
 }
 
 /** ④ 標示與抽離規則（DESIGN 10.4、原型 v4）：組別對照表 → 各科標示（接近一半由使用者選並鎖定，D12）→ 抽離人數 */
 export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => void; onStep: (n: StepNo) => void }) {
   const { doc, exam } = p;
-  const next = <div class="btnrow" style="justify-content:flex-end"><Button kind="primary" onClick={() => p.onStep(5)}>完成此步，前往 ⑤ 排座與預覽</Button></div>;
 
   if (!needsMarks(exam)) {
     return (
       <section class="stack">
         <h2>④ 標示與抽離規則</h2>
-        <Alert tone="info"><b>會考不需要這一步。</b>國中部每科都考，沒有選考，所以沒有標示，也沒有抽離（D30）。直接前往排座。</Alert>
-        {next}
+        <Alert tone="info"><b>會考不需要這一步。</b>國中部每科都考，沒有選考，所以沒有標示，也沒有抽離。直接前往排座。</Alert>
       </section>
     );
   }
@@ -65,7 +63,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     <section class="stack">
       <h2>④ 標示與抽離規則</h2>
       {undecided
-        ? <Alert tone="warn"><b>有 {undecided} 項接近一半的科目要你選。</b>選完才能排座；程式不替你決定要標哪一邊（D12）。</Alert>
+        ? <Alert tone="warn"><b>有 {undecided} 項接近一半的科目要你選。</b>選完才能排座；程式不替你決定要標哪一邊。</Alert>
         : (
           <Alert tone="ok">
             {rows.some((r) => r.state === 'auto')
@@ -75,7 +73,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         )}
 
       <div class="card stack">
-        <div><h3>組別對照表</h3><p class="small muted">依考試名單的組別代碼統計人數與考科（D15）。</p></div>
+        <div><h3>組別對照表</h3><p class="small muted">依考試名單的組別代碼統計人數與考科。</p></div>
         <div class="scroll">
           <table class="t compact">
             <thead><tr><th>組別代碼</th><th>考科</th><th>人數</th></tr></thead>
@@ -91,7 +89,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <div class="card stack">
         <div>
           <h3>各科標示（標少數）</h3>
-          <p class="small muted">被標「X」的人該節抽離自習，被標「＋」的人該節抽離考試（D5）。英聽不標示（D67）。{allSame > 0 && `全組都考或都不考的 ${allSame} 項不用標示，未列出。`}</p>
+          <p class="small muted">標「X」的人這科不考，該節改到自習地點；標「＋」的人這科要考，該節改到預備教室。英聽不標示。{allSame > 0 && `全組都考或都不考的 ${allSame} 項不用標示，未列出。`}</p>
         </div>
         {shown.length === 0
           ? <Alert tone="ok">每一組每一科都是全考或全不考，不用標示，也沒有人要抽離。</Alert>
@@ -113,7 +111,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         {rows.filter((r) => r.nearHalf).map((r) => (
           <div class="stack" style="gap:8px" key={`near-${r.track}/${r.subjectId}`}>
             <Alert tone={r.state === 'undecided' ? 'warn' : 'info'}>
-              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊，選完會鎖定。
+              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊；選完會固定你的選擇，之後可改回自動判斷。
             </Alert>
             <div class="btnrow">
               <Seg<MarkMode | ''>
@@ -125,14 +123,14 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                   { value: 'mark-extra', label: `標「＋${r.subjectName}」考的 ${r.taking} 人` },
                 ]}
               />
-              {r.state === 'locked' && <Button kind="ghost" small onClick={() => choose(r, undefined)}>解除鎖定</Button>}
+              {r.state === 'locked' && <Button kind="ghost" small onClick={() => choose(r, undefined)}>改回自動判斷</Button>}
             </div>
           </div>
         ))}
       </div>
 
       <div class="card stack">
-        <div><h3>抽離人數</h3><p class="small muted">標示一變，這裡立即重算。抽離考試的人依序排進 ③ 勾選的預備教室；抽離自習只出名單（D7）。</p></div>
+        <div><h3>抽離人數</h3><p class="small muted">標示一變，這裡立即重算。抽離考試的人依序排進 ③ 勾選的預備教室；抽離自習只出名單。</p></div>
         {!preview.ok
           ? (
             <Alert tone="danger" action={<Button onClick={() => p.onStep(3)}>前往 ③ 教室設定</Button>}>
@@ -164,7 +162,6 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             </div>
           )}
       </div>
-      {next}
     </section>
   );
 }

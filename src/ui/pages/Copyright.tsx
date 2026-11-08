@@ -33,7 +33,7 @@ export function Copyright(p: { backLabel?: string; onBack: () => void }) {
       </div>
       <div class="card stack" data-pending="font-ofl">
         <h3>字型授權（SIL Open Font License）</h3>
-        <Alert tone="warn"><b>待確認：</b>匯出檔內嵌字型的 OFL 標示正文尚未確認，確認前不在此頁顯示。</Alert>
+        <Alert tone="warn"><b>待確認：</b>下載檔內嵌字型的 OFL 標示正文尚未確認，確認前不在此頁顯示。</Alert>
       </div>
     </section>
   );
