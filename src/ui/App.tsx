@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import './featureRegister/pickup';
 import { Footer } from './components/Footer';
 import { Alert, Badge, Button, EmptyState, Seg, StepFooter, StepNav, SummaryBar, TopBar } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
