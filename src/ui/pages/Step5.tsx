@@ -9,6 +9,7 @@ import {
   afterOverrideChange, chartModel, detachChartModel, seatableEntries, detachSummary, nameMapOf, examClasses, examEntries, examOverrides, examResult, examRooms,
   isStale, overrideNotes, removeOverride, reseat, roomStatTable, seatingBlockers, setOverride, validationChecks, type StepNo,
 } from '../seating';
+import { roomCapacity } from '../rooms';
 import type { Doc } from '../store';
 
 const PLACES = ['教務處', '圖書館', '輔導室'];
@@ -101,6 +102,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <StatsBar items={[
         { label: '考生', value: seatableEntries(doc, exam).length },
         { label: '座位', value: seats },
+        { label: '禁用', value: classRooms.reduce((a, r) => a + roomCapacity(r) - r.seatCount, 0) },
         { label: '班級教室', value: `${classRooms.length} 間` },
         ...(senior ? [{ label: '預備教室', value: `${rooms.length - classRooms.length} 間` }] : []),
         { label: '驗證', value: stale ? '需重新排座' : allPass ? '通過' : '不通過', bad: !stale && !allPass },
