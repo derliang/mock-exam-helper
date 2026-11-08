@@ -86,7 +86,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; onStep: (n: 1 |
     no: i + 1, name, state: (i + 1 === p.route.step ? 'cur' : 'todo') as StepState,
   }));
   return (
-    <div class="ws">
+    <div class="ws wide">
       <aside class="side"><StepNav steps={steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">施工中</p></section>
     </div>
