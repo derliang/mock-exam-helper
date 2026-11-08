@@ -33,7 +33,8 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       <div class="card stack">
         <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。{senior ? '高中部理組、文組各自計算，預備教室不納入。' : ''}</p></div>
-        {noList && <Alert tone="info"><b>尚未匯入考試名單：</b>還不知道本次有幾位考生，無法檢核座位夠不夠。請先到 ② 匯入考試名單。</Alert>}
+        {/* 完整警示只在頁面上方講一次（DESIGN 10.7 規則 4）；這裡只留一行灰字，不再用警示框（D82 仍不顯示考生 0） */}
+        {noList && <p class="small muted">尚未匯入考試名單，無法檢核座位夠不夠。</p>}
         {lines.map((l) => <Alert key={l.label} tone={l.ok ? 'ok' : 'danger'}>{l.ok ? <><b>{l.label}：</b>{l.detail}</> : l.message}</Alert>)}
         {missing.length > 0 && <Alert tone="danger"><b>高中部排座要先指定教室的組別。</b>「{missing.map((r) => r.name).join('、')}」還沒選理組或文組，請在下面該列的「組別」按鈕選一個（預備教室不用選）。</Alert>}
         <Alert tone={reserve.tone}>{reserve.message}</Alert>

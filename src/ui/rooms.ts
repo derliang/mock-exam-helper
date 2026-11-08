@@ -112,3 +112,19 @@ export const setRoomTrack = (r: Classroom, track: Track | undefined): Classroom 
 /** 高中部排座要用的班級教室裡，還沒指定理／文組的（缺它排座會報「理組沒有可用的教室」，驗收 D-1） */
 export const roomsMissingTrack = (rooms: Classroom[], division: 'senior' | 'junior'): Classroom[] =>
   division === 'senior' ? rooms.filter((r) => r.kind === 'class' && !r.track) : [];
+
+/**
+ * 預設組別：高中部班級教室還沒指定理／文組、而教室名稱與某個高中部班級同名時，
+ * 就帶入該班的組別（例：教室「溫」→ 理組、「儉」→ 文組）。已指定的不動；回傳原陣列表示沒有變動。
+ */
+export function fillDefaultTracks(rooms: Classroom[], classes: { name: string; division?: string; track?: Track }[]): Classroom[] {
+  const byName = new Map(classes.filter((c) => c.division === 'senior' && c.track).map((c) => [c.name, c.track as Track]));
+  let changed = false;
+  const out = rooms.map((r) => {
+    const t = r.kind === 'class' && !r.track ? byName.get(r.name) : undefined;
+    if (!t) return r;
+    changed = true;
+    return { ...r, track: t };
+  });
+  return changed ? out : rooms;
+}
