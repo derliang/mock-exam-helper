@@ -13,7 +13,7 @@ export const pickupExport: ExportExtra = {
   title: '領卷清單（A4）',
   sub: '每間教室一頁，列出每科試卷、答案卡應有份數與核對欄，領卷時照表點數',
   run: async ({ doc, exam, format }): Promise<OutputFile[]> => {
-    const prepared = prepareExport(doc, exam, new Date().toISOString());
+    const prepared = prepareExport(doc, exam);
     if (!prepared.ok) throw new Error(prepared.errors.join('；'));
     const pages = buildPickupPages(prepared.input);
     const meta = { generatedAt: prepared.input.result.generatedAt, dataVersion: prepared.input.result.dataVersion };

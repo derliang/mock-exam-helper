@@ -1,10 +1,10 @@
 /**
  * ⑥ 匯出頁的資料轉接：從 Doc 與考試設定組出輸出層要的 ExportInput。
- * 考試名單與覆寫取自 Doc.examFiles（② 匯入）。⑤ 排座頁（施工B）尚未併入，
- * 所以排座仍在匯出頁即時用 runSeating 算；⑤ 併入後改用已存的 result 與過期判斷，Step6 不用動。
+ * 考試名單與覆寫取自 Doc.examFiles（② 匯入）。排座結果直接用 ⑤ 已存的 result，
+ * 不在匯出時重算：⑤ 驗證的、⑥ 預覽的、實際匯出的永遠是同一份（同座位、同版本碼、同產生時間）。
+ * 沒有結果或已過期（名單或設定在排座後改過）就擋下，請回 ⑤ 重新排座。
  */
-import { runSeating } from '../core';
-import { seatingInputOf } from './seating';
+import { examResult, isStale } from './seating';
 import type { ExamConfig, ExamEntry, Override } from '../data';
 import type { ExportInput } from '../export';
 import type { Doc } from './store';
@@ -22,7 +22,7 @@ export type Prepared =
   | { ok: false; errors: string[] };
 
 /** 組輸入並排座；缺教室、缺學生或排座被擋時回 errors（中文，只含考生編號） */
-export function prepareExport(doc: Doc, exam: ExamConfig, now: string): Prepared {
+export function prepareExport(doc: Doc, exam: ExamConfig): Prepared {
   const students = doc.rosters[exam.division];
   if (students.length === 0) return { ok: false, errors: ['缺學生名單：請先到「設定 → 學生名單」匯入或新增學生，再回來匯出。'] };
   const rooms = exam.classroomIds
@@ -31,13 +31,9 @@ export function prepareExport(doc: Doc, exam: ExamConfig, now: string): Prepared
   if (rooms.length === 0) return { ok: false, errors: ['缺教室：這次考試還沒勾選教室，請先到 ③ 教室設定勾選要用的教室，再回來匯出。'] };
   const entries = entriesOf(doc, exam);
   if (!entries || entries.length === 0) return { ok: false, errors: ['缺考試名單：請先到 ② 考試名單匯入大考中心的考生資料 Excel，再回來匯出。'] };
-  // 與 ⑤ 畫面同源（seatingInputOf：鎖定規則＋「標少數」建議），才會座位、X 標示、抽離與版本碼都一致（驗收 D-2）
-  const r = runSeating(seatingInputOf(doc, exam, now));
-  if (!r.ok) return { ok: false, errors: r.errors };
-  return {
-    ok: true,
-    warnings: r.warnings,
-    input: { settings: doc.settings, exam, students, entries, result: r.result },
-  };
+  const result = examResult(doc, exam);
+  if (!result) return { ok: false, errors: ['缺排座結果：請先到 ⑤ 排座並完成驗證，再回來匯出。'] };
+  if (isStale(doc, exam)) return { ok: false, errors: ['排座已過期：名單或設定在排座之後改過，請先到 ⑤ 重新排座，再回來匯出。'] };
+  return { ok: true, warnings: [], input: { settings: doc.settings, exam, students, entries, result } };
 }
 
