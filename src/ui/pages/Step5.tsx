@@ -2,13 +2,14 @@ import { useState } from 'preact/hooks';
 import type { ExamConfig, SeatingResult } from '../../data';
 import { studentCode } from '../../data';
 import { mixedMarkCodes, overridePurpose } from '../../core/detach';
-import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StatsBar } from '../components';
+import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
 import { ChartLegend, SeatChart } from '../components/SeatChart';
 import {
   afterOverrideChange, chartModel, detachChartModel, seatableEntries, detachSummary, nameMapOf, examClasses, examEntries, examOverrides, examResult, examRooms,
   isStale, overrideNotes, removeOverride, reseat, roomStatTable, seatingBlockers, setOverride, validationChecks, type StepNo,
 } from '../seating';
+import { roomCapacity } from '../rooms';
 import type { Doc } from '../store';
 
 const PLACES = ['教務處', '圖書館', '輔導室'];
@@ -46,7 +47,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (blockers.length) {
     return (
       <section class="stack">
-        <div class="card stephead"><div><h2>⑤ 排座與預覽</h2><p class="small muted">排座、看座位表與統計；名單或設定改了要重新排座。</p></div></div>
+        <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
         <div class="card stack">
           <Alert tone="danger"><b>還不能排座：</b>下面的事項要先處理完，系統不會輸出不合規則的結果。</Alert>
           {blockers.map((b) => (
@@ -61,7 +62,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (!result) {
     return (
       <section class="stack">
-        <div class="card stephead"><div><h2>⑤ 排座與預覽</h2><p class="small muted">排座、看座位表與統計；名單或設定改了要重新排座。</p></div></div>
+        <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
         <div class="card stack">
           <Alert tone="info"><b>還沒有排座。</b>名單、教室與標示都已就緒。按「開始排座」後，程式依班級輪流把每一排排給下一班，空位只留在最後；排完自動驗證。</Alert>
           {err && <SeatError errors={err} onStep={p.onStep} />}
@@ -97,10 +98,11 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <div class="card stephead"><div><h2>⑤ 排座與預覽</h2><p class="small muted">排座、看座位表與統計；名單或設定改了要重新排座。</p></div></div>
+      <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
       <StatsBar items={[
         { label: '考生', value: seatableEntries(doc, exam).length },
         { label: '座位', value: seats },
+        { label: '禁用', value: classRooms.reduce((a, r) => a + roomCapacity(r) - r.seatCount, 0) },
         { label: '班級教室', value: `${classRooms.length} 間` },
         ...(senior ? [{ label: '預備教室', value: `${rooms.length - classRooms.length} 間` }] : []),
         { label: '驗證', value: stale ? '需重新排座' : allPass ? '通過' : '不通過', bad: !stale && !allPass },

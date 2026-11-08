@@ -1,6 +1,6 @@
 /** 元件庫：只用 tokens 變數與 app.css 類別，不寫死色碼 */
-import type { ComponentChildren, JSX } from 'preact';
-import { useEffect, useState } from 'preact/hooks';
+import { createContext, type ComponentChildren, type JSX } from 'preact';
+import { useContext, useEffect, useState } from 'preact/hooks';
 import { classColorVars } from '../colors';
 import { UNDO_HINT, type ConfirmCopy, type Flow, type NextAction } from '../flow';
 import type { StepNo } from '../seating';
@@ -184,24 +184,51 @@ export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
         ? <span class="ok">待處理 <b>0</b>　✓ 沒有待處理的事</span>
         : (
           <button type="button" class="warnbtn" onClick={() => p.onGo(issues[0]!.step)} title={issues.map((i) => i.text).join('；')}>
-            ⚠ 待處理 <b>{issues.length}</b>　<u>去處理</u>
+            ⚠ 待處理 <b>{issues.length}</b>　{issues[0]!.text}　<u>{issues[0]!.fix}</u>
           </button>
         )}
     </div>
   );
 }
 
-/** 步驟頁上方的「下一步」（D58 放頁面上方）：永遠可以按；前面還有沒做完的事只標示原因並給一鍵跳轉，不禁止（D47） */
+/** 步驟標題卡右側的「下一步」要用的資料：由工作區提供，標題卡自己讀（沒有提供時＝不顯示按鈕，單頁測試不受影響） */
+export const StepNextContext = createContext<{ action: NextAction; onGo: (step: StepNo) => void } | null>(null);
+
+/**
+ * 步驟標題卡（DESIGN 10.9、方案 A）：左 h2＋一句說明，右側放「下一步」主按鈕（D58）。
+ * 按鈕永遠可以按；前面還有沒做完的事，只在頁面上方用琥珀提示標示原因並給一鍵跳轉，不禁止（D47）。
+ */
+export function StepHead(p: { title: string; children?: ComponentChildren }) {
+  const ctx = useContext(StepNextContext);
+  const a = ctx?.action;
+  return (
+    <div class="card stephead">
+      <div><h2>{p.title}</h2>{p.children && <p class="small muted">{p.children}</p>}</div>
+      {ctx && a && a.kind === 'go' && <Button kind="primary" onClick={() => ctx.onGo(a.to)}>{a.label} →</Button>}
+    </div>
+  );
+}
+
+/** 前面還有沒做完的事：只標示原因並給一鍵跳轉，不禁止往下（D47）。顯示在步驟標題卡上方 */
+export function StepPending(p: { action: NextAction; onGo: (step: StepNo) => void }) {
+  const a = p.action;
+  if (a.kind === 'none' || !a.pending) return null;
+  return (
+    <div class="stepnext">
+      <Alert tone="warn" action={<Button small onClick={() => p.onGo(a.pending!.fixStep)}>{a.pending.fix}</Button>}>
+        <b>前面還有事沒做完：</b>{a.pending.reason}。你可以先往下看，之後再回來處理。
+      </Alert>
+    </div>
+  );
+}
+
+/** （保留給既有測試與舊呼叫）上方的「下一步」整條：警示＋按鈕 */
 export function StepNextBar(p: { action: NextAction; onGo: (step: StepNo) => void }) {
   const a = p.action;
   if (a.kind === 'none') return null;
   return (
     <div class="stepnext">
-      {a.pending && (
-        <Alert tone="warn" action={<Button small onClick={() => p.onGo(a.pending!.fixStep)}>{a.pending.fix}</Button>}>
-          <b>前面還有事沒做完：</b>{a.pending.reason}。你可以先往下看，之後再回來處理。
-        </Alert>
-      )}
+      <StepPending action={a} onGo={p.onGo} />
       <div class="btnrow" style="justify-content:flex-end">
         <Button kind="primary" onClick={() => p.onGo(a.to)}>{a.label} →</Button>
       </div>

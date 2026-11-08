@@ -1,5 +1,5 @@
 import type { ExamConfig, Track } from '../../data';
-import { Alert, Button, Seg, StatsBar } from '../components';
+import { Alert, Button, Seg, StatsBar, StepHead } from '../components';
 import { RoomList } from '../components/RoomList';
 import { classCapacity, reserveCheck } from '../capacity';
 import { newClassRoomIds, roomsMissingTrack } from '../rooms';
@@ -34,7 +34,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <div class="card stephead"><div><h2>③ 教室設定</h2><p class="small muted">用開關選出本次考試的教室，確認座位夠用{senior ? '；高中部的班級要先分好理組、文組' : ''}。</p></div></div>
+      <StepHead title="③ 教室設定">用開關選出本次考試的教室，確認座位夠用{senior ? '；高中部的班級要先分好理組、文組' : ''}。</StepHead>
 
       {/* D56：狀態檢核放頁面上方、隨時看得到；統計列照設計系統「頂部統計列」（D82 修訂） */}
       <StatsBar items={[
@@ -47,10 +47,10 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       <div class="card stack">
         <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。{senior ? '高中部理組、文組各自計算，預備教室不納入；預備教室座位另計（目前 ' + reserveSeats + '）。' : ''}</p></div>
-        {/* 完整警示只在頁面上方講一次（DESIGN 10.7 規則 4）；沒有考生人數時不顯示 0（D82），但座位合計仍要看得到 */}
+        {/* 沒有考生人數時不顯示 0（D82），但座位合計仍要看得到 */}
         {noList && (bcct
-          ? <p class="small muted">共用學生名單是空的，沒有考生可檢核；教室座位合計 {seats}。</p>
-          : <p class="small muted">教室座位合計 {seats}。匯入考試名單後檢核夠不夠。</p>)}
+          ? <Alert tone="info">共用學生名單是空的，沒有考生可檢核；教室座位合計 {seats}。</Alert>
+          : <Alert tone="info"><b>尚未匯入考試名單：</b>教室座位合計 {seats}。匯入考試名單後檢核夠不夠。</Alert>)}
         {lines.map((l) => <Alert key={l.label} tone={l.ok ? 'ok' : 'danger'}>{l.ok ? <><b>{l.label}：</b>{l.detail}</> : l.message}</Alert>)}
         {missing.length > 0 && <Alert tone="danger"><b>高中部排座要先指定教室的組別。</b>「{missing.map((r) => r.name).join('、')}」還沒選理組或文組，請在下面該列的「組別」按鈕選一個（預備教室不用選）。</Alert>}
         <Alert tone={reserve.tone}>{reserve.message}</Alert>

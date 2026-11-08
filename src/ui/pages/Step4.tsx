@@ -1,5 +1,5 @@
 import type { ExamConfig, MarkMode, Track } from '../../data';
-import { Alert, Badge, Button, Seg } from '../components';
+import { Alert, Badge, Button, Seg, StepHead } from '../components';
 import { detachPreview, examEntries, examRooms, groupTable, markRows, needsMarks, setMarkChoice, type MarkRow, type StepNo } from '../seating';
 import { updateExam, type Doc } from '../store';
 
@@ -29,7 +29,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (!needsMarks(exam)) {
     return (
       <section class="stack">
-        <div class="card stephead"><div><h2>④ 標示與抽離規則</h2></div></div>
+        <StepHead title="④ 標示與抽離規則" />
         <Alert tone="info"><b>會考不需要這一步。</b>國中部每科都考，沒有選考，所以沒有標示，也沒有抽離。直接前往排座。</Alert>
       </section>
     );
@@ -37,8 +37,10 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (examEntries(doc, exam).length === 0) {
     return (
       <section class="stack">
-        <div class="card stephead"><div><h2>④ 標示與抽離規則</h2><p class="small muted">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</p></div></div>
-        <div class="card"><p class="small muted">這一步要依考試名單算出每組每科考與不考的人數，匯入考試名單後才會出現內容。</p></div>
+        <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
+        <Alert tone="info" action={<Button onClick={() => p.onStep(2)}>前往 ② 考試名單</Button>}>
+          <b>還沒有考試名單。</b>這一步要依考試名單算出每組每科考與不考的人數，請先到 ② 匯入大考中心的考生名單。
+        </Alert>
       </section>
     );
   }
@@ -59,7 +61,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <div class="card stephead"><div><h2>④ 標示與抽離規則</h2><p class="small muted">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</p></div></div>
+      <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
       {undecided
         ? <Alert tone="warn"><b>有 {undecided} 項接近一半的科目要你選。</b>選完才能排座；程式不替你決定要標哪一邊。</Alert>
         : (
