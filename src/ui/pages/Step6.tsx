@@ -153,7 +153,7 @@ export function Step6(p: {
 
   return (
     <section>
-      <h2>⑥ 下載</h2>
+      <div class="card stephead"><div><h2>⑥ 下載</h2><p class="small muted">下載座位表、標籤與名單；要列印請開下載的檔案。</p></div></div>
       {!prepared.ok && (
         <div style="margin-top:12px"><Alert tone="danger">
           <b>還不能下載：</b>
