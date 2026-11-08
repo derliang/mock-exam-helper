@@ -196,3 +196,56 @@ describe('邊界案例', () => {
     expect(r.ok).toBe(false);
   });
 });
+
+describe('有 disabled 教室（使用者任意指定不排的座位）', () => {
+  /** 把每間教室多餘的格子（rows×depth − seatCount）隨機標成不排；座位數不變，只是位置不同 */
+  function withDisabled(input: ReturnType<typeof genCase>, seed: number): ReturnType<typeof genCase> {
+    const rng = makeRng(seed ^ 0x5eed);
+    return {
+      ...input,
+      classrooms: input.classrooms.map((c) => {
+        const spare = c.rows * c.depth - c.seatCount;
+        const k = spare > 0 ? rng.int(0, spare) : 0;
+        const cells: string[] = [];
+        for (let r = 1; r <= c.rows; r++) for (let d = 1; d <= c.depth; d++) cells.push(`${r}-${d}`);
+        const off = new Set<string>();
+        while (off.size < k) off.add(rng.pick(cells));
+        return k > 0 ? { ...c, disabled: [...off] } : c;
+      }),
+    };
+  }
+
+  it(`${300} 個隨機案例：不變式成立，且沒有人坐在不排的座位上`, () => {
+    let withOff = 0;
+    for (let seed = 1; seed <= 300; seed++) {
+      const input = withDisabled(genCase(makeRng(seed)), seed);
+      const hasOff = input.classrooms.some((c) => (c.disabled?.length ?? 0) > 0);
+      const r = runSeating(input);
+      if (!r.ok) {
+        expect(mainCapacityShort(input) || reserveShort(input), `seed=${seed} 不該失敗：${r.errors.join('；')}`).toBe(true);
+        continue;
+      }
+      expect(mainCapacityShort(input), `seed=${seed} 座位不足卻成功`).toBe(false);
+      expect(checkMainSeating(input, r.result), `seed=${seed}`).toEqual([]);
+      expect(checkMarksAndDetach(input, r.result, r.special), `seed=${seed}`).toEqual([]);
+      const off = new Set(input.classrooms.flatMap((c) => (c.disabled ?? []).map((k) => `${c.id}/${k}`)));
+      const seats = [
+        ...r.result.assignments.map((a) => ({ room: a.classroomId, row: a.row, depth: a.depth })),
+        ...r.result.detaches.flatMap((d) => (d.seat ? [{ room: d.roomId, row: d.seat.row, depth: d.seat.depth }] : [])),
+      ];
+      for (const x of seats) expect(off.has(`${x.room}/${x.row}-${x.depth}`), `seed=${seed} 坐到不排的座位`).toBe(false);
+      if (hasOff) withOff++;
+    }
+    expect(withOff).toBeGreaterThan(30); // 守門：真的有跑到含 disabled 的案例
+  });
+
+  it('座位數：不排的座位不算座位（用 disabled 把 2×3 教室壓到只剩 4 個，5 人就擋下）', () => {
+    const base = { ...genCase(makeRng(1), { division: 'junior' }), seatFullyAbsent: true };
+    const mk = (n: number) => Array.from({ length: n }, (_, i) => ({ classNo: 1, seatNo: i + 1, name: `甲生01${i}`, subjectIds: [] as string[] }));
+    const room = { id: 'A', name: 'A', kind: 'class' as const, rows: 2, depth: 3, seatCount: 4, disabled: ['1-2', '2-2'] };
+    const common = { ...base, classes: [{ no: 1, name: 'A', division: 'junior' as const, colorIndex: 0 }], classrooms: [room], markRules: [], overrides: [] };
+    const ok = runSeating({ ...common, entries: mk(4) });
+    expect(ok.ok && ok.result.assignments.map((a) => `${a.row}-${a.depth}`)).toEqual(['1-1', '1-3', '2-1', '2-3']);
+    expect(runSeating({ ...common, entries: mk(5) }).ok).toBe(false);
+  });
+});

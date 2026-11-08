@@ -16,9 +16,9 @@ const TABS: { value: Tab; label: string }[] = [
 ];
 
 /** 設定頁（D61）：部別切換（UI-07/08）；改動都走 onChange，由 App 記入復原 */
-export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab }) {
+export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; division?: Division }) {
   const [tab, setTab] = useState<Tab>(p.tab ?? 'roster');
-  const [division, setDivision] = useState<Division>('senior');
+  const [division, setDivision] = useState<Division>(p.division ?? 'senior');
   return (
     <section>
       <h2>設定</h2>
@@ -47,53 +47,97 @@ type Props = { doc: Doc; onChange: (d: Doc) => void; division: Division };
 
 function Roster({ doc, onChange, division }: Props) {
   const [q, setQ] = useState('');
-  const [editing, setEditing] = useState<Student | 'new' | null>(null);
-  const list = searchStudents(doc.rosters[division], q);
-  const cls = (no: number) => doc.settings.classes.find((c) => c.no === no && c.division === division);
+  const [cf, setCf] = useState<number | 'all'>('all'); // 班級篩選
+  const [editing, setEditing] = useState<Student | 'new' | { classNo: number; seatNo: number } | null>(null);
+  const isJ = division === 'junior';
+  const classes = doc.settings.classes.filter((c) => c.division === division);
+  const all = doc.rosters[division];
+  const activeCf = cf !== 'all' && classes.some((c) => c.no === cf) ? cf : 'all';
+  const found = searchStudents(all, q);
+  const list = activeCf === 'all' ? found : found.filter((s) => s.classNo === activeCf);
+  const cls = (no: number) => classes.find((c) => c.no === no);
+  // 選定單一班級且沒搜尋時，缺的座號顯示空號列（D41：刪除後座號保留，不自動補號）
+  const showGaps = activeCf !== 'all' && !q.trim();
+  type Row = { kind: 'stu'; s: Student } | { kind: 'gap'; no: number };
+  const rows: Row[] = [];
+  if (showGaps) {
+    const have = new Map(list.map((s) => [s.seatNo, s]));
+    const max = list.reduce((m, s) => Math.max(m, s.seatNo), 0);
+    for (let n = 1; n <= max; n++) { const s = have.get(n); rows.push(s ? { kind: 'stu', s } : { kind: 'gap', no: n }); }
+  } else for (const s of list) rows.push({ kind: 'stu', s });
+  const cols = isJ ? 7 : 8;
   return (
-    <div>
+    <div class="card stack">
+      <div>
+        <h3>學生名單（{isJ ? '國中部' : '高中部'}）</h3>
+        <p class="small muted">一年一份，只存班級、座號、姓名，另有選填的學號；考科來自每次的考試名單（D62）。轉學生、復學生直接新增並自己輸入座號。共 {all.length} 人。</p>
+      </div>
+      <div class="row">
+        <div class="seg" role="group" aria-label="班級篩選">
+          <button type="button" aria-pressed={activeCf === 'all'} onClick={() => setCf('all')}>全部</button>
+          {classes.map((c) => <button type="button" key={c.no} aria-pressed={activeCf === c.no} onClick={() => setCf(c.no)}>{c.name}</button>)}
+        </div>
+        <input class="input" style="max-width:240px" type="search" aria-label="搜尋姓名、考生編號、學號" placeholder="搜尋姓名、考生編號或學號" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
+      </div>
       <div class="btnrow">
-        <input class="input" style="max-width:360px" type="search" aria-label="搜尋姓名、考生編號、學號" placeholder="搜尋姓名、考生編號、學號" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
         <Button kind="primary" onClick={() => setEditing('new')}>新增學生</Button>
         <RosterIO doc={doc} division={division} onChange={onChange} />
       </div>
-      <p class="muted small" style="margin:8px 0">共 {doc.rosters[division].length} 人。刪除後空號保留。</p>
-      <div style="overflow-x:auto">
-        <table class="t">
-          <thead><tr><th>班級</th><th>座號</th><th>考生編號</th><th>姓名</th><th>學號</th><th /></tr></thead>
+      <div class="scroll" style="max-height:520px;overflow-y:auto">
+        <table class="t compact nw">
+          <thead><tr><th>班級</th><th>座號</th><th>考生編號</th><th>姓名</th><th>學號</th>{!isJ && <th>組別</th>}<th>特殊生需求</th><th /></tr></thead>
           <tbody>
-            {list.map((s) => (
-              <tr key={`${s.classNo}-${s.seatNo}`}>
-                <td>{cls(s.classNo) ? <ClassChip colorIndex={cls(s.classNo)!.colorIndex}>{cls(s.classNo)!.name}</ClassChip> : s.classNo}</td>
-                <td>{s.seatNo}</td><td class="num">{studentCode(s.classNo, s.seatNo)}</td><td>{s.name}</td>
-                <td class="muted">{s.schoolId ?? '（空白）'}</td>
-                <td><div class="btnrow"><Button small onClick={() => setEditing(s)}>編輯</Button><ConfirmButton small copy={confirmCopy.deleteStudent(s.name, studentCode(s.classNo, s.seatNo))} onConfirm={() => onChange(removeStudent(doc, division, s))}>刪除</ConfirmButton></div></td>
-              </tr>
-            ))}
+            {rows.map((r) => {
+              if (r.kind === 'gap') {
+                const c = cls(activeCf as number);
+                return (
+                  <tr class="gap" key={`gap-${r.no}`}>
+                    <td>{c ? c.name : activeCf}</td><td class="num">{r.no}</td><td class="num">——</td><td>空號（保留，不自動補號）</td><td />{!isJ && <td />}<td />
+                    <td><Button small onClick={() => setEditing({ classNo: activeCf as number, seatNo: r.no })}>填入學生</Button></td>
+                  </tr>
+                );
+              }
+              const s = r.s;
+              return (
+                <tr key={`${s.classNo}-${s.seatNo}`}>
+                  <td>{cls(s.classNo) ? <ClassChip colorIndex={cls(s.classNo)!.colorIndex}>{cls(s.classNo)!.name}</ClassChip> : s.classNo}</td>
+                  <td class="num">{s.seatNo}</td><td class="num">{studentCode(s.classNo, s.seatNo)}</td><td>{s.name}</td>
+                  <td class="muted">{s.schoolId ?? '（空白）'}</td>
+                  {!isJ && <td>{s.groupCode ?? '—'}</td>}
+                  <td class="small muted">{s.special ?? '—'}</td>
+                  <td><div class="btnrow" style="flex-wrap:nowrap"><Button small onClick={() => setEditing(s)}>編輯</Button><ConfirmButton small copy={confirmCopy.deleteStudent(s.name, studentCode(s.classNo, s.seatNo))} onConfirm={() => onChange(removeStudent(doc, division, s))}>刪除</ConfirmButton></div></td>
+                </tr>
+              );
+            })}
+            {rows.length === 0 && all.length > 0 && <tr><td colSpan={cols} class="muted">{q.trim() ? `沒有符合「${q}」的學生，請換個關鍵字（姓名、考生編號或學號）。` : '這個班級還沒有學生。'}</td></tr>}
           </tbody>
         </table>
       </div>
-      {list.length === 0 && (doc.rosters[division].length === 0
-        ? <EmptyState title="這個部別還沒有學生" action={<Button kind="primary" onClick={() => setEditing('new')}>新增第一位學生</Button>}>可以一位一位新增，或用上方「下載 Excel 範本」填好後「匯入 Excel」。名單是之後考試名單比對的依據。</EmptyState>
-        : <p class="muted">沒有符合「{q}」的學生，請換個關鍵字（姓名、考生編號或學號）。</p>)}
+      {all.length === 0 && (
+        <EmptyState title="這個部別還沒有學生" action={<Button kind="primary" onClick={() => setEditing('new')}>新增第一位學生</Button>}>可以一位一位新增，或用上方「下載 Excel 範本」填好後「匯入 Excel」。名單是之後考試名單比對的依據。</EmptyState>
+      )}
+      <p class="small muted">空號用斜紋底表示：刪除學生後座號保留，不會自動補號（D41）。座號由使用者輸入。學號沒匯入就留空，不影響排座與考生編號。</p>
       {editing && (
-        <StudentForm doc={doc} division={division} student={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)}
+        <StudentForm doc={doc} division={division} {...(editing === 'new' ? {} : 'name' in editing ? { student: editing } : { prefill: editing })} onClose={() => setEditing(null)}
           onSave={(d) => { onChange(d); setEditing(null); }} />
       )}
     </div>
   );
 }
 
-function StudentForm(p: { doc: Doc; division: Division; student?: Student; onClose: () => void; onSave: (d: Doc) => void }) {
+function StudentForm(p: { doc: Doc; division: Division; student?: Student; prefill?: { classNo: number; seatNo: number }; onClose: () => void; onSave: (d: Doc) => void }) {
   const s0 = p.student;
+  const isJ = p.division === 'junior';
   const firstClass = p.doc.settings.classes.find((c) => c.division === p.division)?.no ?? 1;
-  const [classNo, setClassNo] = useState(String(s0?.classNo ?? firstClass));
-  const [seatNo, setSeatNo] = useState(String(s0?.seatNo ?? ''));
+  const [classNo, setClassNo] = useState(String(s0?.classNo ?? p.prefill?.classNo ?? firstClass));
+  const [seatNo, setSeatNo] = useState(String(s0?.seatNo ?? p.prefill?.seatNo ?? ''));
   const [name, setName] = useState(s0?.name ?? '');
   const [schoolId, setSchoolId] = useState(s0?.schoolId ?? '');
+  const [groupCode, setGroupCode] = useState(s0?.groupCode ?? '');
+  const [special, setSpecial] = useState(s0?.special ?? '');
   const [err, setErr] = useState('');
   const save = () => {
-    const next: Student = { classNo: Number(classNo), seatNo: Number(seatNo), name, schoolId };
+    const next: Student = { classNo: Number(classNo), seatNo: Number(seatNo), name, schoolId, special, ...(isJ ? {} : { groupCode }) };
     const r = s0 ? updateStudent(p.doc, p.division, s0, next) : addStudent(p.doc, p.division, next);
     if (r.ok) p.onSave(r.doc); else setErr(r.error);
   };
@@ -102,16 +146,22 @@ function StudentForm(p: { doc: Doc; division: Division; student?: Student; onClo
       <div class="formgrid">
         <div class="field"><label for="f-class">班級</label>
           <select id="f-class" class="input" value={classNo} onChange={(e) => setClassNo(e.currentTarget.value)}>
-            {p.doc.settings.classes.filter((c) => c.division === p.division).map((c) => <option key={c.no} value={c.no}>{String(c.no).padStart(2, '0')} {c.name}</option>)}
-          </select><span class="hint">選已建立的班級</span></div>
-        <div class="field"><label for="f-seat">座號</label>
-          <input id="f-seat" class="input" inputMode="numeric" value={seatNo} onInput={(e) => setSeatNo(e.currentTarget.value)} /><span class="hint">1～99，同班不可重複</span></div>
+            {p.doc.settings.classes.filter((c) => c.division === p.division).map((c) => <option key={c.no} value={c.no}>{c.name}（{String(c.no).padStart(2, '0')}）</option>)}
+          </select><span class="hint">考生編號＝班級＋座號（例：0207）</span></div>
+        <div class={`field${err ? ' err' : ''}`}><label for="f-seat">座號</label>
+          <input id="f-seat" class="input" inputMode="numeric" value={seatNo} onInput={(e) => setSeatNo(e.currentTarget.value)} aria-invalid={err ? 'true' : undefined} />
+          <span class="hint" role={err ? 'alert' : undefined}>{err || '轉學生、復學生的座號自己輸入'}</span></div>
         <div class="field"><label for="f-name">姓名</label>
           <input id="f-name" class="input" value={name} onInput={(e) => setName(e.currentTarget.value)} /><span class="hint">必填</span></div>
         <div class="field"><label for="f-sid">學號（選填）</label>
           <input id="f-sid" class="input" value={schoolId} onInput={(e) => setSchoolId(e.currentTarget.value)} /><span class="hint">沒有就留空</span></div>
+        {isJ
+          ? <div class="field"><span class="label">組別</span><div class="input" style="display:flex;align-items:center;background:var(--surface)">國中部不分組</div><span class="hint">會考每科都考</span></div>
+          : <div class="field"><label for="f-group">組別（考哪些科）</label>
+            <input id="f-group" class="input" value={groupCode} onInput={(e) => setGroupCode(e.currentTarget.value)} placeholder="例如：D" /><span class="hint">只作紀錄；每次考試以考試名單的組別為準</span></div>}
+        <div class="field"><label for="f-special">特殊生需求註明</label>
+          <input id="f-special" class="input" value={special} onInput={(e) => setSpecial(e.currentTarget.value)} placeholder="例如：x數A" /><span class="hint">只作紀錄，不影響標示</span></div>
       </div>
-      {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
     </Modal>
   );
 }

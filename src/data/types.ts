@@ -36,6 +36,10 @@ export interface Student {
   name: string;
   /** 學校學號（可選，公開 repo 不得放真實值） */
   schoolId?: string;
+  /** 高中部組別（只作紀錄；每次考試以考試名單的組別為準），國中部不使用 */
+  groupCode?: string;
+  /** 特殊生需求註明（只作紀錄，不影響標示） */
+  special?: string;
 }
 
 /** 學生名單快照：新增模擬考時存一份（D62） */
@@ -125,6 +129,8 @@ export interface ExamConfig {
   classroomIds: string[];
   labelLayout: LabelLayout;
   createdAt: string;
+  /** 最後修改時間（ISO）；舊資料沒有這個欄位時以 createdAt 代替 */
+  updatedAt?: string;
 }
 
 /** 考試名單一筆（D63）：誰參加、考什麼科 */
