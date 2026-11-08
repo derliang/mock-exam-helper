@@ -30,19 +30,21 @@ export function isValidClassroom(c: Classroom): boolean {
   );
 }
 
-/** 依序列出可用座位：第 1 排深位 1→depth，再第 2 排…，取前 seatCount 個 */
+/** 依序列出可用座位：第 1 排深位 1→depth，再第 2 排…，跳過使用者指定不排的座位，取前 seatCount 個 */
 export function classroomSeats(c: Classroom): SeatPos[] {
   const seats: SeatPos[] = [];
+  const off = new Set(c.disabled ?? []);
   for (let row = 1; row <= c.rows; row++) {
     for (let depth = 1; depth <= c.depth; depth++) {
       if (seats.length >= c.seatCount) return seats;
+      if (off.has(`${row}-${depth}`)) continue;
       seats.push({ row, depth });
     }
   }
   return seats;
 }
 
-/** 空位數（都在最後） */
+/** 不排的座位數 */
 export function emptySeatCount(c: Classroom): number {
   return c.rows * c.depth - c.seatCount;
 }

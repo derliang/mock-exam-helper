@@ -1,5 +1,6 @@
-/** 教室編輯的純函式（D56、D69②、D72：座位只多不少、空位只在最後、由前往後連續）。 */
+/** 教室編輯的純函式（D56、D69②：座位只多不少；使用者可任意指定哪些座位不排，排座時人由前往後連續坐、跳過不排的座位）。 */
 import type { Classroom, LabelPaper, SeatPos } from '../data';
+import { classroomSeats, seatLabel } from '../data';
 import { defaultLabelLayout } from '../export/model';
 
 /** 一間教室的座位上限＝一張標籤紙的格數（B4 6×8＝48、A3 7×7＝49，D74） */
@@ -13,11 +14,22 @@ export const roomCapacity = (r: Classroom): number => r.rows * r.depth;
 /** 座標在教室可用座位順序中的序號（0 起）：第 1 排深位 1→depth，再第 2 排 */
 export const seatIndex = (r: Classroom, pos: SeatPos): number => (pos.row - 1) * r.depth + (pos.depth - 1);
 
-export const isSeatActive = (r: Classroom, pos: SeatPos): boolean => seatIndex(r, pos) < r.seatCount;
+export const isSeatActive = (r: Classroom, pos: SeatPos): boolean => classroomSeats(r).some((s) => s.row === pos.row && s.depth === pos.depth);
+
+/** 指定「可用座位」集合後回存：seatCount＝可用數，disabled＝其餘座位（全開就不留 disabled） */
+function withUsable(r: Classroom, usable: Set<string>): Classroom {
+  const off: string[] = [];
+  for (let row = 1; row <= r.rows; row++) for (let d = 1; d <= r.depth; d++) if (!usable.has(`${row}-${d}`)) off.push(`${row}-${d}`);
+  const { disabled: _drop, ...rest } = r;
+  void _drop;
+  return { ...rest, seatCount: usable.size, ...(off.length ? { disabled: off } : {}) };
+}
+
+const usableSet = (r: Classroom): Set<string> => new Set(classroomSeats(r).map(seatLabel));
 
 /**
  * 改橫排數或深位數：總格數不得超過 cap，也不得小於 1。
- * 原本座位全開就維持全開，否則座位數不超過新的總格數。
+ * 原本座位全開就維持全開；否則保留原本不排的座位（超出新範圍的丟掉），其餘可用。
  */
 export function resize(r: Classroom, patch: { rows?: number; depth?: number }, cap: number): Classroom {
   const rows = Math.max(1, Math.trunc(patch.rows ?? r.rows));
@@ -25,18 +37,33 @@ export function resize(r: Classroom, patch: { rows?: number; depth?: number }, c
   if (rows * depth > Math.max(cap, r.seatCount) && rows * depth > roomCapacity(r)) return r; // 超過上限：擋下
   const wasFull = r.seatCount === roomCapacity(r);
   const total = rows * depth;
-  return { ...r, rows, depth, seatCount: wasFull ? Math.min(total, cap) : Math.min(r.seatCount, total) };
+  if (wasFull) return withUsable({ ...r, rows, depth }, new Set(Array.from({ length: Math.min(total, cap) }, (_, i) => `${Math.floor(i / depth) + 1}-${(i % depth) + 1}`)));
+  const off = new Set(r.disabled ?? []);
+  const usable = new Set<string>();
+  // 沒有 disabled 的舊資料：不排的是順序最後那幾個，縮放後座位數不超過新的總格數
+  const legacy = !r.disabled || r.disabled.length === 0;
+  let n = 0;
+  for (let row = 1; row <= rows; row++) for (let d = 1; d <= depth; d++) {
+    const k = `${row}-${d}`;
+    if (off.has(k)) continue;
+    if (legacy && n >= r.seatCount) continue;
+    usable.add(k); n++;
+  }
+  if (usable.size === 0) usable.add('1-1');
+  return withUsable({ ...r, rows, depth }, usable);
 }
 
 /**
- * 點一個座位（D72）：點可用座位＝它和它之後都改成「不排」（至少留 1 個）；
- * 點不排的座位＝恢復到它為止（不得超過上限）。不能在中間挖洞。
+ * 點一個座位＝切換這個座位排或不排（2026-11-08 使用者裁示：使用者可以任意點哪些位子不能排；
+ * 「空位只在最後」是排座結果的規則，不限制使用者標示）。至少留 1 個可用；可用座位不得超過 cap。
  */
 export function clickSeat(r: Classroom, pos: SeatPos, cap: number): Classroom {
   const i = seatIndex(r, pos);
   if (i < 0 || i >= roomCapacity(r)) return r;
-  if (i < r.seatCount) return { ...r, seatCount: Math.max(1, i) };
-  return { ...r, seatCount: Math.min(i + 1, cap) };
+  const usable = usableSet(r);
+  const k = seatLabel(pos);
+  if (usable.has(k)) { if (usable.size <= 1) return r; usable.delete(k); } else { if (usable.size >= cap) return r; usable.add(k); }
+  return withUsable(r, usable);
 }
 
 /** 座位總數統計（D6：預備教室座位另計，不計入班級教室合計） */

@@ -20,7 +20,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <div style="margin:12px 0"><Alert tone={check.level === 'block' ? 'danger' : check.level === 'warn' ? 'warn' : 'ok'}>{check.message}</Alert></div>
       <StatsBar items={[{ label: '班級教室座位', value: classSeats, bad: check.level === 'block' }, { label: '考生', value: students }, { label: '預備教室座位（另計）', value: reserveSeats }]} />
       <p class="muted small" style="margin:12px 0">勾選本次使用的教室；預備教室座位另計，不計入班級教室合計。教室清單是全資料夾共用的（設定頁同一個畫面）。</p>
-      <RoomList rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
+      <RoomList classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
     </section>
   );
 }

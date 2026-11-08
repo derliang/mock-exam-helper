@@ -51,8 +51,10 @@ export type ClassroomKind = 'class' | 'reserve';
 
 /**
  * 教室。座位由排與深位組成：rows 排 × depth 深位；
- * seatCount ≤ rows*depth 為可用座位數，空位只在最後（D72）。
- * 座位順序：第 1 排深位 1→depth，再第 2 排…，取前 seatCount 個。
+ * seatCount ≤ rows*depth 為可用座位數。使用者可以任意指定哪些座位「不排」（disabled，2026-11-08 使用者裁示，修正 D72 的誤解：
+ * 「空位只在最後」是排座演算法的結果規則——人由前往後連續坐、跳過不排的座位——不是限制使用者標示哪裡沒位子）。
+ * 座位順序：第 1 排深位 1→depth，再第 2 排…，跳過 disabled，取前 seatCount 個。
+ * 沒有 disabled 的舊資料：不排的座位就是順序最後的那幾個。
  */
 export interface Classroom {
   id: string;
@@ -61,6 +63,8 @@ export interface Classroom {
   rows: number;
   depth: number;
   seatCount: number;
+  /** 使用者指定「不排」的座位，格式「排-深位」，例 "2-3"；沒有就不設。seatCount 要同步成 rows*depth 減去它的數量 */
+  disabled?: string[];
   /** 高中部班級教室所屬組別；國中部、預備教室不設（D4/D10） */
   track?: Track;
 }

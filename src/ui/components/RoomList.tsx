@@ -3,11 +3,12 @@ import type { Classroom, LabelPaper } from '../../data';
 import { seatLabel } from '../../data';
 import { Button, ConfirmButton, Stepper } from './index';
 import { confirmCopy } from '../flow';
+import { classColorVars } from '../colors';
 import { addRoom, clickSeat, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap } from '../rooms';
 
 /**
  * 教室清單與座位表編輯（步驟③與設定頁共用，D69②）：每間一列，點該列或「編輯座位表」就在列下展開，可收合。
- * 座位只能多不能少；點一個座位＝它和它之後都不排（D72）；座位上限依標籤紙（D74）。
+ * 座位只能多不能少；點哪個座位，哪個就不排（可任意指定）；座位上限依標籤紙（D74）。
  */
 export function RoomList(p: {
   rooms: Classroom[]; paper: LabelPaper; onChange: (r: Classroom[]) => void;
@@ -15,12 +16,15 @@ export function RoomList(p: {
   selected?: string[]; onSelect?: (ids: string[]) => void;
   /** 這間教室是否已被某次模擬考選用（刪除確認時提醒） */
   inUse?: (id: string) => boolean;
+  /** 班級資料：教室名稱與班級名稱相同時，前面的圓圈用該班的縮寫與代表色 */
+  classes?: { name: string; colorIndex: number }[];
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const cap = seatCap(p.paper);
   const upd = (id: string, f: (r: Classroom) => Classroom) => p.onChange(patchRoom(p.rooms, id, f));
   return (
     <div class="rw">
+      <p class="muted small">點教室那一列，或按「▸ 編輯座位表」，就會在下方展開座位配置。</p>
       {p.rooms.map((r) => {
         const isOpen = open === r.id;
         const on = p.selected?.includes(r.id) ?? false;
@@ -30,14 +34,14 @@ export function RoomList(p: {
               {p.selected && p.onSelect ? (
                 <input type="checkbox" aria-label={`使用${r.name}`} checked={on} onClick={(e) => e.stopPropagation()}
                   onChange={(e) => p.onSelect!(e.currentTarget.checked ? [...p.selected!, r.id] : p.selected!.filter((x) => x !== r.id))} />
-              ) : <span class="no" aria-hidden="true">{r.kind === 'class' ? '班' : '備'}</span>}
+              ) : <RoomBadge room={r} index={p.rooms.indexOf(r)} classes={p.classes} />}
               <div class="field"><label class="small" for={`rn-${r.id}`}>{r.kind === 'class' ? '班級教室' : '預備教室'}</label>
                 <input id={`rn-${r.id}`} class="input" value={r.name} onClick={(e) => e.stopPropagation()} onChange={(e) => upd(r.id, (x) => ({ ...x, name: e.currentTarget.value.trim() || x.name }))} /></div>
               <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">橫排（左右）</span><Stepper label="橫排" value={r.rows} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { rows: n }, cap))} /></div>
               <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">深位（前後）</span><Stepper label="深位" value={r.depth} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { depth: n }, cap))} /></div>
               <div class="info">座位 {r.seatCount}／{roomCapacity(r)}（上限 {cap}）</div>
               <div class="btnrow" onClick={(e) => e.stopPropagation()}>
-                <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '收合座位表' : '編輯座位表'}</Button>
+                <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '▾ 收合座位表' : '▸ 編輯座位表'}</Button>
                 <ConfirmButton small copy={confirmCopy.deleteRoom(r.name, !!p.selected?.includes(r.id) || !!p.inUse?.(r.id))} onConfirm={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</ConfirmButton>
               </div>
             </div>
@@ -53,6 +57,13 @@ export function RoomList(p: {
   );
 }
 
+/** 教室列前的圓圈：名稱與某班相同＝該班縮寫＋代表色；其他班級教室＝編號；預備教室＝「備」（不再寫莫名的「班」） */
+function RoomBadge(p: { room: Classroom; index: number; classes?: { name: string; colorIndex: number }[] }) {
+  const cls = p.room.kind === 'class' ? p.classes?.find((c) => c.name === p.room.name) : undefined;
+  if (cls) return <span class="no" aria-hidden="true" style={classColorVars(cls.colorIndex)}>{[...cls.name][0]}</span>;
+  return <span class="no" aria-hidden="true">{p.room.kind === 'class' ? p.index + 1 : '備'}</span>;
+}
+
 /** 座位表：講臺在下，深位 1 最靠講臺（左側只標數字），橫排標「第N排」，每格印「排-深位」（D49/D50） */
 function SeatGrid(p: { room: Classroom; cap: number; onChange: (r: Classroom) => void }) {
   const { room } = p;
@@ -61,7 +72,7 @@ function SeatGrid(p: { room: Classroom; cap: number; onChange: (r: Classroom) =>
   return (
     <div class="roomedit prev">
       <h4>{room.name} 座位表</h4>
-      <p class="muted small">點一個座位，它和它之後的座位都改成「不排」；再點「不排」的座位就恢復。空位只能在最後，不能在中間挖洞。</p>
+      <p class="muted small">點哪個座位，哪個就「不排」（打斜線，例如壞掉的桌椅或走道）；再點一次恢復。排座時會跳過不排的座位，人由前往後連續坐。</p>
       <div style="overflow-x:auto">
         <div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center">
           <div />
@@ -70,7 +81,7 @@ function SeatGrid(p: { room: Classroom; cap: number; onChange: (r: Classroom) =>
               const pos = { row: rw, depth: d };
               const act = isSeatActive(room, pos);
               return (
-                <button type="button" key={`${rw}-${d}`} class={`pc${act ? '' : ' off'}`} aria-pressed={act}
+                <button type="button" key={`${rw}-${d}`} class={`pc${act ? '' : ' off'}`} aria-pressed={act} title={act ? '點一下：這個座位不排' : '點一下：恢復這個座位'}
                   aria-label={`${seatLabel(pos)} ${act ? '可用' : '不排'}`} onClick={() => p.onChange(clickSeat(room, pos, p.cap))}>{seatLabel(pos)}</button>
               );
             }))}

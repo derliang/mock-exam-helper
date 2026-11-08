@@ -38,7 +38,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab })
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
       {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}
-      {tab === 'rooms' && <RoomList inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} />}
+      {tab === 'rooms' && <RoomList classes={p.doc.settings.classes} inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} />}
     </section>
   );
 }
@@ -119,31 +119,41 @@ function StudentForm(p: { doc: Doc; division: Division; student?: Student; onClo
 function Classes({ doc, onChange, division }: Props) {
   const list = doc.settings.classes.filter((c) => c.division === division);
   const trackOpts: { value: Track; label: string }[] = [{ value: 'science', label: '理組' }, { value: 'liberal', label: '文組' }];
+  const isJ = division === 'junior';
   return (
-    <div style="overflow-x:auto">
-      {division === 'junior' && <Alert tone="info">國中部不分理組、文組。</Alert>}
-      <table class="t">
-        <thead><tr><th>班級</th><th>班級色</th>{division === 'senior' && <th>組別</th>}</tr></thead>
-        <tbody>
-          {list.map((c) => {
-            const clash = colorConflicts(list, c.no, c.colorIndex);
-            return (
-              <tr key={c.no}>
-                <td><ClassChip colorIndex={c.colorIndex}>{String(c.no).padStart(2, '0')} {c.name}</ClassChip></td>
-                <td>
-                  <select class="input" aria-label={`${c.name}班級色`} value={c.colorIndex} onChange={(e) => onChange(setClassColor(doc, division, c.no, Number(e.currentTarget.value)))}>
-                    {Array.from({ length: CLASS_COLOR_COUNT }, (_, i) => <option key={i} value={i + 1}>{i + 1} {CLASS_COLOR_NAMES[i]}</option>)}
-                  </select>
-                  {clash.length > 0 && <div class="hint">⚠ 與 {clash.map((n) => String(n).padStart(2, '0')).join('、')} 班同色，黑白列印請靠班級字分辨</div>}
-                </td>
-                {division === 'senior' && (
-                  <td><Seg<Track> label={`${c.name}組別`} value={c.track ?? 'science'} options={trackOpts} onChange={(t) => onChange(setClassTrack(doc, division, c.no, t))} /></td>
-                )}
-              </tr>
-            );
-          })}
-        </tbody>
-      </table>
+    <div class="card stack">
+      <div>
+        <h3>班級資料（{isJ ? '國中部' : '高中部'}）</h3>
+        <p class="small muted">班級名稱、{isJ ? '班級色' : '文理組、班級色'}，所有模擬考共用。</p>
+      </div>
+      <div class="scroll">
+        <table class="t compact nw">
+          <thead><tr><th>班級</th><th>名稱</th>{!isJ && <th>文理組</th>}<th>班級色（{CLASS_COLOR_COUNT} 色）</th></tr></thead>
+          <tbody>
+            {list.map((c) => {
+              const clash = colorConflicts(list, c.no, c.colorIndex);
+              return (
+                <tr key={c.no}>
+                  <td><ClassChip colorIndex={c.colorIndex}>{String(c.no).padStart(2, '0')} {c.name}</ClassChip></td>
+                  <td><input class="input" style="min-width:90px;max-width:120px" value={c.name} aria-label={`第${c.no}班名稱`} disabled /></td>
+                  {!isJ && <td><Seg<Track> label={`${c.name}班文理組`} value={c.track ?? 'science'} options={trackOpts} onChange={(tr) => onChange(setClassTrack(doc, division, c.no, tr))} /></td>}
+                  <td>
+                    <div class="swatches" role="group" aria-label={`${c.name}班班級色`}>
+                      {Array.from({ length: CLASS_COLOR_COUNT }, (_, i) => (
+                        <button type="button" key={i} aria-pressed={c.colorIndex === i + 1} aria-label={`改成第 ${i + 1} 色 ${CLASS_COLOR_NAMES[i]}`} title={`${i + 1} ${CLASS_COLOR_NAMES[i]}`}
+                          style={`background:var(--c${i + 1}-bg);border-color:var(--c${i + 1}-line)`}
+                          onClick={() => onChange(setClassColor(doc, division, c.no, i + 1))} />
+                      ))}
+                    </div>
+                    {clash.length > 0 && <div class="hint">⚠ 與 {clash.map((n) => String(n).padStart(2, '0')).join('、')} 班同色，黑白列印請靠班級字分辨</div>}
+                  </td>
+                </tr>
+              );
+            })}
+          </tbody>
+        </table>
+      </div>
+      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，改色會套用到座位表與標籤。每格都另印班級字，黑白列印也分得出班；班級名稱（溫良恭儉勤誠）固定。</p>
     </div>
   );
 }
@@ -152,12 +162,22 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const s = doc.settings;
   const set = (patch: Partial<typeof s>) => onChange({ ...doc, settings: { ...s, ...patch } });
   return (
-    <div class="formgrid">
+    <div class="card stack">
+      <div>
+        <h3>學校與表頭資訊</h3>
+        <p class="small muted">座位表與標籤的固定表頭文字、預設紙張。</p>
+      </div>
       <div class="field"><label for="s-name">學校名稱</label><input id="s-name" class="input" value={s.schoolName} onChange={(e) => set({ schoolName: e.currentTarget.value })} /><span class="hint">印在座位表與標籤表頭</span></div>
-      <div class="field"><label for="s-head">表頭文字</label><input id="s-head" class="input" value={s.headerText} onChange={(e) => set({ headerText: e.currentTarget.value })} /><span class="hint">固定表頭</span></div>
-      <div class="field"><span class="label">座位表與名單</span><span>A4（固定）</span><span class="hint">不可改</span></div>
-      <div class="field"><span class="label">標籤紙張</span>
-        <Seg<LabelPaper> label="標籤紙張" value={s.defaultLabelPaper} onChange={(v) => set({ defaultLabelPaper: v })} options={[{ value: 'B4', label: 'B4（一般）' }, { value: 'A3', label: 'A3（大尺寸）' }]} />
+      <div class="field"><label for="s-head">表頭文字</label><input id="s-head" class="input" value={s.headerText} onChange={(e) => set({ headerText: e.currentTarget.value })} /><span class="hint">座位表與標籤共用的固定表頭</span></div>
+      <div class="field"><span class="label">預設紙張</span>
+        <div class="row">
+          <span>座位表與名單：A4（固定）</span>
+          <div class="seg fmtseg" role="group" aria-label="標籤預設紙張">
+            {([['B4', '標籤 B4（一般）'], ['A3', '標籤 A3（大尺寸）']] as const).map(([v, l]) => (
+              <button type="button" key={v} aria-pressed={s.defaultLabelPaper === v} onClick={() => set({ defaultLabelPaper: v as LabelPaper })}>{l}</button>
+            ))}
+          </div>
+        </div>
       </div>
     </div>
   );

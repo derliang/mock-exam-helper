@@ -4,6 +4,7 @@
  * 統計（D40）暫由本檔 computeStats 計算；施工B 若提供正式統計，替換此函式即可。
  */
 import {
+  classroomSeats,
   seatLabel,
   studentCode,
   type ClassInfo,
@@ -163,10 +164,7 @@ function makeCell(code: string, seat: { row: number; depth: number }, ctx: Ctx):
 }
 
 function usableOf(c: Classroom): Set<string> {
-  const s = new Set<string>();
-  let n = 0;
-  for (let r = 1; r <= c.rows; r++) for (let d = 1; d <= c.depth; d++) if (n++ < c.seatCount) s.add(`${r}-${d}`);
-  return s;
+  return new Set(classroomSeats(c).map((s) => `${s.row}-${s.depth}`));
 }
 
 function fromRoomStats(rs: RoomStats, ctx: Ctx): StatsModel {
