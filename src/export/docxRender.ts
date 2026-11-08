@@ -2,8 +2,8 @@
  * Word 輸出（D29、D44）：把中介模型畫成 .docx。
  * 字型：Regular 嵌 Big5 全集，Bold 只嵌實際用粗體的字（數字、編號、固定詞）。
  * boldMode：
- *  - 'separate-family'（預設）：Bold 當另一個字型家族「Noto Sans TC Bold」嵌入，粗體字用該家族。
- *  - 'embed-bold'：後處理 fontTable.xml，把 Bold 掛成同一家族的 embedBold，文字用 bold 旗標。
+ *  - 'embed-bold'（預設）：docx 套件原生寫法，Bold 掛在同一家族的 embedBold，文字用 bold 旗標。
+ *  - 'separate-family'：Bold 當另一個字型家族「Noto Sans TC Bold」嵌入，粗體字用該家族（備案）。
  *    兩者待真檔抽驗後擇一（見 docs/dispatch/完工-D.md）。
  */
 import {
@@ -24,7 +24,6 @@ import {
   WidthType,
   type ISectionOptions,
 } from 'docx';
-import JSZip from 'jszip';
 import {
   footerText,
   labelCellMm,
@@ -105,7 +104,7 @@ function footer(opts: DocxOptions): Footer {
 const A4_MARGIN_MM = 12;
 
 function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
-  const mode = opts.boldMode ?? 'separate-family';
+  const mode = opts.boldMode ?? 'embed-bold';
   const contentW = mmToTwip(PAPER_MM.A4.w - 2 * A4_MARGIN_MM);
   const depthColW = mmToTwip(8);
   const colW = Math.floor((contentW - depthColW) / Math.max(page.rows, 1));
@@ -198,7 +197,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
 /* ---------- 標籤（B4／A3）---------- */
 
 function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions {
-  const mode = opts.boldMode ?? 'separate-family';
+  const mode = opts.boldMode ?? 'embed-bold';
   const margin = opts.labelMarginMm ?? 10;
   const { layout } = page;
   const paper = PAPER_MM[layout.paper];
@@ -253,7 +252,7 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
 /* ---------- 抽離名單（A4）---------- */
 
 function listSection(page: ListPageModel, opts: DocxOptions): ISectionOptions {
-  const mode = opts.boldMode ?? 'separate-family';
+  const mode = opts.boldMode ?? 'embed-bold';
   const contentW = mmToTwip(PAPER_MM.A4.w - 2 * A4_MARGIN_MM);
   const fr = [2, 1.4, 1.6, 1.8, 3, 1.6];
   const sum = fr.reduce((a, b) => a + b, 0);
@@ -292,43 +291,30 @@ function listSection(page: ListPageModel, opts: DocxOptions): ISectionOptions {
 
 /* ---------- 組裝 ---------- */
 
-export type DocxPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel };
+export type DocxPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel | ListPageModel[] };
 
 /** 把一類輸出合併成一個多頁檔（D69）；回傳 .docx 位元組 */
 export async function renderDocx(pages: DocxPages, opts: DocxOptions): Promise<Uint8Array> {
-  const mode = opts.boldMode ?? 'separate-family';
+  const mode = opts.boldMode ?? 'embed-bold';
   const sections: ISectionOptions[] = [];
   for (const p of pages.seat ?? []) sections.push(seatSection(p, opts));
   for (const p of pages.label ?? []) sections.push(labelSection(p, opts));
-  if (pages.list) sections.push(listSection(pages.list, opts));
+  for (const l of [pages.list ?? []].flat()) sections.push(listSection(l, opts));
   if (sections.length === 0) throw new Error('沒有可輸出的頁面');
   const doc = new Document({
     creator: '模擬考小幫手',
     title: '模擬考小幫手輸出',
-    fonts: [
-      { name: FONT, data: Buffer.from(opts.fonts.regular), characterSet: '00' },
-      { name: FONT_BOLD, data: Buffer.from(opts.fonts.bold), characterSet: '00' },
-    ],
+    // docx 9.15 原生支援 bold 面（寫成同家族的 embedBold）；舊做法把 Bold 當另一個家族
+    fonts:
+      mode === 'embed-bold'
+        ? [{ name: FONT, data: opts.fonts.regular as never, bold: opts.fonts.bold as never, characterSet: '00' }]
+        : [
+            { name: FONT, data: opts.fonts.regular as never, characterSet: '00' },
+            { name: FONT_BOLD, data: opts.fonts.bold as never, characterSet: '00' },
+          ],
     styles: { default: { document: { run: { font: { ascii: FONT, hAnsi: FONT, eastAsia: FONT, cs: FONT }, size: 20 } } } },
     sections,
   });
-  const buf = await Packer.toBuffer(doc);
-  return mode === 'embed-bold' ? moveBoldToEmbedBold(buf) : new Uint8Array(buf);
-}
-
-/** 後處理：把第二個字型（Bold）的內嵌改掛在第一個家族下的 embedBold，並移除獨立的 Bold 家族 */
-export async function moveBoldToEmbedBold(docx: Uint8Array): Promise<Uint8Array> {
-  const zip = await JSZip.loadAsync(docx);
-  const f = zip.file('word/fontTable.xml');
-  if (!f) throw new Error('找不到 fontTable.xml');
-  let xml = await f.async('string');
-  const boldFont = new RegExp(`<w:font w:name="${FONT_BOLD}">[\\s\\S]*?</w:font>`);
-  const m = boldFont.exec(xml);
-  if (!m) throw new Error('找不到 Bold 字型家族');
-  const embed = /<w:embedRegular ([^>]*)\/>/.exec(m[0]);
-  if (!embed) throw new Error('Bold 字型沒有內嵌設定');
-  xml = xml.replace(boldFont, '');
-  xml = xml.replace(new RegExp(`(<w:font w:name="${FONT}">[\\s\\S]*?)(</w:font>)`), `$1<w:embedBold ${embed[1]}/>$2`);
-  zip.file('word/fontTable.xml', xml);
-  return zip.generateAsync({ type: 'uint8array', compression: 'DEFLATE' });
+  // toArrayBuffer：瀏覽器沒有 Node 的 Buffer
+  return new Uint8Array(await Packer.toArrayBuffer(doc));
 }

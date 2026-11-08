@@ -4,3 +4,6 @@ export * from './examList';
 export * from './roster';
 export * from './compare';
 export * from './xlsxWrite';
+export * from './smartHeader';
+export * from './marks';
+export * from './smartScan';

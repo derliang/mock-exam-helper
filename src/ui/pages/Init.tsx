@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { Alert, Button } from '../components';
+import { Alert, Badge, Button } from '../components';
 import type { Repository } from '../repository';
 
 /** 初始化：選資料夾 ＋ 拖拉資料夾（UI-03）。標題列不借用進度條樣式（UI-01/02） */
@@ -23,7 +23,7 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
 
   return (
     <section class="init">
-      <h1>模擬考小幫手</h1>
+      <h1>模擬考小幫手 <Badge>beta 測試版</Badge></h1>
       <p class="muted">第一次使用：選一個放資料的資料夾。名單與座位表只存在你的電腦，不會上傳。</p>
       <div class="btnrow" style="margin-top:16px">
         <Button kind="primary" disabled={busy || !p.fsSupported} onClick={() => run(() => p.repo.chooseFolder())}>選擇資料夾</Button>
