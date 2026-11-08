@@ -100,4 +100,23 @@ describe('資料夾存讀', () => {
     expect(await loadExamFile(fs, 'e1', 'result')).toBeNull();
     await expect(saveExamFile(fs, '../x', 'diffs', [])).rejects.toThrow();
   });
+  it('Doc.examFiles 跟著存讀；拿掉某個檔（例如復原到排座前）就移除主檔', async () => {
+    const fs = createMemoryFS();
+    const d: Doc = {
+      ...doc(),
+      examFiles: {
+        e1: {
+          entries: [{ classNo: 1, seatNo: 1, name: '測試甲', subjectIds: ['chi'] }],
+          result: { examId: 'e1', generatedAt: '2026-01-02', dataVersion: 'AAAA-BBBB-CCCC', assignments: [], marks: [], detaches: [], overrides: [] },
+        },
+      },
+    };
+    await saveDoc(fs, d);
+    expect((await loadDoc(fs)).data.examFiles).toEqual(d.examFiles);
+    await saveDoc(fs, { ...d, examFiles: { e1: { entries: d.examFiles!.e1!.entries! } } });
+    expect(await loadExamFile(fs, 'e1', 'result')).toBeNull();
+    expect((await loadDoc(fs)).data.examFiles?.e1?.result).toBeUndefined();
+    await saveDoc(fs, doc());
+    expect((await loadDoc(fs)).data.examFiles).toBeUndefined();
+  });
 });
