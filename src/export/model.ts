@@ -16,7 +16,7 @@ import {
   type Settings,
   type Student,
 } from '../data';
-import { detachRoomCounts, roomStats, type RoomStats } from '../core/stats';
+import { detachRoomCounts, roomStats, specialOf, type RoomStats } from '../core/stats';
 import { classColor } from './colors';
 
 export interface ExportInput {
@@ -199,7 +199,7 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
       depth: room.depth,
       cells,
       usable: usableOf(room),
-      stats: fromRoomStats(roomStats(id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches), ctx),
+      stats: fromRoomStats(roomStats(id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches, specialOf(input.result)), ctx),
     });
   }
   const groups = new Map<string, typeof input.result.detaches>();

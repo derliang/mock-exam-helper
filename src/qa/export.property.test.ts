@@ -5,7 +5,7 @@
 import { readFileSync } from 'node:fs';
 import JSZip from 'jszip';
 import { describe, expect, it } from 'vitest';
-import { runSeating } from '../core';
+import { roomStats, runSeating, specialOf } from '../core';
 import { classroomSeats, seatLabel, studentCode } from '../data/helpers';
 import type { ExamConfig, Settings } from '../data/types';
 import { buildDetachList, buildLabelPages, buildSeatPages, renderDocx, renderPrintHtml, type ExportInput } from '../export';
@@ -104,7 +104,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
       }
 
       // INV-16 標籤：每間有人的教室一張，順序與座位表一致，格數不超過
-      const labels = buildLabelPages(input);
+      const labels = buildLabelPages(input, 'class');
       expect(labels.reduce((a, p) => a + p.cells.length, 0), `seed=${seed}`).toBe(input.entries.length);
       for (const p of labels) {
         const coords = p.cells.map((c) => c.coord);
@@ -164,5 +164,27 @@ describe('姓名來源不同步的保險（缺陷 F-1 回歸）', () => {
     for (const p of buildSeatPages(input)) for (const c of p.cells.values()) expect(c.name, c.code).not.toBe('');
     for (const p of buildLabelPages(input)) for (const c of p.cells) expect(c.name, c.code).not.toBe('');
     for (const r of buildDetachList(input).rows) expect(r.name, r.code).not.toBe('');
+  });
+});
+
+describe('匯出統計＝畫面統計（含單人特例，缺陷 F-5 回歸）', () => {
+  it('每間教室每科人數與 roomStats(…, specialOf(result)) 的 inRoom 相同，且至少有案例受特例影響', () => {
+    let checked = 0;
+    let affected = 0;
+    for (let seed = 1; seed <= 400 && checked < 150; seed++) {
+      const x = exportInputOf(seed);
+      if (!x) continue;
+      checked++;
+      const { input } = x;
+      const sp = specialOf(input.result);
+      for (const p of buildSeatPages(input).filter((q) => !q.detachStyle)) {
+        const room = input.settings.classrooms.find((c) => p.title.includes(c.name + '　'))!;
+        const screen = roomStats(room.id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches, sp);
+        const without = roomStats(room.id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches);
+        expect(p.stats.perSubject.map((s) => s.count), `seed=${seed} ${room.name}`).toEqual(screen.perSubject.map((s) => s.inRoom));
+        if (screen.perSubject.some((s, i) => s.inRoom !== without.perSubject[i]!.inRoom)) affected++;
+      }
+    }
+    expect(affected).toBeGreaterThan(0);
   });
 });

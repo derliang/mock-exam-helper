@@ -73,3 +73,10 @@
 ## 驗證
 
 指令與結果見 PR 說明（`npm run typecheck`、`npm test`、`npm run build`）。
+
+## 追加（調度員補充）：F-5 匯出統計未扣單人特例
+
+- 缺陷：`src/export/model.ts` 的 `roomStats` 沒傳 `specialOf(result)`，有個別覆寫（到他處考試）時匯出統計比畫面多算人。
+- 先寫會失敗的回歸測試（`export.property.test.ts`〈匯出統計＝畫面統計〉，修前失敗：期望 `[1,2,1,3]` 實得 `[0,2,0,3]`），再修；修後全綠。測試同時要求至少有案例真的受特例影響，避免空轉。
+- 已 merge 最新 main（含 ④⑤）；標籤頁數檢查改用 `buildLabelPages(input, 'class')`（main 新增 scope，預設含抽離標籤）。
+- 驗證：typecheck 通過、`npm test` 23 檔 187 項全綠。
