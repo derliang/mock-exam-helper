@@ -49,14 +49,14 @@ function describeRoom(id: string, a: readonly SeatAssignment[]): string {
   return rows.map((r) => r.join(' ')).join(' | ');
 }
 
-describe('D24 舊座位表驗證（rotation 策略）', () => {
+describe('D24 舊座位表驗證', () => {
   it('高三 E2 理組三間教室完全吻合', () => {
     const rooms = [
       layout('R1', ['1111110', '1111111', '1111111', '1111111', '1111111', '1111111', '1111110']),
       layout('R2', ['1111110', '1111111', '1111111', '1111111', '1111111', '1111110', '1111110']),
       layout('R3', ['0111110', '1111111', '1111111', '1111111', '1111111', '1111111', '0111111']),
     ];
-    const r = seatLayouts(rooms, codesOf({ 1: 47, 2: 46, 3: 46 }), 'rotation');
+    const r = seatLayouts(rooms, codesOf({ 1: 47, 2: 46, 3: 46 }));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(describeRoom('R1', r.assignments)).toBe(
@@ -70,7 +70,7 @@ describe('D24 舊座位表驗證（rotation 策略）', () => {
     );
   });
 
-  it('國三第 1～5 間吻合；第 6 間舊表是依編號連續排，rotation 不同（已回報調度員）', () => {
+  it('國三第 1～5 間吻合；第 6 間舊表是依編號連續排，輪流排法不同（使用者選 A 不採，D73）', () => {
     const rooms = [
       layout('J1', ['1111110', '1111111', '1111111', '1111111', '1111111', '1111110']),
       layout('J2', ['0111111', '1111111', '1111111', '1111111', '1111111', '0111111']),
@@ -79,7 +79,7 @@ describe('D24 舊座位表驗證（rotation 策略）', () => {
       layout('J5', ['1111110', '1111111', '1111111', '1111111', '1111110', '1111110']),
       layout('J6', ['1111110', '1111110', '1111110', '1111111', '1111111', '1111111']),
     ];
-    const r = seatLayouts(rooms, codesOf({ 1: 40, 2: 40, 3: 41, 4: 39, 5: 39, 6: 39 }), 'rotation');
+    const r = seatLayouts(rooms, codesOf({ 1: 40, 2: 40, 3: 41, 4: 39, 5: 39, 6: 39 }));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     expect(describeRoom('J1', r.assignments)).toBe('01:1-6 | 02:1-7 | 03:1-7 | 04:1-7 | 05:1-7 | 06:1-6');
