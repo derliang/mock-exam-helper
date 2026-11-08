@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
-import { Alert, Seg, StepNav, TopBar, type StepState } from './components';
+import { Alert, Badge, Seg, StepNav, TopBar, type StepState } from './components';
 import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
 import { Init } from './pages/Init';
@@ -68,7 +68,7 @@ export function App() {
   return (
     <>
       <header class="pbar">
-        <span class="brand">模擬考小幫手</span>
+        <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge></span>
         {r.page !== 'init' && (
           <nav class="nav" aria-label="主要導覽">
             <button type="button" onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
