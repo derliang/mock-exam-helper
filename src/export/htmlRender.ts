@@ -2,7 +2,7 @@
  * PDF 輸出（D29：PDF 為輔）：產生列印用 HTML，由瀏覽器「列印成 PDF」。
  * 內容與 Word 共用 model.ts 的版面模型。紙張用 @page 具名頁面（Chrome 支援）：座位表、名單 A4，標籤 B4 或 A3。
  */
-import { footerText, labelCellMm, PAPER_MM, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
+import { footerText, labelCellMm, labelGrid, PAPER_MM, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
 
 export interface HtmlOptions {
   generatedAt: string;
@@ -56,11 +56,12 @@ function labelHtml(p: LabelPageModel, o: HtmlOptions): string {
   const { layout } = p;
   const cell = labelCellMm(layout, margin);
   const cells: string[] = [];
+  const grid = labelGrid(p);
   for (let i = 0; i < layout.cols * layout.rows; i++) {
-    const m = p.cells[i];
+    const m = grid[i];
     cells.push(
       m
-        ? `<div class="lab"><div class="coord">${esc(m.coord)}</div><div class="code" style="font-size:${(cell.w * 0.8).toFixed(1)}pt">${esc(m.code)}</div><div class="who" style="font-size:${(cell.w * 0.4).toFixed(1)}pt">${esc(m.classLabel)}｜${esc(m.name)}</div>${tagHtml(m)}</div>`
+        ? `<div class="lab" style="background:${m.colorBg};border-color:${m.colorLine};color:${m.colorFg}"><div class="coord">${esc(m.coord)}</div><div class="code" style="font-size:${(cell.w * 0.8).toFixed(1)}pt">${esc(m.code)}</div><div class="who" style="font-size:${(cell.w * 0.4).toFixed(1)}pt">${esc(m.classLabel)}｜${esc(m.name)}</div>${tagHtml(m)}</div>`
         : '<div class="lab"></div>',
     );
   }

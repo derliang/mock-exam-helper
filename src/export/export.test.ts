@@ -5,6 +5,7 @@ import { makeFixture } from './fixtures';
 import {
   buildDetachList,
   buildLabelPages,
+  labelGrid,
   buildSeatPages,
   findMissingChars,
   footerText,
@@ -81,6 +82,19 @@ describe('版面模型', () => {
     expect(pages).toHaveLength(2);
     expect(pages[0]!.cells.slice(0, 3).map((c) => c.coord)).toEqual(['1-1', '1-2', '1-3']);
     expect(pages[0]!.cells).toHaveLength(18);
+  });
+
+  it('標籤位置與座位表相同（D14、D38）：欄＝排，列＝深位，深位 1 在最下面，0101 在左下角，沒座位的位置留空', () => {
+    const pages = buildLabelPages(makeFixture({ labelCols: 7, labelRows: 7 }), 'class');
+    const g = labelGrid(pages[0]!); // 甲教室：4 排、深位 1～5，18 個座位（依 5 深位填：排1 深位1～5 …）
+    const at = (col: number, rowFromTop: number) => g[rowFromTop * 7 + col];
+    expect(at(0, 6)?.code).toBe('0101'); // 最下列、最左欄
+    expect(at(0, 2)?.code).toBe('0105'); // 排 1 深位 5：往上數第 5 格
+    expect(at(0, 1)).toBeUndefined(); // 深位 6、7 沒座位
+    expect(at(1, 6)?.coord).toBe('2-1'); // 第 2 排從左邊第 2 欄開始
+    expect(at(4, 6)).toBeUndefined(); // 第 5 排沒有座位
+    // 每個座位剛好出現一次
+    expect(g.filter(Boolean)).toHaveLength(18);
   });
 
   it('標籤預設（D74）：A3 7×7 固定 35mm 正方，B4 6 欄×8 列', () => {
