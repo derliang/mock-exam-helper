@@ -46,3 +46,17 @@ npm test            # 3 個檔案、31 項全過（含施工A 的 helpers 測試
 - 新增介面說明 `docs/core-api.md`，給施工C、D 用。
 - 存檔層：施工A 的 `SeatingResult` 已能裝下核心所有結果，不需要新增型別。`special`（單人特例地點）可以由 `overrides` 與 `marks` 重新算出，不必存檔。
 - 「接近一半」門檻仍是常數 `NEAR_HALF_RATIO = 0.4`，待使用者日後調整。
+
+## 第三輪：④⑤ 畫面（進行中，2026-11-08 因額度中斷）
+
+- 已交 PR #18（分支 `build/b-ui-seating`）：`Doc.examFiles`，考試名單、比對、覆寫、排座結果跟著 Doc 存讀與復原。
+- 已完成，未開 PR（分支 `build/b-ui-step45`）：`src/ui/seating.ts`，④⑤ 的畫面邏輯，附 `seating.test.ts` 共 7 項全過。內容：
+  - 標示規則：鎖定的照選；其餘照標少數；接近一半而未選的列為 undecided。
+  - 擋下原因，附前往處理的步驟。
+  - 過期判斷（版本碼比對）、重排與存回結果。
+  - 個別覆寫的設定、移除，改了以後自動重排。
+  - 驗證清單、抽離預覽、組別對照表。
+- **未做**：
+  - `pages/Step4.tsx`、`pages/Step5.tsx`、座位表元件（等比縮放不橫捲；12 色用 `classColorVars`，app.css 只到 6 色；抽離教室柔和單色；講臺在下）。
+  - App.tsx 的 Workspace 加 step 4、5。
+  - 座位表統計放在 ⑤ 座位表下方（原型如此，派工寫在 ④）。
