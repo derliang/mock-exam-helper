@@ -82,7 +82,7 @@ export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts:
   if (kind === 'ast') return fail('分科即將推出');
   if (doc.exams.some((e) => e.name === n)) return fail('已有同名的模擬考');
   const division: Division = kind === 'bcct' ? 'junior' : 'senior';
-  const round = kind === 'gsat' ? Math.min(4, doc.exams.filter((e) => e.kind === 'gsat').length + 1) : undefined;
+  const round = kind === 'gsat' ? doc.exams.filter((e) => e.kind === 'gsat').length + 1 : undefined;
   const prev = opts.prev && opts.prev.kind === kind ? opts.prev : undefined;
   const exam: ExamConfig = {
     id: `exam-${now.getTime()}`, name: n, kind, division, semester: opts.semester ?? 'first', round,
