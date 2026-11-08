@@ -68,4 +68,10 @@ export function applyImport(doc: Doc, division: Division, plan: ImportPlan, unkn
   return { ...doc, rosters: { ...doc.rosters, [division]: students } };
 }
 
+/** 依「新增班級／略過」的最終選擇，算出實際會寫入的人數（#71）：與 applyImport 同一套邏輯，不另行估算 */
+export function importOutcome(doc: Doc, division: Division, plan: ImportPlan, unknown: UnknownClassAction): { count: number; skipped: number } {
+  const count = applyImport(doc, division, plan, unknown).rosters[division].length;
+  return { count, skipped: plan.after - count };
+}
+
 export const codeLabel = (s: Pick<Student, 'classNo' | 'seatNo'>): string => studentCode(s.classNo, s.seatNo);

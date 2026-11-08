@@ -1,9 +1,9 @@
-import { useRef, useState } from 'preact/hooks';
+import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, Participation, RosterDiff, RosterDiffChoice } from '../../data';
-import { allResolved, applyDiffs, compareRosters, readXlsx, type Sheet } from '../../import';
+import { allResolved, applyDiffs, compareRosters, diffsStale, readXlsx, refreshDiffs, validateResolved, type Sheet } from '../../import';
 import { Alert, Badge, Button, ClassChip, ConfirmButton, Seg, StatsBar } from '../components';
 import { confirmCopy } from '../flow';
-import { updateExam, type Doc } from '../store';
+import { syncDiffs, updateExam, type Doc } from '../store';
 import { ImportWizard } from './ImportWizard';
 
 const KIND_TEXT: Record<RosterDiff['kind'], string> = {
@@ -31,11 +31,18 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const [editing, setEditing] = useState<string | null>(null);
   const [showCmp, setShowCmp] = useState(false);
   const [err, setErr] = useState('');
+  const [applyErr, setApplyErr] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
   const fullyAbsent = entries ? entries.filter((e) => e.subjectIds.length === 0).length : 0;
   const classNames = doc.settings.classes.filter((c) => c.division === exam.division).map((c) => c.name);
   const compare = (list: ExamEntry[]) => compareRosters(roster, list, exam.participation);
+
+  // 共用名單、考試名單、參加方式任一改變，已存的差異就過期：重算並只沿用內容完全相同的選擇（#60）
+  const stale = !!entries && diffsStale(diffs, refreshDiffs(roster, entries, exam.participation, diffs));
+  useEffect(() => {
+    if (entries && stale) save({ diffs: refreshDiffs(roster, entries, exam.participation, diffs) });
+  }, [stale, roster, entries, exam.participation]);
 
   const onFile = async (file: File) => {
     setErr('');
@@ -60,10 +67,14 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     save({ diffs: diffs.map((d) => (d.code === code ? { ...d, choice, edited } : d)) });
 
   /** 全部處理完才套用：學生名單與考試名單依選擇更新（一次 onChange，可復原） */
-  const apply = () => {
-    if (!entries) return;
+  const apply = (): boolean => {
+    if (!entries) return false;
     const r = applyDiffs(roster, entries, diffs);
+    const bad = validateResolved(r, new Set(classes.map((c) => c.no)));
+    if (bad) { setApplyErr(bad); return false; } // 有碰撞就不寫入任何一份名單（#67）
+    setApplyErr('');
     save({ entries: r.entries, diffs: [] }, { rosters: { ...doc.rosters, [exam.division]: r.students } });
+    return true;
   };
 
   const resolved = diffs.filter((d) => d.choice !== undefined && (d.choice !== 'manual' || d.edited)).length;
@@ -102,14 +113,15 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               <Seg<RosterDiffChoice> label={`第 ${i + 1} 筆處理方式`} value={(d.choice ?? '') as RosterDiffChoice}
                 onChange={(v) => { setEditing(v === 'manual' ? d.code : null); setChoice(d.code, v, v === 'manual' ? d.edited : undefined); }}
                 options={[{ value: 'use-exam', label: CHOICE_TEXT['use-exam'] }, { value: 'use-roster', label: CHOICE_TEXT['use-roster'] }, { value: 'manual', label: CHOICE_TEXT.manual }]} />
-              {d.choice === 'manual' && (editing === d.code || !d.edited) && <Editor diff={d} onSave={(e) => { setChoice(d.code, 'manual', e); setEditing(null); }} />}
+              {d.choice === 'manual' && (editing === d.code || !d.edited) && <Editor diff={d} classNos={classes.map((c) => c.no)} onSave={(e) => { setChoice(d.code, 'manual', e); setEditing(null); }} />}
               {d.choice === 'manual' && d.edited && editing !== d.code && <div class="hint">已改為 {who(d.edited)}　<Button small onClick={() => setEditing(d.code)}>再改</Button></div>}
             </div>
           );
         })}
+        {applyErr && <Alert tone="danger"><b>沒有套用，兩份名單都維持原樣。</b>{applyErr}</Alert>}
         <div class="row" style="justify-content:flex-end">
           <Button onClick={() => setShowCmp(false)}>先不處理</Button>
-          <Button kind="primary" disabled={!allResolved(diffs)} onClick={() => { apply(); setShowCmp(false); }}>
+          <Button kind="primary" disabled={!allResolved(diffs)} onClick={() => { if (apply()) setShowCmp(false); }}>
             {allResolved(diffs) ? `套用 ${diffs.length} 筆核對結果` : `還有 ${diffs.length - resolved} 筆沒選`}
           </Button>
         </div>
@@ -150,7 +162,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <div class="card stack">
         <div><h3>誰會參加</h3><p class="small muted">學測、會考預設全員參加；分科預設部分參加。</p></div>
         <Seg<Participation> label="參加模式" value={exam.participation}
-          onChange={(v) => { const r = updateExam(doc, exam.id, { participation: v }); if (r.ok) p.onChange(r.doc); }}
+          onChange={(v) => { const r = updateExam(doc, exam.id, { participation: v }); if (r.ok) p.onChange(syncDiffs(r.doc)); }}
           options={[{ value: 'all', label: '全員參加' }, { value: 'partial', label: '部分參加' }]} />
         {exam.participation === 'partial'
           ? <Alert tone="info">共用學生名單裡有、但不在本次考試名單的人，<b>不視為名單錯誤</b>，只在統計列顯示「未參加 {notJoin} 人」，不排座、不出現在座位表。</Alert>
@@ -192,12 +204,15 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 }
 
 /** 手動編輯：在該筆原地改班級、座號、姓名（D54） */
-function Editor(p: { diff: RosterDiff; onSave: (e: NonNullable<RosterDiff['edited']>) => void }) {
+function Editor(p: { diff: RosterDiff; classNos: readonly number[]; onSave: (e: NonNullable<RosterDiff['edited']>) => void }) {
   const base = p.diff.edited ?? p.diff.exam ?? p.diff.roster ?? { classNo: 1, seatNo: 1, name: '' };
   const [c, setC] = useState(String(base.classNo));
   const [s, setS] = useState(String(base.seatNo));
   const [n, setN] = useState(base.name);
-  const ok = Number.isInteger(Number(c)) && Number(c) > 0 && Number.isInteger(Number(s)) && Number(s) > 0 && n.trim() !== '';
+  const cn = Number(c), sn = Number(s);
+  const msg = !Number.isInteger(cn) || !p.classNos.includes(cn) ? '班級不存在，請先到「班級資料」新增'
+    : !Number.isInteger(sn) || sn < 1 || sn > 99 ? '座號要是 1～99 的整數' : n.trim() === '' ? '姓名不能空白' : '';
+  const ok = msg === '';
   return (
     <div class="stack">
       <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,150px),1fr));align-items:start">
@@ -206,7 +221,7 @@ function Editor(p: { diff: RosterDiff; onSave: (e: NonNullable<RosterDiff['edite
         <div class="field"><label>姓名<input class="input" aria-label="姓名" value={n} onInput={(e) => setN(e.currentTarget.value)} /></label></div>
       </div>
       <div class="row"><Button small kind="primary" disabled={!ok} onClick={() => p.onSave({ classNo: Number(c), seatNo: Number(s), name: n.trim() })}>完成編輯</Button>
-        <span class="hint">改完就算處理好，套用時以這裡的資料為準。</span></div>
+        <span class={msg ? 'field-msg' : 'hint'}>{msg || '改完就算處理好，套用時以這裡的資料為準。'}</span></div>
     </div>
   );
 }

@@ -14,7 +14,7 @@ const TYPES: { kind: ExamKind; level: string; title: string; subj: string; soon?
 export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, examId: string) => void; now?: () => Date }) {
   const now = p.now ?? (() => new Date());
   const [kind, setKind] = useState<ExamKind>('gsat');
-  const [name, setName] = useState(() => suggestExamName(p.doc, 'gsat'));
+  const [name, setName] = useState(() => suggestExamName(p.doc, 'gsat', (p.now ?? (() => new Date()))()));
   // 使用者沒自己改過名稱時，換類型就跟著換建議名稱
   const [edited, setEdited] = useState(false);
   const [semester, setSemester] = useState<Semester>('first');
@@ -25,7 +25,7 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
 
   const pick = (k: ExamKind) => {
     setKind(k); setErr('');
-    if (!edited) setName(suggestExamName(p.doc, k));
+    if (!edited) setName(suggestExamName(p.doc, k, now()));
   };
   const submit = () => {
     if (!check.ok) return;
