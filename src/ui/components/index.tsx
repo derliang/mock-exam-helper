@@ -170,7 +170,7 @@ export function EmptyState(p: { title: string; children?: ComponentChildren; act
   );
 }
 
-/** 常駐摘要列（不可關）：考生／座位／空位／待處理；待處理可點，一鍵跳到第一個問題 */
+/** 常駐摘要列（不可關）：考生／座位／空位／待處理；待處理只當標記（完整原因只在頁面上方的一則警示講，DESIGN 10.7 規則 4），可點，一鍵跳到第一個問題 */
 export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
   const { summary: s, issues } = p.flow;
   const lack = s.spare < 0;
@@ -183,7 +183,7 @@ export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
         ? <span class="ok">待處理 <b>0</b>　✓ 沒有待處理的事</span>
         : (
           <button type="button" class="warnbtn" onClick={() => p.onGo(issues[0]!.step)} title={issues.map((i) => i.text).join('；')}>
-            ⚠ 待處理 <b>{issues.length}</b>　{issues[0]!.text}　<u>{issues[0]!.fix}</u>
+            ⚠ 待處理 <b>{issues.length}</b>　<u>去處理</u>
           </button>
         )}
     </div>
