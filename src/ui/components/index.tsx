@@ -108,13 +108,32 @@ export function StepNav(p: { steps: { no: number; name: string; state: StepState
   );
 }
 
-/** 頂端「← 回到 …」與「↶ 復原（N）」列（DESIGN 10.1） */
-export function TopBar(p: { backLabel?: string; onBack?: () => void; undoCount: number; onUndo: () => void }): JSX.Element {
+/** 頂端「← 回到 …」與「↶ 復原：<動作>」列（DESIGN 10.1）；▾ 可直接回到任一步之前，不顯示累計數字 */
+export function TopBar(p: {
+  backLabel?: string; onBack?: () => void;
+  undoLabel?: string; onUndo: () => void;
+  /** 可回頭的步驟（最新在前）；index 交回 onUndoTo */
+  steps?: { index: number; label: string }[]; onUndoTo?: (index: number) => void;
+}): JSX.Element {
+  const steps = p.steps ?? [];
   return (
     <div class="btnrow topbar">
       {p.backLabel && p.onBack && <Button kind="ghost" onClick={p.onBack}>← 回到 {p.backLabel}</Button>}
       <span style="flex:1" />
-      <Button disabled={p.undoCount === 0} onClick={p.onUndo} title="Ctrl+Z">↶ 復原（{p.undoCount}）</Button>
+      <Button disabled={!p.undoLabel} onClick={p.onUndo} title="Ctrl+Z">{p.undoLabel ? `↶ 復原：${p.undoLabel}` : '↶ 復原'}</Button>
+      {steps.length > 1 && p.onUndoTo && (
+        <details class="undo-menu" style="position:relative">
+          <summary class="btn" aria-label="回到更早的步驟" title="回到更早的步驟">▾</summary>
+          <ol style="position:absolute;right:0;z-index:20;margin:4px 0 0;padding:8px 12px 8px 28px;background:var(--surface,#fff);border:1px solid var(--border,#ccc);border-radius:8px;min-width:240px;list-style:decimal">
+            {steps.map((st, i) => (
+              <li key={st.index}>
+                <button type="button" class="btn btn-ghost" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); p.onUndoTo?.(st.index); }}>回到「{st.label}」之前</button>
+                {i > 0 && <span class="small muted"> 後面 {i} 步會標為過期</span>}
+              </li>
+            ))}
+          </ol>
+        </details>
+      )}
     </div>
   );
 }

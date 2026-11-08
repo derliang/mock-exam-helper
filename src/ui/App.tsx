@@ -24,7 +24,8 @@ import { createFsRepository, isFsAccessSupported } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
 import { examLabel, stampModified, type Doc } from './store';
 import { APP_VERSION, formatVersion } from './version';
-import { canUndo, commit, newHistory, undo, type History } from './undo';
+import { describeChange } from './describeChange';
+import { canUndo, commit, newHistory, nextUndoLabel, undo, undoSteps, undoTo, type History } from './undo';
 
 type Theme = 'system' | 'light' | 'dark';
 // 支援資料夾授權的瀏覽器用真實存檔；不支援（非 Chrome）時用記憶體實作，並在初始化頁提示
@@ -62,14 +63,20 @@ export function App() {
   };
   const edit = (d0: Doc) => {
     const d = stampModified(hist.present, d0, new Date());
-    setHist((h) => commit(h, d)); void repo.save(d);
+    setHist((h) => commit(h, d, describeChange(h.present, d))); setStaleNote(undefined); void repo.save(d);
   };
   // 更換資料夾：重新選一個，成功才載入；使用者取消視窗不算錯誤
   const changeFolder = async () => {
     try { await repo.chooseFolder(); await load(); } catch (e) { if (!(e instanceof DOMException && e.name === 'AbortError')) setWarning('無法使用這個資料夾，請改選別的資料夾。'); }
   };
   const onUndo = () => setHist((h) => { const n = undo(h); void repo.save(n.present); return n; });
-  const undoCount = hist.past.length;
+  const [staleNote, setStaleNote] = useState<string | undefined>();
+  const onUndoTo = (index: number) => {
+    const r = undoTo(hist, index);
+    setHist(r.history); void repo.save(r.history.present);
+    // 比選中那步更新的動作一併退掉，標為過期（D47），讓使用者知道要重做哪些
+    setStaleNote(r.dropped.length > 1 ? `已回到「${r.dropped[r.dropped.length - 1]}」之前。後面 ${r.dropped.length - 1} 步已過期，需要時請重做：${r.dropped.slice(0, -1).reverse().join('、')}。` : undefined);
+  };
 
   const go = (r: Route) => setNav((s) => goTo(s, r));
   const go2 = (r: Route, from: { route: Route; label: string }) => setNav((s) => pushTo(s, r, from));
@@ -119,7 +126,8 @@ export function App() {
         )}
       </header>
       <main class="wrap">
-        {r.page !== 'init' && <TopBar backLabel={backLabel(nav)} onBack={back} undoCount={undoCount} onUndo={onUndo} />}
+        {r.page !== 'init' && <TopBar backLabel={backLabel(nav)} onBack={back} undoLabel={nextUndoLabel(hist)} onUndo={() => { setStaleNote(undefined); onUndo(); }} steps={undoSteps(hist)} onUndoTo={onUndoTo} />}
+        {staleNote && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{staleNote}</Alert></div>}
         {r.page === 'init' && <Init repo={repo} fsSupported={fsSupported} onRestore={fsRepo ? () => fsRepo.restore() : undefined} onDone={async () => { await load(); go({ page: 'exams' }); }} />}
         {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
         {r.page === 'exams' && <Exams doc={hist.present} folder={repo.folderName?.()} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} onNew={() => go({ page: 'new' })} onSettings={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} onChangeFolder={() => void changeFolder()} />}
