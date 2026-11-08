@@ -24,13 +24,13 @@ export type Prepared =
 /** 組輸入並排座；缺教室、缺學生或排座被擋時回 errors（中文，只含考生編號） */
 export function prepareExport(doc: Doc, exam: ExamConfig, now: string): Prepared {
   const students = doc.rosters[exam.division];
-  if (students.length === 0) return { ok: false, errors: ['缺學生名單：請先到「設定 → 學生名單」匯入或新增學生，再回來匯出。'] };
+  if (students.length === 0) return { ok: false, errors: ['缺學生名單：請先到「共用設定 → 學生名單」匯入或新增學生，再回來下載。'] };
   const rooms = exam.classroomIds
     .map((id) => doc.settings.classrooms.find((c) => c.id === id))
     .filter((c): c is NonNullable<typeof c> => !!c);
-  if (rooms.length === 0) return { ok: false, errors: ['缺教室：這次考試還沒勾選教室，請先到 ③ 教室設定勾選要用的教室，再回來匯出。'] };
+  if (rooms.length === 0) return { ok: false, errors: ['缺教室：這次考試還沒勾選教室，請先到 ③ 教室設定勾選要用的教室，再回來下載。'] };
   const entries = entriesOf(doc, exam);
-  if (!entries || entries.length === 0) return { ok: false, errors: ['缺考試名單：請先到 ② 考試名單匯入大考中心的考生資料 Excel，再回來匯出。'] };
+  if (!entries || entries.length === 0) return { ok: false, errors: ['缺考試名單：請先到 ② 考試名單匯入大考中心的考生資料 Excel，再回來下載。'] };
   // 與 ⑤ 畫面同源（seatingInputOf：鎖定規則＋「標少數」建議），才會座位、X 標示、抽離與版本碼都一致（驗收 D-2）
   const r = runSeating(seatingInputOf(doc, exam, now));
   if (!r.ok) return { ok: false, errors: r.errors };

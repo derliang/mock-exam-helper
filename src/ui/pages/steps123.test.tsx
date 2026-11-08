@@ -84,7 +84,7 @@ describe('沿用上次設定', () => {
     const { doc, first, second } = twoGsat();
     const r3 = { ...second, round: 3 };
     const rows = carryRows(doc, r3, { ...first, round: 2 });
-    expect(rows.map((r) => r.step)).toEqual(['② 考試名單', '③ 教室設定', '④ 標示與抽離規則', '⑤ 排座、⑥ 匯出']);
+    expect(rows.map((r) => r.step)).toEqual(['② 考試名單', '③ 教室設定', '④ 標示與抽離規則', '⑤ 排座、⑥ 下載']);
     expect(rows[2]?.badge).toBe('需確認');
     expect(carryRows(doc, second, first)[2]?.badge).toBe('沿用');
     expect(carryRows(doc, { ...second, kind: 'bcct' }, first)[2]?.badge).toBe('不需要');
@@ -92,10 +92,10 @@ describe('沿用上次設定', () => {
 });
 
 describe('步驟② 考試名單', () => {
-  it('尚未匯入：warn 狀態 alert＋「匯入並比對」、誰會參加、各班人數、名單比對、學生名單快照', () => {
+  it('尚未匯入：warn 狀態 alert＋「匯入本次考試名單」、誰會參加、各班人數、名單比對、共用學生名單', () => {
     const { doc, second } = twoGsat();
     const html = renderToString(<Step2 doc={doc} exam={second} onChange={noop} onToRoster={noop} />);
-    for (const t of ['還沒有匯入本次考試名單', '匯入並比對', '本次考試名單', '誰會參加', '全員參加', '部分參加', '各班人數', '合計', '名單比對（D42）', '學生名單快照', '到設定頁看學生名單']) expect(html).toContain(t);
+    for (const t of ['還沒有匯入本次考試名單', '匯入本次考試名單', '本次考試名單', '誰會參加', '全員參加', '部分參加', '各班人數', '合計', '名單比對', '共用學生名單', '查看／編輯共用學生名單']) expect(html).toContain(t);
   });
   it('已匯入且全部一致：ok alert＋「再匯入一次」', () => {
     const { doc, second } = twoGsat();
@@ -116,9 +116,22 @@ describe('步驟② 考試名單', () => {
 });
 
 describe('步驟③ 教室設定', () => {
+  it('D82：沒匯入考試名單時不顯示考生 0，說「尚未匯入考試名單」；匯入後以本次名單人數算（部分參加時與共用名單不同）', () => {
+    const { doc, second } = twoGsat();
+    const none = classCapacity(doc, second);
+    expect(none).toMatchObject({ lines: [], noList: true });
+    expect(renderToString(<Step3 doc={doc} exam={second} onChange={noop} />)).toContain('尚未匯入考試名單');
+    const some = doc.rosters.senior.slice(0, 3).map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: [] as string[] }));
+    const d: Doc = { ...doc, examFiles: { [second.id]: { entries: some, diffs: [] } } };
+    const r = classCapacity(d, second);
+    expect(r.noList).toBe(false);
+    expect(r.lines.reduce((n, l) => n + l.students, 0)).toBe(3);
+  });
   it('卡片：狀態檢核（理組／文組分列＋預備教室）、班級文理組、教室與座位', () => {
     const { doc, second } = twoGsat();
-    const html = renderToString(<Step3 doc={doc} exam={second} onChange={noop} />);
+    const entries = doc.rosters.senior.map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: [] as string[] }));
+    const withList: Doc = { ...doc, examFiles: { [second.id]: { entries, diffs: [] } } };
+    const html = renderToString(<Step3 doc={withList} exam={second} onChange={noop} />);
     for (const t of ['狀態檢核', '理組教室座位', '文組教室座位', '預備教室容量', '班級', '理組</button>', '文組</button>', '教室與座位']) expect(html).toContain(t);
   });
   it('分組容量：理組座位不夠擋下、文組夠；預備教室不足給 warn', () => {
@@ -129,7 +142,8 @@ describe('步驟③ 教室設定', () => {
       { id: 'r1', name: '試場1', kind: 'class' as const, rows: 1, depth: 1, seatCount: 1, track: 'science' as const },
       { id: 'r2', name: '試場2', kind: 'class' as const, rows: 8, depth: 6, seatCount: 48, track: 'liberal' as const },
     ];
-    const d: Doc = { ...doc, settings: { ...doc.settings, classes: [...track, ...doc.settings.classes.filter((c) => c.division !== 'senior')], classrooms: rooms }, exams: doc.exams.map((e) => (e.id === second.id ? { ...e, classroomIds: ['r1', 'r2'] } : e)) };
+    const entries = doc.rosters.senior.map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: [] as string[] }));
+    const d: Doc = { ...doc, examFiles: { [second.id]: { entries, diffs: [] } }, settings: { ...doc.settings, classes: [...track, ...doc.settings.classes.filter((c) => c.division !== 'senior')], classrooms: rooms }, exams: doc.exams.map((e) => (e.id === second.id ? { ...e, classroomIds: ['r1', 'r2'] } : e)) };
     const { lines } = classCapacity(d, d.exams[1] as ExamConfig);
     expect(lines.map((l) => l.label)).toEqual(['理組', '文組']);
     if (first > 1) expect(lines[0]?.ok).toBe(false);

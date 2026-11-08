@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import { Button, Modal } from './index';
 import { APP_NAME, APP_VERSION, BUILD_DATE, copyrightText, formatVersion, preLabel } from '../version';
 
-/** 全站頁尾：程式名稱、版本（可點開「關於」）、版權。不進匯出檔；列印時隱藏 */
+/** 全站頁尾：程式名稱、版本（可點開「關於」）、版權。不進下載檔；列印時隱藏 */
 export function Footer(p: { version?: string; buildDate?: string; onCopyright?: () => void; onPrivacy?: () => void }) {
   const version = p.version ?? APP_VERSION;
   const buildDate = p.buildDate ?? BUILD_DATE;
@@ -19,13 +19,13 @@ export function Footer(p: { version?: string; buildDate?: string; onCopyright?: 
         : <span class="pf-copy">© 版權所有</span>}
       {p.onPrivacy && <button type="button" class="pf-copy pf-link" onClick={p.onPrivacy}>隱私權</button>}
       {open && (
-        <Modal title={`關於${APP_NAME}`} onClose={() => setOpen(false)} actions={<Button kind="primary" onClick={() => setOpen(false)}>知道了</Button>}>
+        <Modal title={`關於${APP_NAME}`} onClose={() => setOpen(false)} actions={<Button kind="primary" onClick={() => setOpen(false)}>關閉</Button>}>
           <dl class="pf-about">
             <dt>版本</dt><dd>{formatVersion(version)}{pre ? `（${pre}，測試中）` : ''}</dd>
             <dt>建置日期</dt><dd>{buildDate || '—'}</dd>
             <dt>版權</dt><dd>{copyrightText()}</dd>
           </dl>
-          <p class="muted small">學生資料只存在這台電腦的本機資料夾，不會上傳到任何伺服器。</p>
+          <p class="muted small">本網站不會把學生資料上傳到任何伺服器，資料只存在這台電腦的本機資料夾；若該資料夾由雲端硬碟同步，同步軟體仍可能上傳。</p>
         </Modal>
       )}
     </footer>

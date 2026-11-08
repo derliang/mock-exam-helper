@@ -13,7 +13,7 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
     try {
       const r = await f();
       // 使用者按了取消或沒授權寫入：資料夾沒有生效
-      if (r === false || !p.repo.hasFolder()) setErr('沒有取得資料夾的讀寫授權（或拖進來的不是資料夾），請再試一次，或改用選擇資料夾。');
+      if (r === false || !p.repo.hasFolder()) setErr('沒有取得資料夾的讀寫授權，請再試一次，或改用「選擇資料夾」。若是用拖拉的，請確認拖進來的是資料夾，不是檔案。');
       else p.onDone();
     } catch (e) {
       // 使用者取消選擇視窗不算錯誤
@@ -36,7 +36,7 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
       </div>
       <div class="card stack">
         <h2 style="font-size:18px">第一次使用：選一個放資料的資料夾</h2>
-        <p class="muted">學生名單與座位結果只存在你的電腦，不會上傳到網路。請選一個你找得到的資料夾（例如放在雲端硬碟同步的位置）。之後開啟程式會直接使用這個資料夾。</p>
+        <p class="muted">學生名單與座位結果只存在你的電腦，本網站不會把它們上傳到網路。請選一個你找得到的資料夾；若這個資料夾由雲端硬碟同步，同步軟體仍可能把檔案上傳。下次開啟時會先嘗試沿用這個資料夾，瀏覽器可能要你重新授權。</p>
         <div
           class={`dropzone${over ? ' over' : ''}`} tabIndex={0} role="button"
           aria-label="把資料夾拖到這裡，或按一下選擇資料夾"
@@ -58,8 +58,8 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
         {err && <Alert tone="danger">{err}</Alert>}
       </div>
       {p.fsSupported
-        ? <Alert tone="info">每次模擬考都會在這個資料夾裡自己放一個資料夾，不同次的資料不會互相蓋掉。</Alert>
-        : <Alert tone="danger">這個瀏覽器不支援資料夾授權，無法存檔。請改用 Chrome。</Alert>}
+        ? <Alert tone="info">每次模擬考都會在這個資料夾裡另外建立一個獨立的資料夾，不同次的資料不會互相蓋掉。</Alert>
+        : <Alert tone="danger">目前這個瀏覽器無法儲存資料，請改用 Chrome 開啟。</Alert>}
     </div>
   );
 }

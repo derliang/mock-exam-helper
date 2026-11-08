@@ -47,7 +47,7 @@ export function goBack(s: NavState): NavState {
 
 export const backLabel = (s: NavState): string | undefined => s.back[s.back.length - 1]?.label;
 
-export const STEP_NAMES = ['考試設定', '考試名單', '教室設定', '標示與抽離規則', '排座與預覽', '匯出'] as const;
+export const STEP_NAMES = ['考試設定', '考試名單', '教室設定', '標示與抽離規則', '排座與預覽', '下載'] as const;
 export const stepTitle = (step: number): string => `${'①②③④⑤⑥'[step - 1] ?? ''} ${STEP_NAMES[step - 1] ?? ''}`;
 
 /** 路由防護（驗收 D-4）：已關閉的選用功能頁不可顯示，也不可出現在「← 回到」堆疊；目前頁被擋就回模擬考列表 */

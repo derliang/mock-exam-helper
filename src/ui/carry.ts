@@ -31,7 +31,7 @@ export function carryRows(doc: Doc, exam: ExamConfig, prev: ExamConfig): CarryRo
       : warn4
         ? { step: '④ 標示與抽離規則', badge: '需確認', tone: 'warn', text: '數學分科方式與上次不同，組別對照表要重新確認' }
         : { step: '④ 標示與抽離規則', badge: '沿用', tone: 'ok', text: '組別對照表與上次相同，依本次人數重新建議標示' },
-    { step: '⑤ 排座、⑥ 匯出', badge: '不沿用', text: '每次都重新排座與匯出' },
+    { step: '⑤ 排座、⑥ 下載', badge: '不沿用', text: '每次都重新排座與下載' },
   ];
 }
 
