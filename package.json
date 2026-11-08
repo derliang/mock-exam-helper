@@ -11,6 +11,8 @@
     "prepare": "git config core.hooksPath .githooks || true"
   },
   "dependencies": {
+    "docx": "^9.15.3",
+    "jszip": "^3.10.2",
     "preact": "^10.24.0"
   },
   "devDependencies": {
