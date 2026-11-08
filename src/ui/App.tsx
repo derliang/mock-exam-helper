@@ -8,7 +8,7 @@ import { Footer } from './components/Footer';
 import { Alert, Badge, Button, EmptyState, Seg, StepFooter, StepNav, SummaryBar, TopBar } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
-import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
+import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
 import { NewExam } from './pages/NewExam';
 import { Init } from './pages/Init';
@@ -81,8 +81,11 @@ export function App() {
 
   const go = (r: Route) => setNav((s) => goTo(s, r));
   const go2 = (r: Route, from: { route: Route; label: string }) => setNav((s) => pushTo(s, r, from));
-  const back = () => setNav(goBack);
-  const r = nav.route;
+  const lookupOn = enabledNav({ settings: hist.present.settings }).some((n) => n.route.page === 'lookup');
+  const allowed = (rt: Route) => rt.page !== 'lookup' || lookupOn;
+  const gnav = guardNav(nav, allowed);
+  const back = () => setNav(goBack(gnav));
+  const r = gnav.route;
   // 記住最近開啟的模擬考，導覽列才能在任何頁面一鍵跳到它的步驟
   const [lastExamId, setLastExamId] = useState<string | undefined>();
   useEffect(() => { if (r.page === 'step') setLastExamId(r.examId); }, [r]);
@@ -127,9 +130,9 @@ export function App() {
         )}
       </header>
       <main class="wrap">
-        {r.page !== 'init' && r.page !== 'copyright' && <TopBar backLabel={backLabel(nav)} onBack={back} undoLabel={nextUndoLabel(hist)} onUndo={() => { setStaleNote(undefined); onUndo(); }} steps={undoSteps(hist)} onUndoTo={onUndoTo} />}
+        {r.page !== 'init' && r.page !== 'copyright' && <TopBar backLabel={backLabel(gnav)} onBack={back} undoLabel={nextUndoLabel(hist)} onUndo={() => { setStaleNote(undefined); onUndo(); }} steps={undoSteps(hist)} onUndoTo={onUndoTo} />}
         {staleNote && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{staleNote}</Alert></div>}
-        {r.page === 'copyright' && <Copyright {...(backLabel(nav) ? { backLabel: backLabel(nav)! } : {})} onBack={() => (nav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} />}
+        {r.page === 'copyright' && <Copyright {...(backLabel(gnav) ? { backLabel: backLabel(gnav)! } : {})} onBack={() => (gnav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} />}
         {r.page === 'init' && <Init repo={repo} fsSupported={fsSupported} onRestore={fsRepo ? () => fsRepo.restore() : undefined} onDone={async () => { await load(); go({ page: 'exams' }); }} />}
         {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
         {r.page === 'exams' && <Exams doc={hist.present} folder={repo.folderName?.()} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} onNew={() => go({ page: 'new' })} onSettings={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} onChangeFolder={() => void changeFolder()} />}

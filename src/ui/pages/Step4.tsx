@@ -19,7 +19,7 @@ function markText(r: MarkRow): string {
 function StateBadge(p: { r: MarkRow }) {
   if (p.r.state === 'undecided') return <Badge tone="warn">接近一半，待選</Badge>;
   if (p.r.state === 'locked') return <Badge tone="info">已鎖定</Badge>;
-  return <Badge tone="ok">標少數</Badge>;
+  return <Badge tone="ok">系統建議（可改）</Badge>;
 }
 
 /** ④ 標示與抽離規則（DESIGN 10.4、原型 v4）：組別對照表 → 各科標示（接近一半由使用者選並鎖定，D12）→ 抽離人數 */
@@ -66,7 +66,13 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <h2>④ 標示與抽離規則</h2>
       {undecided
         ? <Alert tone="warn"><b>有 {undecided} 項接近一半的科目要你選。</b>選完才能排座；程式不替你決定要標哪一邊（D12）。</Alert>
-        : <Alert tone="ok">標示都已決定，可以前往排座。</Alert>}
+        : (
+          <Alert tone="ok">
+            {rows.some((r) => r.state === 'auto')
+              ? <><b>已採用系統建議（可改）。</b>沒有接近一半的科目；下表標「系統建議」的 {rows.filter((r) => r.state === 'auto').length} 項是程式依「標少數」自動採用的，不用逐項確認就能排座，想換標法可直接在表中改選。</>
+              : <>沒有需要標示的科目，可以前往排座。</>}
+          </Alert>
+        )}
 
       <div class="card stack">
         <div><h3>組別對照表</h3><p class="small muted">依考試名單的組別代碼統計人數與考科（D15）。</p></div>

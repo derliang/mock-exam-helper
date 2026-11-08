@@ -3,7 +3,7 @@
  * 不碰 DOM；元件只負責把這裡的結果畫出來。規則改這裡，測試在 flow.test.ts。
  */
 import type { ExamConfig } from '../data';
-import { checkSeats, seatTotals } from './rooms';
+import { checkSeats, roomsMissingTrack, seatTotals } from './rooms';
 import { examEntries, examResult, examRooms, isStale, seatingBlockers, needsMarks, validationChecks, type StepNo } from './seating';
 import { STEP_NAMES } from './nav';
 import type { Doc } from './store';
@@ -64,12 +64,14 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   else if (students > 0 && checkSeats(classSeats, students).level === 'block') {
     add({ step: 3, text: `③ 座位 ${classSeats} 少於考生 ${students}，還差 ${students - classSeats} 個`, fix: '去 ③ 增加座位', level: 'block' });
   }
-  const s3 = classRooms.length > 0 && spare >= 0;
+  const noTrack = roomsMissingTrack(classRooms, exam.division);
+  if (noTrack.length) add({ step: 3, text: `③ 班級教室「${noTrack.map((r) => r.name).join('、')}」還沒指定理組／文組，排座時分不出誰坐哪間`, fix: '去 ③ 指定理組／文組', level: 'block' });
+  const s3 = classRooms.length > 0 && spare >= 0 && noTrack.length === 0;
 
   // ④ 標示與抽離
   const b4 = blockers.filter((b) => b.step === 4);
   for (const b of b4) add({ step: 4, text: b.text, fix: '去 ④ 選標示', level: 'block' });
-  const s4 = s2 && b4.length === 0; // 會考不需要這一步，needsMarks 為 false 時 b4 必為空
+  const s4 = s2 && s3 && b4.length === 0; // 會考不需要這一步，needsMarks 為 false 時 b4 必為空
 
   // ⑤ 排座、過期、驗證
   const result = examResult(doc, exam);

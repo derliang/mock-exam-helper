@@ -4,6 +4,7 @@
  * 所以排座仍在匯出頁即時用 runSeating 算；⑤ 併入後改用已存的 result 與過期判斷，Step6 不用動。
  */
 import { runSeating } from '../core';
+import { seatingInputOf } from './seating';
 import type { ExamConfig, ExamEntry, Override } from '../data';
 import type { ExportInput } from '../export';
 import type { Doc } from './store';
@@ -30,18 +31,8 @@ export function prepareExport(doc: Doc, exam: ExamConfig, now: string): Prepared
   if (rooms.length === 0) return { ok: false, errors: ['缺教室：這次考試還沒勾選教室，請先到 ③ 教室設定勾選要用的教室，再回來匯出。'] };
   const entries = entriesOf(doc, exam);
   if (!entries || entries.length === 0) return { ok: false, errors: ['缺考試名單：請先到 ② 考試名單匯入大考中心的考生資料 Excel，再回來匯出。'] };
-  const r = runSeating({
-    examId: exam.id,
-    division: exam.division,
-    classes: doc.settings.classes.filter((c) => c.division === exam.division),
-    classrooms: rooms,
-    entries,
-    subjects: exam.subjects,
-    markRules: exam.markRules,
-    overrides: overridesOf(doc, exam),
-    ...(exam.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
-    now,
-  });
+  // 與 ⑤ 畫面同源（seatingInputOf：鎖定規則＋「標少數」建議），才會座位、X 標示、抽離與版本碼都一致（驗收 D-2）
+  const r = runSeating(seatingInputOf(doc, exam, now));
   if (!r.ok) return { ok: false, errors: r.errors };
   return {
     ok: true,
