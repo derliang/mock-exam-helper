@@ -5,5 +5,5 @@ import preact from '@preact/preset-vite';
 export default defineConfig({
   base: process.env.GITHUB_ACTIONS ? '/mock-exam-helper/' : '/',
   plugins: [preact()],
-  test: { include: ['src/**/*.test.ts'], environment: 'node' },
+  test: { include: ['src/**/*.test.{ts,tsx}'], environment: 'node' },
 });
