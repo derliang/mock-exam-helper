@@ -27,6 +27,7 @@ import {
 import {
   footerText,
   labelCellMm,
+  labelGrid,
   mmToTwip,
   PAPER_MM,
   type CellModel,
@@ -224,11 +225,12 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
   const sizeName = cell.w * 0.4;
   const sizeSmall = cell.w * 0.26;
 
+  const grid = labelGrid(page);
   const rows: TableRow[] = [];
   for (let r = 0; r < layout.rows; r++) {
     const cells: TableCell[] = [];
     for (let c = 0; c < layout.cols; c++) {
-      const m = page.cells[r * layout.cols + c];
+      const m = grid[r * layout.cols + c];
       // 有「X 不考／＋ 加考」標示的標籤：列高是固定值，內容多一行就會被裁成一條線。
       // 先算這格需要多高，不夠就只縮小這格的編號與姓名（中文字型行高約字級 1.5 倍），標示字維持可讀。
       let codeSz = sizeCode;
