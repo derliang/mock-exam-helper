@@ -1,5 +1,5 @@
 /** 教室編輯的純函式（D56、D69②：座位只多不少；使用者可任意指定哪些座位不排，排座時人由前往後連續坐、跳過不排的座位）。 */
-import type { Classroom, LabelPaper, SeatPos } from '../data';
+import type { Classroom, LabelPaper, SeatPos, Track } from '../data';
 import { classroomSeats, seatLabel } from '../data';
 import { defaultLabelLayout } from '../export/model';
 
@@ -97,3 +97,14 @@ export function addRoom(rooms: Classroom[], kind: Classroom['kind']): Classroom[
 
 export const removeRoom = (rooms: Classroom[], id: string): Classroom[] => rooms.filter((r) => r.id !== id);
 export const patchRoom = (rooms: Classroom[], id: string, f: (r: Classroom) => Classroom): Classroom[] => rooms.map((r) => (r.id === id ? f(r) : r));
+
+/** 指定教室屬於理組／文組（高中部班級教室必填；預備教室不用，會清掉） */
+export const setRoomTrack = (r: Classroom, track: Track | undefined): Classroom => {
+  const { track: _drop, ...rest } = r;
+  void _drop;
+  return track && r.kind === 'class' ? { ...rest, track } : rest;
+};
+
+/** 高中部排座要用的班級教室裡，還沒指定理／文組的（缺它排座會報「理組沒有可用的教室」，驗收 D-1） */
+export const roomsMissingTrack = (rooms: Classroom[], division: 'senior' | 'junior'): Classroom[] =>
+  division === 'senior' ? rooms.filter((r) => r.kind === 'class' && !r.track) : [];

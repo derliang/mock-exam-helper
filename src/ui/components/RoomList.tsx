@@ -1,10 +1,10 @@
 import { useState } from 'preact/hooks';
-import type { Classroom, LabelPaper } from '../../data';
+import type { Classroom, LabelPaper, Track } from '../../data';
 import { seatLabel } from '../../data';
-import { Button, ConfirmButton, Stepper } from './index';
+import { Button, ConfirmButton, Seg, Stepper } from './index';
 import { confirmCopy } from '../flow';
 import { classColorVars } from '../colors';
-import { addRoom, clickSeat, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap } from '../rooms';
+import { addRoom, clickSeat, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap, setRoomTrack } from '../rooms';
 
 /**
  * 教室清單與座位表編輯（步驟③與設定頁共用，D69②）：每間一列，點該列或「編輯座位表」就在列下展開，可收合。
@@ -39,6 +39,12 @@ export function RoomList(p: {
                 <input id={`rn-${r.id}`} class="input" value={r.name} onClick={(e) => e.stopPropagation()} onChange={(e) => upd(r.id, (x) => ({ ...x, name: e.currentTarget.value.trim() || x.name }))} /></div>
               <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">橫排（左右）</span><Stepper label="橫排" value={r.rows} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { rows: n }, cap))} /></div>
               <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">深位（前後）</span><Stepper label="深位" value={r.depth} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { depth: n }, cap))} /></div>
+              {r.kind === 'class' && (
+                <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">組別（高中部必選）</span>
+                  <Seg<Track> label={`${r.name}組別`} value={(r.track ?? '') as Track} options={[{ value: 'science', label: '理組' }, { value: 'liberal', label: '文組' }]}
+                    onChange={(t) => upd(r.id, (x) => setRoomTrack(x, t))} />
+                  {!r.track && <span class="hint">⚠ 還沒指定，高中部排座會被擋下</span>}</div>
+              )}
               <div class="info">座位 {r.seatCount}／{roomCapacity(r)}（上限 {cap}）</div>
               <div class="btnrow" onClick={(e) => e.stopPropagation()}>
                 <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '▾ 收合座位表' : '▸ 編輯座位表'}</Button>

@@ -120,7 +120,7 @@ export function TopBar(p: {
     <div class="btnrow topbar">
       {p.backLabel && p.onBack && <Button kind="ghost" onClick={p.onBack}>← 回到 {p.backLabel}</Button>}
       <span style="flex:1" />
-      <Button disabled={!p.undoLabel} onClick={p.onUndo} title="Ctrl+Z">{p.undoLabel ? `↶ 復原：${p.undoLabel}` : '↶ 復原'}</Button>
+      <Button disabled={!p.undoLabel} onClick={p.onUndo} title="Ctrl+Z" aria-label={p.undoLabel ? `復原：${p.undoLabel}` : '復原'}>{p.undoLabel ? `↶ 復原：${p.undoLabel}` : '↶ 復原'}</Button>
       {steps.length > 1 && p.onUndoTo && (
         <details class="undo-menu" style="position:relative">
           <summary class="btn" aria-label="回到更早的步驟" title="回到更早的步驟">▾</summary>
@@ -178,7 +178,7 @@ export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
     <div class="sumbar" role="region" aria-label="本次考試摘要">
       <span>考生 <b>{s.students}</b></span>
       <span>座位 <b>{s.seats}</b></span>
-      <span class={lack ? 'bad' : ''}>{lack ? '缺位' : '空位'} <b>{lack ? -s.spare : s.spare}</b></span>
+      <span class={lack ? 'bad' : ''}>{s.seats === 0 ? '空位' : lack ? '缺位' : '空位'} <b>{s.seats === 0 ? '—' : lack ? -s.spare : s.spare}</b></span>
       {issues.length === 0
         ? <span class="ok">警告 <b>0</b>　✓ 沒有待處理的事</span>
         : (
