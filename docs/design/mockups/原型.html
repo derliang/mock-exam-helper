@@ -443,6 +443,14 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .lsheet-wrap{display:grid;gap:8px;justify-items:center}
 .lsheet-box{max-width:100%}
 .lsheet{container-type:inline-size;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));grid-template-rows:repeat(8,minmax(0,1fr));aspect-ratio:250/353;width:100%;border-top:1px solid var(--cut);border-left:1px solid var(--cut);background:var(--surface);box-shadow:var(--shadow-2)}
+.utabs{display:flex;gap:4px;border-bottom:2px solid var(--line-2);overflow-x:auto;max-width:100%}
+.utabs button{font:inherit;font-weight:700;min-height:44px;padding:0 18px;border:0;border-bottom:4px solid transparent;margin-bottom:-2px;background:transparent;color:var(--text-2);cursor:pointer;white-space:nowrap}
+.utabs button:hover{color:var(--text)}
+.utabs button[aria-pressed="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.utabs button:focus-visible{outline:3px solid var(--accent);outline-offset:-3px}
+.seg.seg-soft{background:var(--surface);border-radius:999px;padding:3px;gap:2px}
+.seg.seg-soft button{border-radius:999px;min-height:32px}
+.seg.seg-soft button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
 .lprev{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end}
 .lprev figure{margin:0}
 .lprev-box{overflow:hidden}
@@ -1096,8 +1104,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     S.dept=S.dept||deptOf(S.cur);
     var tab=S.stab||'stu',d=D(),dept=S.dept,isJ=dept==='國中部';
     var tabs=[['stu','學生名單'],['cls','班級資料'],['school','學校與表頭'],['rooms','教室清單']];
-    var seg='<div class="seg" role="group" aria-label="設定項目">'+tabs.map(function(t){return '<button type="button" data-act="stab" data-v="'+t[0]+'" aria-pressed="'+(tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
-    var deptSeg=tab==='school'?'':'<div class="row"><span class="label" style="margin:0">部別</span><div class="seg" role="group" aria-label="部別">'+['高中部','國中部'].map(function(x){return '<button type="button" data-act="dept" data-v="'+x+'" aria-pressed="'+(dept===x)+'">'+x+'</button>'}).join('')+'</div><span class="small muted">'+(isJ?'國中部：不分文理組，會考科目固定七科':'高中部：每個班級分理組或文組')+'</span></div>';
+    var seg='<div class="utabs" role="group" aria-label="設定項目">'+tabs.map(function(t){return '<button type="button" data-act="stab" data-v="'+t[0]+'" aria-pressed="'+(tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
+    var deptSeg=tab==='school'?'':'<div class="row"><span class="label" style="margin:0">部別</span><div class="seg seg-soft" role="group" aria-label="部別">'+['高中部','國中部'].map(function(x){return '<button type="button" data-act="dept" data-v="'+x+'" aria-pressed="'+(dept===x)+'">'+x+'</button>'}).join('')+'</div><span class="small muted">'+(isJ?'國中部：不分文理組，會考科目固定七科':'高中部：每個班級分理組或文組')+'</span></div>';
     var body='';
     if(tab==='stu')body=vRosterTab();
     else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用（D9、D28、D61）。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱" disabled></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td></tr>'}).join('')+'</tbody></table></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱（溫良恭儉勤誠）在原型固定。</p></div>';
