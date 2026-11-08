@@ -38,3 +38,42 @@ export function addSubject(list: Subject[], name: string): Subject[] {
   while (list.some((x) => x.id === `custom-${i}`)) i++;
   return [...list, { id: `custom-${i}`, name: n, custom: true }];
 }
+
+/** 誰要考（原型步驟①「誰要考」欄）：預設只有數學A／B、自然、社會依組別，其餘每位考生都考；使用者可改 */
+export type SubjectWho = 'all' | 'group';
+const GROUP_IDS = new Set(['math-a', 'math-b', 'science', 'social']);
+export function subjectWho(kind: ExamKind, s: Subject): SubjectWho {
+  if (s.who) return s.who;
+  if (kind === 'bcct') return 'all';
+  return GROUP_IDS.has(s.id) ? 'group' : 'all';
+}
+export const WHO_LABEL: Record<SubjectWho, string> = { all: '每位考生都考', group: '依組別代碼決定' };
+
+/** 科目旁的說明標籤：依次別（數學隨次別變）、只有第 1、2 次（英聽）；「已自訂」另由 s.custom 決定 */
+export function subjectTags(kind: ExamKind, s: Subject): { text: string; tone?: 'info' | 'warn' }[] {
+  if (kind === 'bcct') return [];
+  const tags: { text: string; tone?: 'info' | 'warn' }[] = [];
+  if (!s.custom && (s.id === 'math' || s.id === 'math-a' || s.id === 'math-b')) tags.push({ text: '依次別', tone: 'info' });
+  if (s.custom) tags.push({ text: '已自訂', tone: 'warn' });
+  if (s.id === 'en-listen') tags.push({ text: '只有第 1、2 次' });
+  return tags;
+}
+
+/** 數學是否分 A、B（第 3 次起） */
+export const mathSplit = (round: number | undefined): boolean => (round ?? 1) >= 3;
+
+/** 新增／編輯單一科目：名稱不可空白、不可與其他科目同名；回傳新的考科表或錯誤 */
+export function saveSubject(kind: ExamKind, list: Subject[], id: string | null, name: string, who: SubjectWho): { ok: true; list: Subject[] } | { ok: false; error: string } {
+  const n = name.trim();
+  if (!n) return { ok: false, error: '科目名稱不能空白' };
+  if (list.some((x) => x.id !== id && x.name === n)) return { ok: false, error: `已有「${n}」這一科` };
+  if (id === null) {
+    let i = list.length + 1;
+    while (list.some((x) => x.id === `custom-${i}`)) i++;
+    return { ok: true, list: [...list, { id: `custom-${i}`, name: n, custom: true, who }] };
+  }
+  // 什麼都沒改就不標「已自訂」
+  const cur = list.find((x) => x.id === id);
+  if (!cur || (cur.name === n && subjectWho(kind, cur) === who)) return { ok: true, list };
+  return { ok: true, list: list.map((x) => (x.id === id ? { ...x, name: n, who, custom: true } : x)) };
+}

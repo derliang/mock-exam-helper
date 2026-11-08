@@ -85,6 +85,8 @@ export interface Subject {
   name: string;
   /** 使用者改過預設時為 true，畫面標「已自訂」 */
   custom?: boolean;
+  /** 誰要考：all＝每位考生都考、group＝依組別代碼決定（在步驟④設定）；沒設就依預設（見 subjects.ts） */
+  who?: 'all' | 'group';
 }
 
 /** 是否全員參加（D64） */
@@ -131,6 +133,8 @@ export interface ExamConfig {
   createdAt: string;
   /** 最後修改時間（ISO）；舊資料沒有這個欄位時以 createdAt 代替 */
   updatedAt?: string;
+  /** false＝使用者在步驟①按了「不沿用，從空白開始」；沒設＝沿用上一次同類型的設定 */
+  carry?: boolean;
 }
 
 /** 考試名單一筆（D63）：誰參加、考什麼科 */
