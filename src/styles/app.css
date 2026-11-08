@@ -444,3 +444,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .btn-fmt{display:inline-flex;align-items:center;gap:8px}
 .btn-fmt svg{width:22px;height:22px;flex:none}
 .btn-fmt.x{background:var(--fmt-xls-soft);border-color:var(--fmt-xls)}
+/* V3-1：教室列（含組別鈕）在任何寬度都可換行，不再依視窗寬度（卡片寬度才是實際限制） */
+.roomrow.hastrack{display:flex;flex-wrap:wrap}.roomrow.hastrack>.field:nth-of-type(1){flex:1 1 180px}.roomrow.hastrack>.field{flex:0 1 auto}.roomrow.hastrack .info{flex:1 1 auto}
+/* V2-5：窄螢幕分段鈕撐滿容器、文字可換行，不再被截 */
+@media (max-width:480px){.seg{width:100%}.seg button{flex:1 1 0;white-space:normal;line-height:1.3;padding-block:6px}}
+/* V3-1 根因：.rw 是 grid，子項預設 min-width:auto 會被內容撐寬而突出卡片 */
+.rw>*{min-width:0}
