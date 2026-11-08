@@ -78,7 +78,7 @@ describe('步驟狀態（第N/6步、完成狀態）', () => {
     const changed: Doc = { ...d, examFiles: { e1: { ...d.examFiles!.e1!, entries: entries.slice(0, 6) } } };
     const f = flowOf(changed, e, 1);
     expect(f.steps[4]!.state).toBe('stale');
-    expect(f.issues.map((i) => i.text)).toEqual(['⑤ 名單或設定在排座後改過，座位表已過期']);
+    expect(f.issues.map((i) => i.text)).toEqual(['⑤ 名單或設定在排座後改過，需要重新排座']);
   });
 
   it('考科表被刪光：① 未完成並要求還原', () => {
@@ -106,14 +106,15 @@ describe('前置條件與「下一步」按鈕', () => {
     const e = exam();
     const f = flowOf(doc(e, false), e, 2);
     const n = nextAction(f, 2);
-    expect(n).toMatchObject({ kind: 'blocked', to: 3, fixStep: 2, fix: '去 ② 匯入考試名單' });
-    expect(n.kind === 'blocked' && n.reason).toContain('考試名單還沒有匯入');
+    // TODO-17：不禁止，只標示原因（D47）
+    expect(n).toMatchObject({ kind: 'go', to: 3, pending: { fixStep: 2, fix: '去 ② 匯入考試名單' } });
+    expect(n.kind === 'go' && n.pending?.reason).toContain('考試名單還沒有匯入');
   });
 
   it('④ 有未選的標示 → 不能進 ⑤，指向 ④', () => {
     const f = flowOf(doc(), exam(), 4);
     const n = nextAction(f, 4);
-    expect(n).toMatchObject({ kind: 'blocked', to: 5, fixStep: 4 });
+    expect(n).toMatchObject({ kind: 'go', to: 5, pending: { fixStep: 4 } });
   });
 
   it('座位少於考生 → 擋在 ③ 之後，並寫出差幾個', () => {
@@ -121,16 +122,16 @@ describe('前置條件與「下一步」按鈕', () => {
     const f = flowOf(doc(e), e, 3);
     expect(f.summary).toMatchObject({ students: 7, seats: 5, spare: -2 });
     const n = nextAction(f, 3);
-    expect(n).toMatchObject({ kind: 'blocked', fixStep: 3 });
-    expect(n.kind === 'blocked' && n.reason).toContain('還差 2 個');
+    expect(n).toMatchObject({ kind: 'go', pending: { fixStep: 3 } });
+    expect(n.kind === 'go' && n.pending?.reason).toContain('還差 2 個');
   });
 
   it('還沒排座不能進 ⑥；排座完成才放行；⑥ 沒有下一步', () => {
     const e = decided();
     const f = flowOf(doc(e), e, 5);
-    expect(nextAction(f, 5)).toMatchObject({ kind: 'blocked', to: 6, fixStep: 5, fix: '去 ⑤ 開始排座' });
+    expect(nextAction(f, 5)).toMatchObject({ kind: 'go', to: 6, pending: { fixStep: 5, fix: '去 ⑤ 開始排座' } });
     const { d, e: e2 } = seated();
-    expect(nextAction(flowOf(d, e2, 5), 5)).toEqual({ kind: 'go', to: 6, label: '下一步：⑥ 匯出' });
+    expect(nextAction(flowOf(d, e2, 5), 5)).toEqual({ kind: 'go', to: 6, label: '下一步：⑥ 下載' });
     expect(nextAction(flowOf(d, e2, 6), 6)).toEqual({ kind: 'none' });
   });
 
@@ -185,5 +186,32 @@ describe('破壞性動作文案與完工頁', () => {
     expect(afterExport('pdf', 'A3')[1]!.text).toContain('A3');
     expect(afterExport('word', 'B4').some((i) => i.step === 5)).toBe(true);
     expect(afterExport('word', 'B4').some((i) => i.nav === 'exams')).toBe(true);
+  });
+});
+
+describe('施工N：D82 考生人數、TODO-17 下一步不擋人', () => {
+  it('D82：沒匯入考試名單時摘要列顯示「尚未匯入考試名單」，不是 0', async () => {
+    const { renderToString } = await import('preact-render-to-string');
+    const { SummaryBar } = await import('./components');
+    const e = exam();
+    const html = renderToString(SummaryBar({ flow: flowOf(doc(e, false), e, 2), onGo: () => undefined }));
+    expect(html).toContain('尚未匯入考試名單');
+    expect(html).not.toMatch(/考生 <b>0<\/b>/);
+    expect(html).toContain('待處理');
+    const ok = renderToString(SummaryBar({ flow: flowOf(doc(e, true), e, 2), onGo: () => undefined }));
+    expect(ok).toContain('考生 <b>7</b>');
+  });
+  it('TODO-17：下一步按鈕不停用，只標示原因；按鈕在頁面上方元件（StepNextBar）', async () => {
+    const { renderToString } = await import('preact-render-to-string');
+    const { StepNextBar } = await import('./components');
+    const e = exam();
+    const html = renderToString(StepNextBar({ action: nextAction(flowOf(doc(e, false), e, 2), 2), onGo: () => undefined })!);
+    expect(html).toContain('前面還有事沒做完');
+    expect(html).toContain('下一步：③ 教室設定');
+    expect(html).not.toContain('disabled');
+  });
+  it('TODO-19：步驟 ⑥ 叫「下載」', async () => {
+    const { STEP_NAMES } = await import('./nav');
+    expect(STEP_NAMES[5]).toBe('下載');
   });
 });

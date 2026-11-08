@@ -395,7 +395,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .sumbar .ok{color:var(--ok-ink);font-weight:700}
 .sumbar .warnbtn{margin-left:auto;display:inline-flex;gap:4px;align-items:center;min-height:36px;padding:4px 12px;border:1.5px solid var(--warn-bar);border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn-ink);font:inherit;font-weight:700;cursor:pointer;text-align:left}
 .sumbar .warnbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.stepfoot{display:grid;gap:10px;margin-top:20px;padding-top:16px;border-top:1px solid var(--line)}
+.stepnext{display:grid;gap:10px}
+.topbar{margin-bottom:16px}
 .empty{display:grid;gap:8px;justify-items:start;padding:20px;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--surface)}
 .empty strong{font-family:var(--f-head);font-size:18px}
 .empty p{margin:0}

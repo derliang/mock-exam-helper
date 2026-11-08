@@ -32,7 +32,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   return (
     <section class="stack">
       <div class="card stephead">
-        <div><h2>① 考試設定</h2><p class="small muted">名稱、學期、次別與考科表；考科表決定 ② 名單比對的科目與 ⑥ 匯出的標題。</p></div>
+        <div><h2>① 考試設定</h2><p class="small muted">名稱、學期、次別與考科表；考科表決定 ② 名單比對的科目與 ⑥ 下載檔的標題。</p></div>
       </div>
 
       <div class="card stack">
@@ -54,24 +54,24 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           <div class="field"><span class="label">次別（學測模擬考第幾次）</span>
             <Seg<string> label="次別" value={String(round)} onChange={(v) => setRound(Number(v))}
               options={rounds.map((n) => ({ value: String(n), label: `第${CN[n] ?? n}次` }))} />
-            <span class="hint">第 1、2 次數學是單一科，第 3 次起分為數學A、數學B</span></div>
+            <span class="hint">第 1、2 次：數學為單一科，另考英聽　｜　第 3 次起：數學分為數學A、數學B</span></div>
         )}
         {err && <Alert tone="danger">{err}</Alert>}
       </div>
 
       <div class="card stack">
         <div class="row" style="justify-content:space-between">
-          <div><h3>考科表</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除（D52）</p></div>
+          <div><h3>本次考科表</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除；只影響這一次模擬考。</p></div>
           {!fixed && (
             <div class="row">
-              {custom && <ConfirmButton kind="default" copy={confirmCopy.resetSubjects()} onConfirm={() => set({ subjects: defaultSubjects(exam.kind, exam.round) })}>還原預設</ConfirmButton>}
+              {custom && <ConfirmButton kind="default" copy={confirmCopy.resetSubjects()} onConfirm={() => set({ subjects: defaultSubjects(exam.kind, exam.round) })}>還原本次考科</ConfirmButton>}
               <Button onClick={() => setEditing({ id: null })}>新增考科</Button>
             </div>
           )}
         </div>
         {fixed && <Alert tone="info"><b>會考科目固定為七科</b>：國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗，不能新增、刪除或修改。</Alert>}
         {gsat && mathSplit(round) && <Alert tone="info"><b>第{CN[round] ?? round}次起數學分為數學A、數學B</b>；第 1、2 次數學只有一科，另有英聽。</Alert>}
-        {custom && <Alert tone="warn">考科表已自訂，④ 的組別對照表要重新確認。</Alert>}
+        {custom && <Alert tone="warn">考科表已自訂：切換次別不會重設考科；④ 的組別對照表要重新確認。</Alert>}
         <div class="scroll"><table class="t compact">
           <thead><tr><th>科目</th><th>誰要考</th><th /></tr></thead>
           <tbody>
@@ -89,11 +89,11 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             ))}
           </tbody>
         </table></div>
-        <p class="small muted">{fixed ? '會考不分文理組，沒有選考，不需要標示與抽離（D30）。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</p>
+        <p class="small muted">{fixed ? '會考不分文理組，沒有選考，不需要標示與抽離。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</p>
       </div>
 
       <div class="card stack">
-        <div><h3>沿用上次的設定</h3><p class="small muted">新增時自動帶入，不用手動複製（D34）</p></div>
+        <div><h3>沿用上次的設定</h3><p class="small muted">新增時自動帶入，不用手動複製</p></div>
         {mode === 'off' && (
           <Alert tone="warn" action={prev && <Button small onClick={() => p.onChange(resumeCarry(doc, exam))}>恢復沿用</Button>}>
             <b>已改為不沿用</b>：② 到 ④ 都從空白開始，需要重新匯入名單、設定教室與規則。
@@ -138,7 +138,7 @@ function SubjectModal(p: { exam: ExamConfig; id: string | null; onClose: () => v
       actions={<><Button onClick={p.onClose}>取消</Button><Button kind="primary" onClick={save}>儲存</Button></>}>
       <div class="stack">
         <div class={`field${err ? ' err' : ''}`}><label for="sj-name">科目名稱</label>
-          <input id="sj-name" class="input" value={name} onInput={(e) => { setName(e.currentTarget.value); setErr(''); }} />
+          <input id="sj-name" class="input" placeholder="輸入考科名稱" value={name} onInput={(e) => { setName(e.currentTarget.value); setErr(''); }} />
           <span class={err ? 'field-msg' : 'hint'}>{err || '必填；改過的科目會標「已自訂」'}</span></div>
         <div class="field"><label for="sj-who">誰要考</label>
           <select id="sj-who" class="input" value={who} onChange={(e) => setWho(e.currentTarget.value as SubjectWho)}>

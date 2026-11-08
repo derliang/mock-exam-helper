@@ -48,7 +48,7 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
               return (
                 <button type="button" key={t.kind} class="tcard" aria-pressed={on} disabled={t.soon} aria-disabled={t.soon} onClick={() => pick(t.kind)}>
                   <span class="lv">{t.level}</span><strong>{t.title}</strong><span class="subj">{t.subj}</span>
-                  {t.soon ? <span class="tick badge b-soon">即將推出</span> : on ? <span class="tick badge b-acc">已選</span> : null}
+                  {t.soon ? <span class="tick badge b-soon">尚未開放</span> : on ? <span class="tick badge b-acc">已選</span> : null}
                 </button>
               );
             })}

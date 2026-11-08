@@ -5,7 +5,7 @@ import './featureRegister/attendance';
 import './featureRegister/alignment';
 import './featureRegister/quick';
 import { Footer } from './components/Footer';
-import { Alert, Badge, Button, EmptyState, Seg, StepFooter, StepNav, SummaryBar, TopBar } from './components';
+import { Alert, Badge, Button, EmptyState, Seg, StepNav, StepNextBar, SummaryBar, TopBar } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
@@ -107,15 +107,15 @@ export function App() {
         <div class="pbar-in">
           <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge> <span class="ver" title="目前版本">{formatVersion(APP_VERSION)}</span></span>
           <nav class="nav" aria-label="主要導覽">
-            <button type="button" onClick={() => go({ page: 'init' })} aria-current={r.page === 'init'}>初始化</button>
+            <button type="button" onClick={() => go({ page: 'init' })} aria-current={r.page === 'init'}>資料夾設定</button>
             <button type="button" disabled={!hasFolder} onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
             {hasFolder && enabledNav({ settings: hist.present.settings }).map((n) => (
               <button key={n.id} type="button" onClick={() => go2(n.route, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === n.route.page}>{n.label}</button>
             ))}
-            <button type="button" disabled={!hasFolder} onClick={() => go2({ page: 'settings', ...(lastExam && r.page === 'step' ? { division: lastExam.division } : {}) }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>設定</button>
+            <button type="button" disabled={!hasFolder} onClick={() => go2({ page: 'settings', ...(lastExam && r.page === 'step' ? { division: lastExam.division } : {}) }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>共用設定</button>
           </nav>
           <span class="spacer" />
-          <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '系統' }, { value: 'light', label: '淺' }, { value: 'dark', label: '深' }]} />
+          <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '跟隨系統' }, { value: 'light', label: '淺色' }, { value: 'dark', label: '深色' }]} />
         </div>
         {hasFolder && lastExam && (
           <div class="pbar-in pbar-sub">
@@ -152,7 +152,7 @@ export function pageName(r: Route, doc: Doc): string {
   switch (r.page) {
     case 'exams': return '模擬考列表';
     case 'new': return '新增模擬考';
-    case 'settings': return '設定';
+    case 'settings': return '共用設定';
     case 'lookup': return '考生查詢';
     case 'copyright': return '版權資訊';
     case 'step': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」${stepTitle(r.step)}`;
@@ -172,6 +172,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <div class="stack" style="min-width:0">
         <SummaryBar flow={flow} onGo={p.onStep} />
+        <StepNextBar action={nextAction(flow, step)} onGo={p.onStep} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
           : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
           : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />
@@ -179,7 +180,6 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
           : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
           : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} onExams={p.onExams} />}
         {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange, onStep: p.onStep })}</div>)}
-        <StepFooter action={nextAction(flow, step)} onGo={p.onStep} />
       </div>
     </div>
   );
