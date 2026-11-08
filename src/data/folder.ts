@@ -112,7 +112,17 @@ export async function loadDoc(fs: DirFS): Promise<Loaded<Doc>> {
     if (e) exams.push(e);
   }
   exams.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
+  const examFiles: NonNullable<Doc['examFiles']> = {};
+  for (const e of exams) {
+    const files: Partial<ExamFiles> = {};
+    for (const key of EXAM_FILE_KEYS) {
+      const v = note(await loadExamFile(fs, e.id, key));
+      if (v) (files as Record<string, unknown>)[key] = v;
+    }
+    if (Object.keys(files).length) examFiles[e.id] = files;
+  }
   const doc: Doc = { settings, rosters: { senior, junior }, exams };
+  if (Object.keys(examFiles).length) doc.examFiles = examFiles;
   return warnings.length ? { data: doc, warning: warnings.join('；') } : { data: doc };
 }
 
@@ -127,6 +137,13 @@ export async function saveDoc(fs: DirFS, doc: Doc): Promise<void> {
     assertSafeId(e.id);
     keep.add(e.id);
     await writeFile(fs, `${examDir(e.id)}/exam.json`, e);
+    // 考試名單、比對、覆寫、排座結果：有就寫，沒有（例如復原到排座前）就移除主檔（備份保留）
+    const files = doc.examFiles?.[e.id] ?? {};
+    for (const key of EXAM_FILE_KEYS) {
+      const v = files[key];
+      if (v !== undefined) await writeFile(fs, `${examDir(e.id)}/${key}.json`, v);
+      else await fs.remove(`${examDir(e.id)}/${key}.json`);
+    }
   }
   // 被刪除的模擬考：移除其檔案（含備份）
   for (const id of await fs.listDirs('exams')) {
@@ -146,6 +163,7 @@ export interface ExamFiles {
   result: SeatingResult;
 }
 type ExamFileKey = keyof ExamFiles;
+const EXAM_FILE_KEYS: readonly ExamFileKey[] = ['entries', 'diffs', 'overrides', 'result'];
 const validators: { [K in ExamFileKey]: (v: unknown) => v is ExamFiles[K] } = {
   entries: isList<ExamEntry>,
   diffs: isList<RosterDiff>,
