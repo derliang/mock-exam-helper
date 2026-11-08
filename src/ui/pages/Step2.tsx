@@ -2,8 +2,9 @@ import { useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, RosterDiff, RosterDiffChoice } from '../../data';
 import { studentCode } from '../../data';
 import { allResolved, applyDiffs, compareRosters, readXlsx, type Sheet } from '../../import';
-import { Alert, Badge, Button, StatsBar } from '../components';
-import type { Doc } from '../store';
+import { Alert, Badge, Button, ConfirmButton, EmptyState, StatsBar } from '../components';
+import { confirmCopy } from '../flow';
+import { updateExam, type Doc } from '../store';
 import { ImportWizard } from './ImportWizard';
 
 const KIND_TEXT: Record<RosterDiff['kind'], string> = {
@@ -28,6 +29,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const [err, setErr] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
+  const fullyAbsent = entries ? entries.filter((e) => e.subjectIds.length === 0).length : 0;
   const classNames = doc.settings.classes.filter((c) => c.division === exam.division).map((c) => c.name);
   const compare = (list: ExamEntry[]) => compareRosters(roster, list, exam.participation);
 
@@ -74,13 +76,18 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="btnrow">
-        <Button kind="primary" onClick={() => input.current?.click()}>{entries ? '重新匯入考試名單' : '匯入考試名單 Excel'}</Button>
+        {entries
+          ? <ConfirmButton kind="primary" undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>重新匯入考試名單</ConfirmButton>
+          : <Button kind="primary" onClick={() => input.current?.click()}>匯入考試名單 Excel</Button>}
         {exam.participation === 'partial' && <Badge tone="info">部分參加：沒報名的人不算差異</Badge>}
         {done && <Badge tone="ok">已完成</Badge>}
         <input ref={input} type="file" accept=".xlsx" hidden aria-label="選擇考試名單 Excel 檔"
           onChange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ''; if (f) void onFile(f); }} />
       </div>
       {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
+      {!entries && !sheets && (
+        <div style="margin-top:12px"><EmptyState title="還沒有匯入考試名單">按上方「匯入考試名單 Excel」，選大考中心提供的考生資料名單（.xlsx）。匯入後會自動和學生名單比對，有差異再逐筆處理。</EmptyState></div>
+      )}
 
       {sheets && (
         <ImportWizard sheets={sheets} exam={exam} classNames={classNames} previous={entries ?? undefined} saved={doc.settings.markMap ?? {}}
@@ -94,7 +101,15 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             { label: '差異', value: diffs.length, bad: diffs.length > 0 },
             { label: '已處理', value: `${resolved}／${diffs.length}` },
             ...(exam.participation === 'partial' ? [{ label: '未參加', value: notJoin }] : []),
+            ...(fullyAbsent > 0 ? [{ label: '全科缺考', value: fullyAbsent }] : []),
           ]} /></div>
+          {fullyAbsent > 0 && (
+            <div style="margin-top:12px"><Alert tone="info">
+              有 {fullyAbsent} 人全科缺考：{exam.seatFullyAbsent ? '目前照樣排座。' : '預設不排座、不計領卷份數。'}
+              <label style="margin-left:12px"><input type="checkbox" checked={!!exam.seatFullyAbsent}
+                onChange={(e) => { const r = updateExam(doc, exam.id, { seatFullyAbsent: (e.target as HTMLInputElement).checked }); if (r.ok) p.onChange(r.doc); }} /> 仍排座</label>
+            </Alert></div>
+          )}
           {diffs.length === 0 ? (
             <div style="margin-top:12px"><Alert tone="ok">考試名單與學生名單一致，可以繼續下一步。</Alert></div>
           ) : (

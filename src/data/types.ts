@@ -113,6 +113,8 @@ export interface ExamConfig {
   /** 學測第幾次（1～4）；決定數學是否分 A/B 與英聽（D36/D52） */
   round?: number;
   participation: Participation;
+  /** D79：全科缺考者仍排座（預設不排） */
+  seatFullyAbsent?: boolean;
   subjects: Subject[];
   markRules: MarkRule[];
   /** 本次勾選的教室 id（D65） */
@@ -211,6 +213,8 @@ export interface Settings {
   classrooms: Classroom[];
   /** 考試名單科目標示的對應（E 包）：標示寫法 → 科目 id 或 ignore，可重用 */
   markMap?: Record<string, string>;
+  /** 選用功能開關（D75）：功能 id → 是否開啟；沒有這個欄位或沒寫的功能一律視為關 */
+  features?: Record<string, boolean>;
 }
 
 /** 磁碟檔案外殼：版本與損壞偵測用（D21） */

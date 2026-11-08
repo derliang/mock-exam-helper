@@ -3,7 +3,9 @@ import type { ExamConfig, LabelPaper } from '../../data';
 import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, type ExportOptions, type OutputFile } from '../../export/plan';
 import type { FontData } from '../../export/docxRender';
 import { Alert, Badge, Button, Seg } from '../components';
+import { enabledExportItems } from '../features';
 import { prepareExport, unresolvedDiffsOf } from '../exportInput';
+import { afterExport } from '../flow';
 import type { Doc } from '../store';
 
 type Loaded = { fonts: FontData; has: (ch: string) => boolean };
@@ -40,6 +42,8 @@ export function Step6(p: {
   /** 考試名單差異未處理數（② 提供） */
   unresolvedDiffs?: number;
   onGoStep: (n: 2 | 3 | 5) => void;
+  /** 完成後「回模擬考列表」 */
+  onExams?: () => void;
   /** 測試或預覽可注入字型載入；預設延遲載入真實字型 */
   loadFonts?: () => Promise<Loaded>;
 }) {
@@ -47,20 +51,26 @@ export function Step6(p: {
   const [o, setO] = useState<ExportOptions>(() => defaultOptions(exam.labelLayout.paper));
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
+  const [extraOn, setExtraOn] = useState<Record<string, boolean>>({});
   const [results, setResults] = useState<OutputFile[] | null>(null);
   const [fontState, setFontState] = useState<Loaded | null>(null);
   const junior = exam.division === 'junior';
   const set = (patch: Partial<ExportOptions>) => { setO((x) => ({ ...x, ...patch })); setResults(null); };
 
+  // 選用功能多出的匯出項（D75）：功能關閉時完全不出現
+  const extras = enabledExportItems({ settings: p.doc.settings, examKind: exam.kind });
+  const chosenExtras = extras.filter((x) => extraOn[x.key]);
+  const mainNone = !o.seat && !o.label && !o.study && !o.reserve;
   const diffs = p.unresolvedDiffs ?? unresolvedDiffsOf(p.doc, exam);
   const prepared = useMemo(() => prepareExport(p.doc, exam, new Date().toISOString()), [p.doc, exam]);
   const loader = p.loadFonts ?? (async () => (await import('../../export/fontLoader')).loadFonts());
 
   // 字集檢查要字型字集；先用「全部通過」，載入後再重算（使用者按匯出前就會載入）
   const has = fontState?.has ?? (() => true);
-  const issues = prepared.ok ? preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, has) : [];
+  const issues = (prepared.ok ? preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, has) : [])
+    .filter((i) => !(mainNone && chosenExtras.length > 0 && i.text.startsWith('還沒勾選')));
   const blocked = !prepared.ok || issues.some((i) => i.level === 'block');
-  const files = prepared.ok && !blocked ? planFiles(prepared.input, o) : [];
+  const files = prepared.ok && !blocked && !mainNone ? planFiles(prepared.input, o) : [];
 
   const go = async () => {
     if (!prepared.ok) return;
@@ -72,9 +82,13 @@ export function Step6(p: {
       // 載入字型後字集檢查可能出現新警告：有新的擋下項目就停
       const again = preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, env.has);
       if (again.some((i) => i.level === 'block')) return;
-      const out = await runExport(prepared.input, o, { fonts: env.fonts });
-      if (o.format === 'word') out.forEach(download);
-      else if (!openPrintPage(out[0]!)) throw new Error('瀏覽器擋住了新視窗，請允許本網站開啟彈出視窗後再按一次。');
+      const out = mainNone ? [] : await runExport(prepared.input, o, { fonts: env.fonts });
+      for (const x of chosenExtras) out.push(...(await x.run({ doc: p.doc, exam, format: o.format })));
+      for (const f of out) {
+        if (f.mime === 'text/html') {
+          if (!openPrintPage(f)) throw new Error('瀏覽器擋住了新視窗，請允許本網站開啟彈出視窗後再按一次。');
+        } else download(f);
+      }
       setResults(out);
     } catch (e) {
       setErr(e instanceof Error ? e.message : String(e));
@@ -132,9 +146,20 @@ export function Step6(p: {
           {!junior && ck('study', '抽離自習名單（A4）', '合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')}
           {!junior && ck('reserve', '預備教室的座位表（A4）與標籤', '抽離考試，每科每間預備教室一頁；有勾標籤時一併產生預備教室標籤')}
         </div>
+        {extras.length > 0 && (
+          <div class="stack">
+            <span class="label">選用功能的輸出</span>
+            {extras.map((x) => (
+              <label key={x.key} class="check" style="align-items:flex-start">
+                <input type="checkbox" checked={!!extraOn[x.key]} onChange={(e) => { setExtraOn((m) => ({ ...m, [x.key]: e.currentTarget.checked })); setResults(null); }} />
+                <span><b>{x.title}</b><br /><span class="small muted">{x.sub}</span></span>
+              </label>
+            ))}
+          </div>
+        )}
         <div class="row" style="justify-content:space-between">
-          <span class="muted">將產生 <b class="num">{o.format === 'pdf' && files.length ? 1 : files.length}</b> 個檔案</span>
-          <button type="button" class="btn btn-primary btn-lg" disabled={blocked || busy || files.length === 0} onClick={go}>
+          <span class="muted">將產生 <b class="num">{(o.format === 'pdf' && files.length ? 1 : files.length) + chosenExtras.length}</b> 個檔案</span>
+          <button type="button" class="btn btn-primary btn-lg" disabled={blocked || busy || (files.length === 0 && chosenExtras.length === 0)} onClick={go}>
             {busy ? '產生中…' : p.stale ? '排座過期，先重新排座' : o.format === 'word' ? '匯出 Word' : '開啟列印頁（存成 PDF）'}
           </button>
         </div>
@@ -157,6 +182,17 @@ export function Step6(p: {
           </table></div>
           <p class="small muted">資料版本碼：<Badge>{prepared.ok ? prepared.input.result.dataVersion : ''}</Badge>（印在每頁頁尾）</p>
           {o.format === 'word' && <Alert tone="warn">Word 檔匯出後若手動編輯，就不再受驗證器保護（D29）。</Alert>}
+          <div>
+            <h3>接下來該做什麼</h3>
+            <ol class="nextlist">
+              {afterExport(o.format, o.paper).map((i) => (
+                <li key={i.text}>{i.text}{' '}
+                  {i.step && <Button small onClick={() => p.onGoStep(i.step as 5)}>回 ⑤ 排座</Button>}
+                  {i.nav && p.onExams && <Button small kind="primary" onClick={p.onExams}>回模擬考列表</Button>}
+                </li>
+              ))}
+            </ol>
+          </div>
         </div>
       )}
     </section>

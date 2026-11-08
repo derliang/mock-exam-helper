@@ -39,6 +39,7 @@ export function prepareExport(doc: Doc, exam: ExamConfig, now: string): Prepared
     subjects: exam.subjects,
     markRules: exam.markRules,
     overrides: overridesOf(doc, exam),
+    ...(exam.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
     now,
   });
   if (!r.ok) return { ok: false, errors: r.errors };

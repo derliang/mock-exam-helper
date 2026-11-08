@@ -1,16 +1,18 @@
 import { useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
 import { studentCode } from '../../data';
-import { Alert, Button, ClassChip, Modal, Seg } from '../components';
+import { Alert, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg } from '../components';
+import { confirmCopy } from '../flow';
 import { RoomList } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
 import { RosterIO } from './RosterIO';
+import { allFeatures, withFeature } from '../features';
 import { addStudent, removeStudent, searchStudents, setClassColor, setClassTrack, updateStudent, type Doc } from '../store';
 
-type Tab = 'roster' | 'classes' | 'school' | 'rooms';
+type Tab = 'roster' | 'classes' | 'school' | 'rooms' | 'features';
 const TABS: { value: Tab; label: string }[] = [
   { value: 'roster', label: '學生名單' }, { value: 'classes', label: '班級資料' },
-  { value: 'school', label: '學校與表頭' }, { value: 'rooms', label: '教室清單' },
+  { value: 'school', label: '學校與表頭' }, { value: 'rooms', label: '教室清單' }, { value: 'features', label: '選用功能' },
 ];
 
 /** 設定頁（D61）：部別切換（UI-07/08）；改動都走 onChange，由 App 記入復原 */
@@ -35,7 +37,8 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab })
       {tab === 'roster' && <Roster {...p} division={division} />}
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
-      {tab === 'rooms' && <RoomList rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} />}
+      {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}
+      {tab === 'rooms' && <RoomList inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} />}
     </section>
   );
 }
@@ -64,13 +67,15 @@ function Roster({ doc, onChange, division }: Props) {
                 <td>{cls(s.classNo) ? <ClassChip colorIndex={cls(s.classNo)!.colorIndex}>{cls(s.classNo)!.name}</ClassChip> : s.classNo}</td>
                 <td>{s.seatNo}</td><td class="num">{studentCode(s.classNo, s.seatNo)}</td><td>{s.name}</td>
                 <td class="muted">{s.schoolId ?? '（空白）'}</td>
-                <td><div class="btnrow"><Button small onClick={() => setEditing(s)}>編輯</Button><Button small kind="danger" onClick={() => onChange(removeStudent(doc, division, s))}>刪除</Button></div></td>
+                <td><div class="btnrow"><Button small onClick={() => setEditing(s)}>編輯</Button><ConfirmButton small copy={confirmCopy.deleteStudent(s.name, studentCode(s.classNo, s.seatNo))} onConfirm={() => onChange(removeStudent(doc, division, s))}>刪除</ConfirmButton></div></td>
               </tr>
             ))}
           </tbody>
         </table>
       </div>
-      {list.length === 0 && <p class="muted">沒有符合的學生。</p>}
+      {list.length === 0 && (doc.rosters[division].length === 0
+        ? <EmptyState title="這個部別還沒有學生" action={<Button kind="primary" onClick={() => setEditing('new')}>新增第一位學生</Button>}>可以一位一位新增，或用上方「下載 Excel 範本」填好後「匯入 Excel」。名單是之後考試名單比對的依據。</EmptyState>
+        : <p class="muted">沒有符合「{q}」的學生，請換個關鍵字（姓名、考生編號或學號）。</p>)}
       {editing && (
         <StudentForm doc={doc} division={division} student={editing === 'new' ? undefined : editing} onClose={() => setEditing(null)}
           onSave={(d) => { onChange(d); setEditing(null); }} />
@@ -158,3 +163,25 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   );
 }
 
+
+/** 選用功能（D75）：逐項勾選；預設全關，關掉的功能在導覽、匯出頁與步驟中完全不出現 */
+function Features({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
+  const list = allFeatures();
+  return (
+    <div class="stack">
+      <p class="muted">以下功能不一定每個學校都需要，用得到的再打開。關掉的功能不會出現在畫面上，也不影響排座、標籤、座位表與匯出這些基本功能。</p>
+      {list.map((f) => {
+        const on = doc.settings.features?.[f.id] === true;
+        return (
+          <label key={f.id} class="check" style="align-items:flex-start">
+            <input type="checkbox" checked={on} onChange={(e) => onChange({ ...doc, settings: withFeature(doc.settings, f.id, e.currentTarget.checked) })} />
+            <span>
+              <b>{f.name}</b>{f.scope === 'bcct' && <> <span class="small muted">（只用於會考）</span></>}<br />
+              <span class="small muted">{f.desc}</span>
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}

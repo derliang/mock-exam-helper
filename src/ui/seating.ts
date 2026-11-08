@@ -112,6 +112,7 @@ export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeat
     subjects: exam.subjects,
     markRules: effectiveMarkRules(doc, exam).rules,
     overrides: examOverrides(doc, exam),
+    ...(exam.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
     now,
   };
 }

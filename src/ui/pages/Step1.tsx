@@ -1,6 +1,7 @@
 import { useState } from 'preact/hooks';
 import type { ExamConfig, Participation, Semester } from '../../data';
-import { Alert, Badge, Button, Seg } from '../components';
+import { Alert, Badge, Button, ConfirmButton, Seg } from '../components';
+import { confirmCopy } from '../flow';
 import { updateExam, KIND_LABEL, type Doc } from '../store';
 import { addSubject, defaultSubjects, isCustomized, removeSubject, renameSubject } from '../subjects';
 
@@ -45,7 +46,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           {exam.subjects.map((s) => (
             <tr key={s.id}>
               <td>{fixed ? s.name : <input class="input" aria-label="科目名稱" value={s.name} onChange={(e) => set({ subjects: renameSubject(exam.subjects, s.id, e.currentTarget.value) })} />}</td>
-              {!fixed && <td><Button small kind="danger" onClick={() => set({ subjects: removeSubject(exam.subjects, s.id) })}>刪除</Button></td>}
+              {!fixed && <td><ConfirmButton small copy={confirmCopy.deleteSubject(s.name)} onConfirm={() => set({ subjects: removeSubject(exam.subjects, s.id) })}>刪除</ConfirmButton></td>}
             </tr>
           ))}
         </tbody>
@@ -54,7 +55,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         <div class="btnrow" style="margin-top:12px">
           <input class="input" style="max-width:240px" aria-label="新科目名稱" placeholder="新增科目" value={newName} onInput={(e) => setNewName(e.currentTarget.value)} />
           <Button onClick={() => { set({ subjects: addSubject(exam.subjects, newName) }); setNewName(''); }}>新增科目</Button>
-          <Button onClick={() => set({ subjects: defaultSubjects(exam.kind, exam.round) })}>還原預設</Button>
+          <ConfirmButton kind="default" copy={confirmCopy.resetSubjects()} onConfirm={() => set({ subjects: defaultSubjects(exam.kind, exam.round) })}>還原預設</ConfirmButton>
         </div>
       )}
     </section>

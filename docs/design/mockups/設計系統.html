@@ -308,12 +308,29 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .chip-class[data-c="6"]{background:var(--c6-bg);border-color:var(--c6-line);color:var(--c6-ink)}
 .stale-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:var(--r-md);background:var(--warn-soft);border:1.5px dashed var(--warn-bar);color:var(--warn-ink);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* 全站頁尾（DESIGN §10.1）：sticky footer，短內容頁貼在視窗底部；不進列印 */
+.pfoot{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:center;padding:14px 0 max(20px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);color:var(--text-3);font-size:12px;line-height:1.5}
+.pfoot .pf-name{font-family:var(--f-head);font-weight:700;color:var(--text-2)}
+.pfoot .pf-ver{font:inherit;font-weight:700;min-height:32px;padding:0 10px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s}
+.pfoot .pf-ver:hover{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
+.pfoot .pf-ver:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pfoot .pf-pre{font-size:11px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
+.pf-about{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 10px}
+.pf-about dt{color:var(--text-3);font-weight:700}
+.pf-about dd{margin:0}
+@media (max-width:560px){.pfoot{flex-direction:column;gap:2px}}
+
+
+.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px}
+.sumbar b{font-size:18px}.sumbar .warnbtn{margin-left:auto;min-height:36px;padding:4px 12px;border:1.5px solid var(--warn-bar);border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn-ink);font:inherit;font-weight:700}
+.empty{display:grid;gap:8px;justify-items:start;padding:20px;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--surface)}
+.empty strong{font-family:var(--f-head);font-size:18px}.empty p{margin:0}
 </style>
 
 <div class="top">
   <span class="brand">模擬考小幫手 設計系統</span>
   <nav class="toc" aria-label="目錄">
-    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#open">待確認</a>
+    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#footer">頁尾</a><a href="#open">待確認</a>
   </nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">跟隨系統</button>
@@ -484,6 +501,25 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       </div></div>
   </section>
 
+  <section id="footer">
+    <header><h2>全站頁尾</h2><p>每一頁（初始化、各步驟、設定頁）底部都有同一個頁尾：程式名稱、版本號、版權。短內容頁貼在視窗底部（sticky footer），不遮擋內容；版本號是按鈕，點開「關於」看版本、建置日期與資料只存本機的說明。頁尾不進 Word／PDF，列印時隱藏。</p></header>
+    <div class="grid">
+      <div class="card"><div class="lab">測試版（beta）</div>
+        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v0.1.0-beta.1<span class="pf-pre">beta</span></button><span class="pf-copy">© 2026 模擬考小幫手</span></footer></div>
+      <div class="card"><div class="lab">正式版（無預發布標籤）</div>
+        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v1.0.0</button><span class="pf-copy">© 2026 模擬考小幫手</span></footer></div>
+    </div>
+  </section>
+
+  <section id="flow">
+    <header><h2>引路與防錯（施工G）</h2><p>所有步驟頁共用：常駐摘要列、步驟「第N／6步」、底部「下一步」（前置沒過就停用並說明＋一鍵跳轉）、破壞性動作二次確認、空狀態、行內驗證。規則見 DESIGN.md 10.7。</p></header>
+    <div class="card" style="display:grid;gap:14px">
+      <div class="sumbar"><span>考生 <b>7</b></span><span>座位 <b>9</b></span><span>空位 <b>2</b></span><button type="button" class="warnbtn">⚠ 警告 <b>1</b>　④ 有 1 項標示接近一半，要先選標「不考」或「加考」　<u>去 ④ 選標示</u></button></div>
+      <div class="alert a-warn"><span>⚠</span><div><b>還不能進下一步：</b>④ 有 1 項標示接近一半，要先選標「不考」或「加考」</div><button class="btn btn-primary">去 ④ 選標示</button></div>
+      <div style="text-align:right"><button class="btn btn-primary" disabled>下一步：⑤ 排座與預覽 →</button></div>
+      <div class="empty"><strong>還沒有匯入考試名單</strong><p class="muted">按上方「匯入考試名單 Excel」，選大考中心提供的考生資料名單（.xlsx）。</p></div>
+    </div>
+  </section>
   <section id="open">
     <header><h2>待使用者確認的提案</h2></header>
     <div class="card"><ol style="margin:0;padding-left:20px;display:grid;gap:8px">
