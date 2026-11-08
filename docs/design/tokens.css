@@ -15,6 +15,12 @@
   --c4-bg:#E7DCF5; --c4-line:#B39DD9; --c4-ink:#4A2E80;
   --c5-bg:#F6D6EC; --c5-line:#D98ABF; --c5-ink:#7A1C5E;
   --c6-bg:#F9D5CA; --c6-line:#E58A70; --c6-ink:#7A2A12;
+  --c7-bg:#CDEDE9; --c7-line:#6FC0B6; --c7-ink:#0F5A52;
+  --c8-bg:#E6EDBD; --c8-line:#B5C752; --c8-ink:#4C5A0A;
+  --c9-bg:#DADCF7; --c9-line:#9A9FE0; --c9-ink:#2F3490;
+  --c10-bg:#EBDCCB; --c10-line:#C09A72; --c10-ink:#5C3A17;
+  --c11-bg:#DFE3E8; --c11-line:#9AA5B1; --c11-ink:#2F3B48;
+  --c12-bg:#F8D3DC; --c12-line:#E08AA0; --c12-ink:#7A1B38;
   --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
   --shadow-2:0 4px 14px rgba(34,32,27,.10);
   --shadow-3:0 16px 40px rgba(34,32,27,.22);
@@ -39,6 +45,12 @@
   --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
   --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
   --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
+  --c7-bg:#17332F; --c7-line:#2F7068; --c7-ink:#BDEBE4;
+  --c8-bg:#2E3312; --c8-line:#6D7A22; --c8-ink:#E0EBA8;
+  --c9-bg:#232545; --c9-line:#4F559B; --c9-ink:#CDD0F5;
+  --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
+  --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
+  --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
   --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
   color-scheme:dark}}
 :root[data-theme="dark"]{
@@ -57,6 +69,12 @@
   --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
   --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
   --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
+  --c7-bg:#17332F; --c7-line:#2F7068; --c7-ink:#BDEBE4;
+  --c8-bg:#2E3312; --c8-line:#6D7A22; --c8-ink:#E0EBA8;
+  --c9-bg:#232545; --c9-line:#4F559B; --c9-ink:#CDD0F5;
+  --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
+  --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
+  --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
   --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
   color-scheme:dark}
 
