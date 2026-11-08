@@ -1,6 +1,7 @@
 /** 畫面層的文件狀態與純函式變更（可單元測試；復原以整份快照為單位） */
 import type { ClassInfo, Division, ExamConfig, ExamKind, Settings, Student, Track } from '../data';
 import { studentCode } from '../data';
+import { defaultSubjects } from './subjects';
 
 export interface Doc {
   settings: Settings;
@@ -73,7 +74,7 @@ export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date): Resu
   const division: Division = kind === 'bcct' ? 'junior' : 'senior';
   const exam: ExamConfig = {
     id: `exam-${now.getTime()}`, name: n, kind, division, semester: 'first', round: kind === 'gsat' ? 1 : undefined,
-    participation: 'all', subjects: [], markRules: [], classroomIds: [],
+    participation: 'all', subjects: defaultSubjects(kind, kind === 'gsat' ? 1 : undefined), markRules: [], classroomIds: [],
     // 標籤格數待使用者定案（D72），這裡只是預設值，一律由參數帶
     labelLayout: { paper: doc.settings.defaultLabelPaper, cols: 6, rows: 8 }, createdAt: now.toISOString(),
   };
@@ -81,3 +82,14 @@ export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date): Resu
 }
 
 export const KIND_LABEL: Record<ExamKind, string> = { gsat: '學測', ast: '分科（即將推出）', bcct: '會考' };
+
+/** 更新某次模擬考的欄位（名稱同名檢查） */
+export function updateExam(doc: Doc, id: string, patch: Partial<ExamConfig>): Result<Doc> {
+  if (patch.name !== undefined) {
+    const n = patch.name.trim();
+    if (!n) return fail('名稱不能空白');
+    if (doc.exams.some((e) => e.id !== id && e.name === n)) return fail('已有同名的模擬考');
+    patch = { ...patch, name: n };
+  }
+  return { ok: true, doc: { ...doc, exams: doc.exams.map((e) => (e.id === id ? { ...e, ...patch } : e)) } };
+}
