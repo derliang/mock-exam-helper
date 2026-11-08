@@ -8,7 +8,7 @@ export function Exams(p: { doc: Doc; onChange: (d: Doc) => void; onOpen: (examId
   const [adding, setAdding] = useState(false);
   return (
     <section>
-      <div class="btnrow" style="justify-content:space-between">
+      <div class="pagehead">
         <h2>模擬考列表</h2>
         <Button kind="primary" onClick={() => setAdding(true)}>新增模擬考</Button>
       </div>

@@ -4,7 +4,7 @@ import { Footer } from './components/Footer';
 import { Alert, Badge, Button, EmptyState, Seg, StepFooter, StepNav, SummaryBar, TopBar } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
-import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, type NavState, type Route } from './nav';
+import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
 import { Init } from './pages/Init';
 import { Settings } from './pages/Settings';
@@ -61,6 +61,11 @@ export function App() {
   const go2 = (r: Route, from: { route: Route; label: string }) => setNav((s) => pushTo(s, r, from));
   const back = () => setNav(goBack);
   const r = nav.route;
+  // 記住最近開啟的模擬考，導覽列才能在任何頁面一鍵跳到它的步驟
+  const [lastExamId, setLastExamId] = useState<string | undefined>();
+  useEffect(() => { if (r.page === 'step') setLastExamId(r.examId); }, [r]);
+  const lastExam = hist.present.exams.find((e) => e.id === lastExamId);
+  const hasFolder = r.page !== 'init' || repo.hasFolder();
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -74,18 +79,29 @@ export function App() {
   return (
     <FeatureContext.Provider value={hist.present.settings}>
       <header class="pbar">
-        <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge></span>
-        {r.page !== 'init' && (
+        <div class="pbar-in">
+          <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge></span>
           <nav class="nav" aria-label="主要導覽">
-            <button type="button" onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
-            {enabledNav({ settings: hist.present.settings }).map((n) => (
+            <button type="button" onClick={() => go({ page: 'init' })} aria-current={r.page === 'init'}>初始化</button>
+            <button type="button" disabled={!hasFolder} onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
+            {hasFolder && enabledNav({ settings: hist.present.settings }).map((n) => (
               <button key={n.id} type="button" onClick={() => go2(n.route, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === n.route.page}>{n.label}</button>
             ))}
-            <button type="button" onClick={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>設定</button>
+            <button type="button" disabled={!hasFolder} onClick={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>設定</button>
           </nav>
+          <span class="spacer" />
+          <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '系統' }, { value: 'light', label: '淺' }, { value: 'dark', label: '深' }]} />
+        </div>
+        {hasFolder && lastExam && (
+          <div class="pbar-in pbar-sub">
+            <span class="cur-exam" title={lastExam.name}>{lastExam.name}</span>
+            <nav class="nav" aria-label="目前模擬考的步驟">
+              {STEP_NAMES.map((name, i) => (
+                <button type="button" key={name} onClick={() => go({ page: 'step', examId: lastExam.id, step: (i + 1) as 1 | 2 | 3 | 4 | 5 | 6 })} aria-current={r.page === 'step' && r.examId === lastExam.id && r.step === i + 1}>{`${'①②③④⑤⑥'[i]} ${name}`}</button>
+              ))}
+            </nav>
+          </div>
         )}
-        <span style="flex:1" />
-        <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '系統' }, { value: 'light', label: '淺' }, { value: 'dark', label: '深' }]} />
       </header>
       <main class="wrap">
         {r.page !== 'init' && <TopBar backLabel={backLabel(nav)} onBack={back} undoCount={undoCount} onUndo={onUndo} />}
