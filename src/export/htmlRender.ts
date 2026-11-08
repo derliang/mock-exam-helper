@@ -101,13 +101,13 @@ footer { font-size: 8pt; color: #555; text-align: right; margin-top: 3mm }
 .note { font-size: 8pt; color: #555; text-align: center }
 `;
 
-export type HtmlPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel };
+export type HtmlPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel | ListPageModel[] };
 
 export function renderPrintHtml(pages: HtmlPages, o: HtmlOptions): string {
   const body = [
     ...(pages.seat ?? []).map((p) => seatHtml(p, o)),
     ...(pages.label ?? []).map((p) => labelHtml(p, o)),
-    ...(pages.list ? [listHtml(pages.list, o)] : []),
+    ...[pages.list ?? []].flat().map((l) => listHtml(l, o)),
   ];
   if (body.length === 0) throw new Error('沒有可輸出的頁面');
   return `<!doctype html><html lang="zh-Hant"><head><meta charset="utf-8"><title>模擬考小幫手輸出</title><style>${CSS}${o.extraCss ?? ''}</style></head><body>${body.join('\n')}</body></html>`;
