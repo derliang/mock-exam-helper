@@ -6,3 +6,4 @@ export * from './marks';
 export * from './detach';
 export * from './stats';
 export * from './version';
+export * from './run';

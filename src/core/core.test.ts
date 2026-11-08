@@ -7,6 +7,8 @@ import {
   dataVersion,
   fnv1a64,
   overrideWarnings,
+  runSeating,
+  seatingVersion,
   roomStats,
   seatExam,
   seatGroup,
@@ -315,5 +317,50 @@ describe('資料版本碼（D66）', () => {
     expect(v).toMatch(/^[0-9A-F]{4}-[0-9A-F]{4}-[0-9A-F]{4}$/);
     expect(dataVersion({ b: '名單', a: 1 })).toBe(v);
     expect(dataVersion({ a: 2, b: '名單' })).not.toBe(v);
+  });
+});
+
+describe('runSeating 整合入口', () => {
+  const base = {
+    examId: 'E1',
+    division: 'senior' as const,
+    classes: classes(2, true),
+    classrooms: [
+      room('S', 1, 3, 3, { track: 'science' }),
+      room('L', 1, 3, 3, { track: 'liberal' }),
+      room('P', 1, 4, 4, { kind: 'reserve' }),
+    ],
+    entries: [entry(1, 1, ['soc']), entry(1, 2, []), entry(2, 1, ['soc', 'sci'])],
+    subjects,
+    markRules: [
+      { track: 'science' as const, subjectId: 'soc', mode: 'mark-absent' as const },
+      { track: 'liberal' as const, subjectId: 'sci', mode: 'mark-extra' as const },
+    ],
+    overrides: [],
+    now: '2026-11-08T10:00:00.000Z',
+  };
+
+  it('一次產生座位、標記、抽離與版本碼', () => {
+    const r = runSeating(base);
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    expect(r.result.assignments.map((a) => `${a.classroomId}:${a.code}`)).toEqual(['S:0101', 'S:0102', 'L:0201']);
+    expect(r.result.marks).toEqual([
+      { code: '0102', subjectId: 'soc', mode: 'absent' },
+      { code: '0201', subjectId: 'sci', mode: 'extra' },
+    ]);
+    // 依科目順序（社會、自然）；不同科重用同一間預備教室
+    expect(r.result.detaches).toEqual([
+      { code: '0102', subjectId: 'soc', purpose: 'study', roomId: 'P' },
+      { code: '0201', subjectId: 'sci', purpose: 'exam', roomId: 'P', seat: { row: 1, depth: 1 } },
+    ]);
+    // 產生時間不影響版本碼，名單改了就不同
+    expect(r.result.dataVersion).toBe(seatingVersion({ ...base, now: '2027-01-01T00:00:00.000Z' }));
+    expect(seatingVersion({ ...base, entries: base.entries.slice(0, 2) })).not.toBe(r.result.dataVersion);
+  });
+
+  it('座位不足時整體擋下', () => {
+    const r = runSeating({ ...base, classrooms: base.classrooms.slice(1) });
+    expect(r).toEqual({ ok: false, errors: ['理組沒有可用的教室'] });
   });
 });
