@@ -35,6 +35,20 @@ export function demoDoc(): Doc {
   };
 }
 
+export const emptyDoc = (): Doc => ({
+  settings: { schoolName: '', headerText: '模擬考', defaultLabelPaper: 'B4', classes: [], classrooms: [] },
+  rosters: { senior: [], junior: [] },
+  exams: [],
+});
+
+/** 全新資料夾載入是空 Doc：由初始化流程帶入預設班級（溫良恭儉勤誠，高中 01～03 理、04～06 文，D9/D28） */
+export function withDefaults(doc: Doc): Doc {
+  if (doc.settings.classes.length > 0) return doc;
+  const mk = (division: 'senior' | 'junior'): ClassInfo[] =>
+    names.map((name, i) => ({ no: i + 1, name, division, ...(division === 'senior' ? { track: i < 3 ? ('science' as const) : ('liberal' as const) } : {}), colorIndex: i + 1 }));
+  return { ...doc, settings: { ...doc.settings, classes: [...mk('senior'), ...mk('junior')] } };
+}
+
 export function createMemoryRepository(): Repository {
   let folder = false;
   let doc = demoDoc();

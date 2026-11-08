@@ -1,15 +1,19 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
-import { Seg, StepNav, TopBar, type StepState } from './components';
+import { useEffect, useState } from 'preact/hooks';
+import { Alert, Seg, StepNav, TopBar, type StepState } from './components';
 import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
 import { Init } from './pages/Init';
 import { Settings } from './pages/Settings';
-import { createMemoryRepository, demoDoc, type Repository } from './repository';
+import { createFsRepository, isFsAccessSupported } from '../data';
+import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
 import type { Doc } from './store';
 import { canUndo, commit, newHistory, undo, type History } from './undo';
 
 type Theme = 'system' | 'light' | 'dark';
-const repo: Repository = createMemoryRepository();
+// 支援資料夾授權的瀏覽器用真實存檔；不支援（非 Chrome）時用記憶體實作，並在初始化頁提示
+const fsSupported = isFsAccessSupported();
+const fsRepo = fsSupported ? createFsRepository() : null;
+const repo: Repository = fsRepo ?? createMemoryRepository();
 
 function useTheme(): [Theme, (t: Theme) => void] {
   const [t, setT] = useState<Theme>('system');
@@ -24,11 +28,21 @@ function useTheme(): [Theme, (t: Theme) => void] {
 export function App() {
   const [nav, setNav] = useState<NavState>(initialNav());
   const [theme, setTheme] = useTheme();
-  const [hist, setHist] = useState<History<Doc>>(() => newHistory(demoDoc()));
-  const loaded = useRef(false);
+  const [hist, setHist] = useState<History<Doc>>(() => newHistory(emptyDoc()));
+  const [warning, setWarning] = useState<string | undefined>();
+  // 重開頁面：能靜默還原上次資料夾就直接進列表（瀏覽器要求重新授權時留在初始化頁，由使用者按鈕）
+  useEffect(() => {
+    void (async () => { if (fsRepo && (await fsRepo.restore())) { await load(); go({ page: 'exams' }); } })();
+  }, []);
 
   // 資料夾授權後載入；每次變更存檔
-  const load = async () => { const d = await repo.load(); setHist(newHistory(d)); loaded.current = true; };
+  const load = async () => {
+    const raw = await repo.load();
+    const d = withDefaults(raw);
+    setHist(newHistory(d));
+    setWarning(fsRepo?.lastWarning());
+    if (d !== raw) void repo.save(d); // 全新資料夾：把預設班級存下來
+  };
   const edit = (d: Doc) => { setHist((h) => commit(h, d)); void repo.save(d); };
   const onUndo = () => setHist((h) => { const n = undo(h); void repo.save(n.present); return n; });
   const undoCount = hist.past.length;
@@ -62,7 +76,8 @@ export function App() {
       </header>
       <main class="wrap">
         {r.page !== 'init' && <TopBar backLabel={backLabel(nav)} onBack={back} undoCount={undoCount} onUndo={onUndo} />}
-        {r.page === 'init' && <Init repo={repo} onDone={async () => { await load(); go({ page: 'exams' }); }} />}
+        {r.page === 'init' && <Init repo={repo} fsSupported={fsSupported} onRestore={fsRepo ? () => fsRepo.restore() : undefined} onDone={async () => { await load(); go({ page: 'exams' }); }} />}
+        {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
         {r.page === 'exams' && <Exams doc={hist.present} onChange={edit} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} />}
         {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} />}
         {r.page === 'step' && <Workspace route={r} doc={hist.present} onStep={(step) => go({ page: 'step', examId: r.examId, step })} />}
