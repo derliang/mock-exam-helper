@@ -68,3 +68,20 @@ describe('預設班級', () => {
     expect(withDefaults(demo)).toBe(demo);
   });
 });
+
+describe('更新考試', () => {
+  it('改名擋同名與空白；其他欄位直接套用', async () => {
+    const { updateExam } = await import('./store');
+    const a = newExam(demoDoc(), 'gsat', 'A', new Date(1));
+    if (!a.ok) throw new Error(a.error);
+    const b = newExam(a.doc, 'bcct', 'B', new Date(2));
+    if (!b.ok) throw new Error(b.error);
+    const id = b.doc.exams[1]!.id;
+    expect(updateExam(b.doc, id, { name: 'A' }).ok).toBe(false);
+    expect(updateExam(b.doc, id, { name: ' ' }).ok).toBe(false);
+    const r = updateExam(b.doc, id, { name: 'C', semester: 'second' });
+    if (!r.ok) throw new Error(r.error);
+    expect(r.doc.exams[1]).toMatchObject({ name: 'C', semester: 'second' });
+    expect(b.doc.exams[0]?.subjects.map((x) => x.name)).toContain('英聽');
+  });
+});
