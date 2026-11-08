@@ -3,8 +3,8 @@ declare const __APP_VERSION__: string;
 declare const __BUILD_DATE__: string;
 
 export const APP_NAME = '模擬考小幫手';
-/** 版權人：尚待使用者確認是否改為個人姓名（見 docs/dispatch/完工-設計員頁尾.md） */
-export const COPYRIGHT_HOLDER = '模擬考小幫手';
+/** 版權人：使用者 2026-11-08 裁示全站統一為公開作者識別 derliang（與版權頁頁尾一致） */
+export const COPYRIGHT_HOLDER = 'derliang';
 export const COPYRIGHT_YEAR = 2026;
 
 const SEMVER = /^\d+\.\d+\.\d+(-[0-9A-Za-z.-]+)?$/;

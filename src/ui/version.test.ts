@@ -18,6 +18,7 @@ describe('版本字串', () => {
   });
   it('版權文字', () => {
     expect(copyrightText(2026, '某某')).toBe('© 2026 某某');
+    expect(copyrightText()).toBe('© 2026 derliang');
   });
   it('注入值等於 package.json（單一來源）', () => {
     const v = (JSON.parse(readFileSync('package.json', 'utf8')) as { version: string }).version;
