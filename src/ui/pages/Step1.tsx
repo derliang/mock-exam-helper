@@ -89,17 +89,17 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             ))}
           </tbody>
         </table></div>
-        <p class="small muted">{fixed ? '會考不分文理組，沒有選考，不需要標示與抽離。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</p>
+        <p class="small muted">{fixed ? '會考每科都考，沒有選考。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</p>
       </div>
 
       <div class="card stack">
         <div><h3>沿用上次的設定</h3><p class="small muted">新增時自動帶入，不用手動複製</p></div>
         {mode === 'off' && (
           <Alert tone="warn" action={prev && <Button small onClick={() => p.onChange(resumeCarry(doc, exam))}>恢復沿用</Button>}>
-            <b>已改為不沿用</b>：② 到 ④ 都從空白開始，需要重新匯入名單、設定教室與規則。
+            <b>已改為不沿用</b>：{exam.division === 'junior' ? '② 到 ⑤' : '② 到 ④'} 都從空白開始，需要重新匯入名單、設定教室與規則。
           </Alert>
         )}
-        {mode === 'none' && <Alert tone="warn">還沒有更早的「{KIND_LABEL[exam.kind].replace(/（.*）/, '')}」可以沿用，② 到 ④ 從空白開始。</Alert>}
+        {mode === 'none' && <Alert tone="warn">還沒有更早的「{KIND_LABEL[exam.kind].replace(/（.*）/, '')}」可以沿用，{exam.division === 'junior' ? '② 到 ⑤' : '② 到 ④'} 從空白開始。</Alert>}
         {mode === 'on' && prev && (
           <>
             <Alert tone="info" action={<Button small onClick={() => p.onChange(stopCarry(doc, exam))}>不沿用，從空白開始</Button>}>

@@ -64,7 +64,7 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
           <ul class="small muted" style="margin:0;padding-left:18px">
             <li>班級、座號、姓名一定要填；學號沒有就留空，不影響排座。</li>
             <li>考生編號由班級＋座號自動產生，不用填。</li>
-            <li>{p.division === 'junior' ? '國中部不分文理組，範本沒有組別欄。' : '高中部的組別來自每次的考試名單，範本不用填。'}</li>
+            <li>{p.division === 'junior' ? '國中部範本沒有組別欄。' : '高中部的組別來自每次的考試名單，範本不用填。'}</li>
           </ul>
         </Modal>
       )}

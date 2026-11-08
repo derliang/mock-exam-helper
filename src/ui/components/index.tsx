@@ -84,15 +84,16 @@ export function Modal(p: { title: string; onClose: () => void; children: Compone
   );
 }
 
-export type StepState = 'cur' | 'done' | 'stale' | 'todo';
+export type StepState = 'cur' | 'done' | 'stale' | 'todo' | 'skip';
 
 /** 步驟導覽（四種狀態，可自由跳步，D47） */
 export function StepNav(p: { steps: { no: number; name: string; state: StepState; note?: string }[]; onGo: (no: number) => void }) {
-  const mark: Record<StepState, string> = { cur: '目前', done: '已完成', stale: '過期', todo: '未完成' };
+  const mark: Record<StepState, string> = { cur: '目前', done: '已完成', stale: '過期', todo: '未完成', skip: '不需要' };
   const cur = p.steps.find((x) => x.state === 'cur');
+  const need = p.steps.filter((x) => x.state !== 'skip').length; // 國中部沒有的步驟不算進總步數
   return (
     <>
-    <p class="stepcount" aria-live="polite">{cur ? `第 ${cur.no}／${p.steps.length} 步` : `共 ${p.steps.length} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
+    <p class="stepcount" aria-live="polite">{cur ? `第 ${cur.no}／${p.steps.length} 步` : `共 ${need} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
     <ol class="steps" aria-label="步驟">
       {p.steps.map((s) => (
         <li key={s.no}>

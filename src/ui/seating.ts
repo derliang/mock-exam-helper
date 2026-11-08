@@ -206,13 +206,13 @@ export interface Check {
   detail: string;
 }
 
-const CHECKS: { title: string; match: RegExp }[] = [
+const CHECKS: { title: string; match: RegExp; track?: true }[] = [
   { title: '每位考生恰好一個座位', match: /沒有座位|兩個座位|不在名單/ },
   { title: '座位存在且不重複', match: /座位不存在|同一座位|未選用/ },
   { title: '同班編號沿座位遞增', match: /遞增/ },
   { title: '同一排不同班不穿插', match: /穿插/ },
   { title: '座位由前往後連續安排，中間不空位', match: /中間有空位/ },
-  { title: '理組、文組排進同組別的教室', match: /組別|錯誤種類/ },
+  { title: '理組、文組排進同組別的教室', match: /組別|錯誤種類/, track: true },
 ];
 
 export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResult): Check[] {
@@ -234,6 +234,7 @@ export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResu
     },
   ];
   for (const c of CHECKS) {
+    if (c.track && exam.division === 'junior') continue; // 會考不分文理組，不顯示這一項
     const hit = errors.filter((e) => c.match.test(e));
     checks.push({ title: c.title, ok: hit.length === 0, detail: hit.length ? hit.slice(0, 3).join('；') + (hit.length > 3 ? `…共 ${hit.length} 項` : '') : '符合' });
   }

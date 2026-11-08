@@ -27,8 +27,10 @@ export function buildAttendancePages(input: ExportInput): TablePageModel[] {
   const detachOf = new Map(result.detaches.map((d) => [`${d.code}|${d.subjectId}`, d]));
   const subjects = exam.subjects;
 
-  const heads = ['座位（排－深位）', '考生編號', '班級', '姓名', ...subjects.map((s) => s.name), '不考的科目'];
-  const widths = [1.5, 1.4, 1.2, 1.6, ...subjects.map(() => 1.5), 2.2];
+  // 會考每科都考，沒有「不考的科目」欄
+  const withSkipCol = exam.division !== 'junior';
+  const heads = ['座位（排－深位）', '考生編號', '班級', '姓名', ...subjects.map((s) => s.name), ...(withSkipCol ? ['不考的科目'] : [])];
+  const widths = [1.5, 1.4, 1.2, 1.6, ...subjects.map(() => 1.5), ...(withSkipCol ? [2.2] : [])];
 
   const personCols = (code: string) => ({
     code,
@@ -70,7 +72,7 @@ export function buildAttendancePages(input: ExportInput): TablePageModel[] {
     }
     const rows = list.map(({ seat, code }) => {
       const p = personCols(code);
-      return [seat, p.code, p.cls, p.name, ...subjects.map((s) => cell(code, s.id, room.id, room.kind)), p.skipped];
+      return [seat, p.code, p.cls, p.name, ...subjects.map((s) => cell(code, s.id, room.id, room.kind)), ...(withSkipCol ? [p.skipped] : [])];
     });
     return {
       kind: 'table',
