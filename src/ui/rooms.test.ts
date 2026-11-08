@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Classroom } from '../data';
 import { classroomSeats } from '../data';
-import { addRoom, checkSeats, clickSeat, isSeatActive, patchRoom, removeRoom, resize, seatCap, seatIndex, seatTotals } from './rooms';
+import { addRoom, checkSeats, clickSeat, fillDefaultTracks, isSeatActive, patchRoom, removeRoom, resize, seatCap, seatIndex, seatTotals } from './rooms';
 
 const room = (o: Partial<Classroom> = {}): Classroom => ({ id: 'r', name: 'A', kind: 'class', rows: 5, depth: 6, seatCount: 30, ...o });
 
@@ -66,5 +66,22 @@ describe('教室座位編輯', () => {
     l = patchRoom(l, l[0]!.id, (r) => ({ ...r, name: '改名' }));
     expect(l[0]!.name).toBe('改名');
     expect(removeRoom(l, l[0]!.id)).toHaveLength(1);
+  });
+});
+
+describe('fillDefaultTracks（教室同名班級的預設組別）', () => {
+  const classes = [
+    { name: '溫', division: 'senior', track: 'science' as const },
+    { name: '儉', division: 'senior', track: 'liberal' as const },
+    { name: '溫', division: 'junior' },
+  ];
+  const room = (name: string, extra: object = {}) => ({ id: name, name, kind: 'class' as const, rows: 5, depth: 6, seatCount: 30, ...extra });
+  it('同名高中部班級：溫→理組、儉→文組', () => {
+    const out = fillDefaultTracks([room('溫'), room('儉')], classes);
+    expect(out.map((r) => r.track)).toEqual(['science', 'liberal']);
+  });
+  it('已指定的不動；沒有同名班級、預備教室不帶入；沒有變動時回傳原陣列', () => {
+    const rs = [room('溫', { track: 'liberal' }), room('第一試場'), { ...room('儉'), kind: 'reserve' as const }];
+    expect(fillDefaultTracks(rs, classes)).toBe(rs);
   });
 });

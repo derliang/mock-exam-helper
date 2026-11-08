@@ -345,6 +345,7 @@ section>header p{color:var(--text-2);max-width:72ch}
 .fmtseg{width:max-content;max-width:100%}
 .fmtseg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-on);border-color:var(--accent)}
 .roomrow{display:grid;grid-template-columns:minmax(34px,auto) minmax(150px,1.3fr) auto auto minmax(190px,1fr) auto;gap:10px 14px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.roomrow.trk{grid-template-columns:minmax(34px,auto) minmax(120px,1fr) auto auto auto minmax(140px,auto) auto}
 .roomrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
 .roomrow .no{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:12px;border:1.5px solid var(--line-2);background:var(--surface)}
 .roomrow .info{font-size:13px;color:var(--text-2);font-variant-numeric:tabular-nums}

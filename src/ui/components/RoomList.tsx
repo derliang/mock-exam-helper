@@ -1,10 +1,10 @@
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import type { Classroom, LabelPaper, Track } from '../../data';
 import { seatLabel } from '../../data';
 import { Button, ConfirmButton, Seg, Stepper, Switch } from './index';
 import { confirmCopy } from '../flow';
 import { classColorVars } from '../colors';
-import { addRoom, clickSeat, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap, setRoomTrack } from '../rooms';
+import { addRoom, clickSeat, fillDefaultTracks, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap, setRoomTrack } from '../rooms';
 
 /**
  * 教室清單與座位表編輯（步驟③與設定頁共用，D69②）：每間一列，點該列或「編輯座位表」就在列下展開，可收合。
@@ -17,10 +17,15 @@ export function RoomList(p: {
   /** 這間教室是否已被某次模擬考選用（刪除確認時提醒） */
   inUse?: (id: string) => boolean;
   /** 班級資料：教室名稱與班級名稱相同時，前面的圓圈用該班的縮寫與代表色 */
-  classes?: { name: string; colorIndex: number }[];
+  classes?: { name: string; colorIndex: number; division?: string; track?: Track }[];
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const cap = seatCap(p.paper);
+  // 教室名稱與高中部班級同名、又還沒指定組別時，自動帶入該班的組別（溫良恭＝理組、儉勤誠＝文組）
+  useEffect(() => {
+    const filled = fillDefaultTracks(p.rooms, p.classes ?? []);
+    if (filled !== p.rooms) p.onChange(filled);
+  }, [p.rooms, p.classes]);
   const upd = (id: string, f: (r: Classroom) => Classroom) => p.onChange(patchRoom(p.rooms, id, f));
   return (
     <div class="rw">
@@ -30,7 +35,7 @@ export function RoomList(p: {
         const on = p.selected?.includes(r.id) ?? false;
         return (
           <div key={r.id} class="rw">
-            <div class={`roomrow${on ? ' on' : ''}`} onClick={() => setOpen(isOpen ? null : r.id)}>
+            <div class={`roomrow${on ? ' on' : ''}${r.kind === 'class' ? ' trk' : ''}`} onClick={() => setOpen(isOpen ? null : r.id)}>
               {p.selected && p.onSelect ? (
                 <Switch label={r.kind === 'class' ? '列為考場' : '列為預備'} checked={on}
                   onChange={(v) => p.onSelect!(v ? [...p.selected!, r.id] : p.selected!.filter((x) => x !== r.id))} />
