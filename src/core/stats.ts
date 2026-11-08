@@ -86,3 +86,77 @@ export function specialOf(result: SeatingResult): { code: string; subjectId: str
     code: m.code, subjectId: m.subjectId, purpose: o.get(m.code)!.purpose, location: o.get(m.code)!.location,
   }));
 }
+
+/* ---------- 領卷清單（H3）：每間教室每科試卷、答案卡應有份數 ---------- */
+
+export interface PickupSubject {
+  subjectId: string;
+  /** 本教室要領的份數（試卷與答案卡相同）：班級教室＝在這裡考的人；預備教室＝抽離到這裡考試的人 */
+  count: number;
+  /** 班級教室：這科抽離到預備教室考試的人數（不計入本教室份數，由預備教室領） */
+  detachedOut: number;
+  /** 單人特例（D26）：這間教室的人到他處考試的人數（不計入本教室份數） */
+  elsewhere: number;
+  /** 單人特例的自填地點（去重） */
+  locations: string[];
+}
+
+export interface PickupRoom {
+  classroomId: string;
+  kind: 'class' | 'reserve';
+  subjects: PickupSubject[];
+  /** 本教室各科份數合計 */
+  total: number;
+}
+
+/**
+ * 份數＝實際會拿到這份試卷的人數。規則：
+ * - 班級教室：該教室座位上、這科有考（考試名單的科目含此科）的人；全科缺考者沒有科目，自然不計（D79）。
+ * - 抽離考試（D27）的人改到預備教室領，不計本教室；抽離自習不考試，兩邊都不計。
+ * - 單人特例（D26、D80，以覆寫為準）：到他處考試或自習，都不計本教室；考試者另記在「到他處」。
+ * - 預備教室：抽離考試且去這間的人數（每節科目各自計算，D27）。
+ */
+export function pickupCounts(i: {
+  rooms: readonly { id: string; kind: 'class' | 'reserve' }[];
+  assignments: readonly SeatAssignment[];
+  entries: readonly ExamEntry[];
+  subjects: readonly Subject[];
+  detaches: readonly Detach[];
+  special?: readonly { code: string; subjectId: string; purpose: 'exam' | 'study'; location?: string }[];
+}): PickupRoom[] {
+  const special = i.special ?? [];
+  const entryByCode = new Map(i.entries.map((e) => [studentCode(e.classNo, e.seatNo), e]));
+  return i.rooms.map((room) => {
+    const here = room.kind === 'class' ? i.assignments.filter((a) => a.classroomId === room.id) : [];
+    const subjects = i.subjects.map((s): PickupSubject => {
+      if (room.kind === 'reserve') {
+        const count = i.detaches.filter((d) => d.roomId === room.id && d.subjectId === s.id && d.purpose === 'exam').length;
+        return { subjectId: s.id, count, detachedOut: 0, elsewhere: 0, locations: [] };
+      }
+      const sp = new Map(special.filter((x) => x.subjectId === s.id).map((x) => [x.code, x]));
+      const dt = new Map(i.detaches.filter((d) => d.subjectId === s.id).map((d) => [d.code, d]));
+      let count = 0;
+      let detachedOut = 0;
+      let elsewhere = 0;
+      const locations = new Set<string>();
+      for (const a of here) {
+        const sx = sp.get(a.code);
+        if (sx) {
+          if (sx.purpose === 'exam') {
+            elsewhere++;
+            if (sx.location) locations.add(sx.location);
+          }
+          continue;
+        }
+        const d = dt.get(a.code);
+        if (d) {
+          if (d.purpose === 'exam') detachedOut++;
+          continue;
+        }
+        if (entryByCode.get(a.code)?.subjectIds.includes(s.id)) count++;
+      }
+      return { subjectId: s.id, count, detachedOut, elsewhere, locations: [...locations] };
+    });
+    return { classroomId: room.id, kind: room.kind, subjects, total: subjects.reduce((n, x) => n + x.count, 0) };
+  });
+}

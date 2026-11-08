@@ -36,7 +36,7 @@ export interface ExportExtra {
 export interface StepPanel {
   /** 出現在哪一步（1～6）的最下方 */
   step: 1 | 2 | 3 | 4 | 5 | 6;
-  render: (p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => void }) => ComponentChild;
+  render: (p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => void; /** 跳到某一步（面板需要引導時用） */ onStep?: (n: 1 | 2 | 3 | 4 | 5 | 6) => void }) => ComponentChild;
 }
 
 /** 一個功能接入畫面的所有位置；每個欄位都可省略 */

@@ -80,7 +80,18 @@ export interface ListPageModel {
   title: string;
   rows: ListRow[];
 }
-export type PageModel = SeatPageModel | LabelPageModel | ListPageModel;
+/** 通用表格頁（A4）：領卷清單等共用。widths 為各欄相對寬度；空字串的格子印成空白（供手寫勾選） */
+export interface TablePageModel {
+  kind: 'table';
+  title: string;
+  subtitle?: string;
+  heads: string[];
+  widths: number[];
+  rows: string[][];
+  /** 合計列（粗體，放最後） */
+  totalRow?: string[];
+}
+export type PageModel = SeatPageModel | LabelPageModel | ListPageModel | TablePageModel;
 
 /** 頁尾（D66）：台北時間產生時間＋資料版本碼 */
 export function footerText(generatedAt: string, dataVersion: string): string {

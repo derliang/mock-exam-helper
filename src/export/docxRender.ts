@@ -32,6 +32,7 @@ import {
   type CellModel,
   type LabelPageModel,
   type ListPageModel,
+  type TablePageModel,
   type SeatPageModel,
 } from './model';
 
@@ -289,9 +290,49 @@ function listSection(page: ListPageModel, opts: DocxOptions): ISectionOptions {
   };
 }
 
+/* ---------- 通用表格頁（A4，領卷清單等）---------- */
+
+function tableSection(page: TablePageModel, opts: DocxOptions): ISectionOptions {
+  const mode = opts.boldMode ?? 'embed-bold';
+  const contentW = mmToTwip(PAPER_MM.A4.w - 2 * A4_MARGIN_MM);
+  const sum = page.widths.reduce((a, b) => a + b, 0);
+  const columnWidths = page.widths.map((f) => Math.floor((contentW * f) / sum));
+  const mk = (texts: string[], kind: 'head' | 'body' | 'total') =>
+    new TableRow({
+      tableHeader: kind === 'head',
+      cantSplit: true,
+      height: kind === 'head' ? undefined : { value: mmToTwip(9), rule: HeightRule.ATLEAST },
+      children: texts.map(
+        (t, i) =>
+          new TableCell({
+            width: { size: columnWidths[i]!, type: WidthType.DXA },
+            borders: allBorders(thin('808080')),
+            shading: kind === 'body' ? undefined : { type: ShadingType.CLEAR, fill: kind === 'head' ? 'EEEEEE' : 'F4F4F4', color: 'auto' },
+            margins: { top: 40, bottom: 40, left: 60, right: 60 },
+            children: [para([run(t, { size: 10.5, bold: kind !== 'body' }, mode)], AlignmentType.LEFT)],
+          }),
+      ),
+    });
+  const rows = [mk(page.heads, 'head'), ...page.rows.map((r) => mk(r, 'body')), ...(page.totalRow ? [mk(page.totalRow, 'total')] : [])];
+  return {
+    properties: {
+      page: {
+        size: { width: mmToTwip(PAPER_MM.A4.w), height: mmToTwip(PAPER_MM.A4.h) },
+        margin: { top: mmToTwip(A4_MARGIN_MM), bottom: mmToTwip(A4_MARGIN_MM), left: mmToTwip(A4_MARGIN_MM), right: mmToTwip(A4_MARGIN_MM), footer: mmToTwip(6) },
+      },
+    },
+    footers: { default: footer(opts) },
+    children: [
+      para([run(page.title, { size: 16, bold: true }, mode)], AlignmentType.CENTER, { spacing: { before: 0, after: 80 } }),
+      ...(page.subtitle ? [para([run(page.subtitle, { size: 12 }, mode)], AlignmentType.CENTER, { spacing: { before: 0, after: 120 } })] : []),
+      new Table({ width: { size: columnWidths.reduce((a, b) => a + b, 0), type: WidthType.DXA }, columnWidths, layout: TableLayoutType.FIXED, rows }),
+    ],
+  };
+}
+
 /* ---------- 組裝 ---------- */
 
-export type DocxPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel | ListPageModel[] };
+export type DocxPages = { seat?: SeatPageModel[]; label?: LabelPageModel[]; list?: ListPageModel | ListPageModel[]; table?: TablePageModel[] };
 
 /** 把一類輸出合併成一個多頁檔（D69）；回傳 .docx 位元組 */
 export async function renderDocx(pages: DocxPages, opts: DocxOptions): Promise<Uint8Array> {
@@ -300,6 +341,7 @@ export async function renderDocx(pages: DocxPages, opts: DocxOptions): Promise<U
   for (const p of pages.seat ?? []) sections.push(seatSection(p, opts));
   for (const p of pages.label ?? []) sections.push(labelSection(p, opts));
   for (const l of [pages.list ?? []].flat()) sections.push(listSection(l, opts));
+  for (const t of pages.table ?? []) sections.push(tableSection(t, opts));
   if (sections.length === 0) throw new Error('沒有可輸出的頁面');
   const doc = new Document({
     creator: '模擬考小幫手',
