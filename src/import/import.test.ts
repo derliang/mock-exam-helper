@@ -176,3 +176,38 @@ describe('名單比對', () => {
     expect(allResolved([{ kind: 'only-in-exam', code: '0101', choice: 'manual' }])).toBe(false);
   });
 });
+
+describe('學生名單：區塊標題版式（假資料）', () => {
+  // 每區塊 5 欄 [學號][座號][姓名][註或類組][帳號]，區塊間有時隔一空欄；標籤不在表頭
+  const row = (cells: string[][]): string[] => cells.flat();
+  const rows = [
+    ['高三溫', '', '', '類組', '帳號', '', '高三良', '', '', '類組', '帳號'],
+    row([['1000001', '1', '測試甲', '工程群', 'a@example.test'], [''], ['1000101', '1', '測試丙', '社會組', 'c@example.test']]),
+    row([['1000002', '2', '測試乙', '生醫群', 'b@example.test'], [''], ['', '', '', '', '']]),
+  ];
+  it('以標題列為區塊起點，依位置取值，不讀帳號，並推得組別', () => {
+    const r = parseRoster(rows, { classNames: NAMES });
+    expect(r.layout).toBe('blocks');
+    expect(r.students).toEqual([
+      { classNo: 1, seatNo: 1, name: '測試甲', schoolId: '1000001' },
+      { classNo: 1, seatNo: 2, name: '測試乙', schoolId: '1000002' },
+      { classNo: 2, seatNo: 1, name: '測試丙', schoolId: '1000101' },
+    ]);
+    expect(r.classTracks).toEqual({ 1: 'science', 2: 'liberal' });
+    expect(JSON.stringify(r)).not.toContain('example.test');
+  });
+  it('國三版式：註欄空白、無組別，初三標題', () => {
+    const r = parseRoster([['初三溫', '', '', '註', '帳號'], ['2000001', '5', '測試丁', '', 'd@example.test']], {
+      classNames: NAMES,
+    });
+    // 只有一個標題儲存格時不算區塊版式，退回其他版式（此處無表頭 → unknown）
+    expect(r.layout).toBe('unknown');
+    const two = parseRoster(
+      [['初三溫', '', '', '註', '帳號', '初三良', '', '', '註', '帳號'], ['2000001', '5', '測試丁', '', 'd@example.test', '2000101', '6', '測試戊', '', 'e@example.test']],
+      { classNames: NAMES },
+    );
+    expect(two.layout).toBe('blocks');
+    expect(two.students.map((s) => `${s.classNo}-${s.seatNo}`)).toEqual(['1-5', '2-6']);
+    expect(two.classTracks).toBeUndefined();
+  });
+});

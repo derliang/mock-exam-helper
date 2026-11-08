@@ -2,13 +2,15 @@
  * 學生名單解析（D62）：支援一人一列的直式表，以及六班並排的橫向寬表（每班一個區塊）。
  * 只取班級、座號、姓名、學號；不取類組、帳號等其他欄位。
  */
-import type { Student } from '../data/types';
+import type { Student, Track } from '../data/types';
 import { fieldOf, findHeaderRow, mapColumns, normalizeCell, parseClassNo, parseSeatNo } from './columns';
 
 export interface RosterResult {
   students: Student[];
   issues: { row: number; message: string }[];
-  layout: 'tall' | 'wide' | 'unknown';
+  layout: 'tall' | 'wide' | 'blocks' | 'unknown';
+  /** 由「類組」欄推得的班級組別（只在能判斷時才有）；不會存進 Student */
+  classTracks?: Record<number, Track>;
 }
 
 export interface RosterOptions {
@@ -96,7 +98,73 @@ function parseWide(rows: readonly (readonly string[])[], h: number, opts: Roster
   return { students, issues, layout: 'wide' };
 }
 
+
+const TITLE_RE = /^[初高國][一二三123]?(.{1,3}?)班?$/;
+const SCIENCE_RE = /工程|生醫|醫|理|自然|數理|資訊|電機|化工|科學/;
+const LIBERAL_RE = /社會|文|商|管理|法|語|藝|社/;
+
+/** 類組文字 → 組別；無法判斷回 null */
+export function trackOfText(text: string): Track | null {
+  const t = normalizeCell(text);
+  if (!t) return null;
+  if (SCIENCE_RE.test(t)) return 'science';
+  if (LIBERAL_RE.test(t)) return 'liberal';
+  return null;
+}
+
+/**
+ * 區塊標題版式：某一列有 2 個以上「(初|高|國)[一二三]?班名」的儲存格，視為各班區塊起點；
+ * 每區塊 5 欄：[學號][座號][姓名][註或類組][帳號]，欄位標籤不在表頭，依位置取值。帳號不讀取（個資）。
+ */
+function findTitleRow(rows: readonly (readonly string[])[]): { row: number; cols: number[] } | null {
+  for (let i = 0; i < Math.min(rows.length, 10); i++) {
+    const cols = (rows[i] ?? []).map((c, j) => (TITLE_RE.test(normalizeCell(c)) ? j : -1)).filter((j) => j >= 0);
+    if (cols.length >= 2) return { row: i, cols };
+  }
+  return null;
+}
+
+function parseBlocks(rows: readonly (readonly string[])[], title: { row: number; cols: number[] }, opts: RosterOptions): RosterResult {
+  const students: Student[] = [];
+  const issues: RosterResult['issues'] = [];
+  const tally: Record<number, Record<Track, number>> = {};
+  const header = rows[title.row] ?? [];
+  title.cols.forEach((start, bi) => {
+    const label = TITLE_RE.exec(normalizeCell(header[start] ?? ''))?.[1] ?? '';
+    const idx = opts.classNames ? opts.classNames.findIndex((n) => n && n === label) : -1;
+    const classNo = idx >= 0 ? idx + 1 : bi + 1;
+    for (let i = title.row + 1; i < rows.length; i++) {
+      const r = rows[i] ?? [];
+      const name = (r[start + 2] ?? '').trim();
+      const seatNo = parseSeatNo(r[start + 1] ?? '');
+      if (!name || seatNo === null) continue;
+      const s: Student = { classNo, seatNo, name };
+      const id = normalizeCell(r[start] ?? '');
+      if (/^\d+$/.test(id)) s.schoolId = id;
+      students.push(s);
+      const tr = trackOfText(r[start + 3] ?? '');
+      if (tr) (tally[classNo] ??= { science: 0, liberal: 0 })[tr]++;
+    }
+  });
+  const classTracks: Record<number, Track> = {};
+  for (const [k, v] of Object.entries(tally)) {
+    if (v.science !== v.liberal) classTracks[Number(k)] = v.science > v.liberal ? 'science' : 'liberal';
+  }
+  students.sort((a, b) => a.classNo - b.classNo || a.seatNo - b.seatNo);
+  const dup = new Set<string>();
+  for (const s of students) {
+    const k = `${s.classNo}-${s.seatNo}`;
+    if (dup.has(k)) issues.push({ row: 0, message: `班級 ${s.classNo} 座號 ${s.seatNo} 重複` });
+    dup.add(k);
+  }
+  const res: RosterResult = { students, issues, layout: 'blocks' };
+  if (Object.keys(classTracks).length) res.classTracks = classTracks;
+  return res;
+}
+
 export function parseRoster(rows: readonly (readonly string[])[], opts: RosterOptions = {}): RosterResult {
+  const title = findTitleRow(rows);
+  if (title && !rows.slice(0, 10).some((r) => r.some((c) => fieldOf(c) === 'seatNo'))) return parseBlocks(rows, title, opts);
   // 寬表：某一列有 2 個以上「座號」
   for (let i = 0; i < Math.min(rows.length, 40); i++) {
     const n = (rows[i] ?? []).filter((c) => fieldOf(c) === 'seatNo').length;
