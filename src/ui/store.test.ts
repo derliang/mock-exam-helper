@@ -85,3 +85,15 @@ describe('更新考試', () => {
     expect(b.doc.exams[0]?.subjects.map((x) => x.name)).toContain('英聽');
   });
 });
+
+describe('新考試的標籤格數（D74）', () => {
+  it('跟著預設紙張：B4 6 欄×8 列、A3 7×7', () => {
+    const now = new Date('2026-01-01T00:00:00Z');
+    for (const [paper, cols, rows] of [['B4', 6, 8], ['A3', 7, 7]] as const) {
+      const d = demoDoc();
+      d.settings = { ...d.settings, defaultLabelPaper: paper };
+      const r = newExam(d, 'gsat', '學測第一次', now);
+      expect(r.ok && r.doc.exams.at(-1)?.labelLayout).toEqual({ paper, cols, rows });
+    }
+  });
+});
