@@ -6,12 +6,13 @@ import { confirmCopy } from '../flow';
 import { RoomList } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
 import { RosterIO } from './RosterIO';
+import { allFeatures, withFeature } from '../features';
 import { addStudent, removeStudent, searchStudents, setClassColor, setClassTrack, updateStudent, type Doc } from '../store';
 
-type Tab = 'roster' | 'classes' | 'school' | 'rooms';
+type Tab = 'roster' | 'classes' | 'school' | 'rooms' | 'features';
 const TABS: { value: Tab; label: string }[] = [
   { value: 'roster', label: '學生名單' }, { value: 'classes', label: '班級資料' },
-  { value: 'school', label: '學校與表頭' }, { value: 'rooms', label: '教室清單' },
+  { value: 'school', label: '學校與表頭' }, { value: 'rooms', label: '教室清單' }, { value: 'features', label: '選用功能' },
 ];
 
 /** 設定頁（D61）：部別切換（UI-07/08）；改動都走 onChange，由 App 記入復原 */
@@ -28,6 +29,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab })
       {tab === 'roster' && <Roster {...p} division={division} />}
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
+      {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}
       {tab === 'rooms' && <RoomList inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} />}
     </section>
   );
@@ -153,3 +155,25 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   );
 }
 
+
+/** 選用功能（D75）：逐項勾選；預設全關，關掉的功能在導覽、匯出頁與步驟中完全不出現 */
+function Features({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
+  const list = allFeatures();
+  return (
+    <div class="stack">
+      <p class="muted">以下功能不一定每個學校都需要，用得到的再打開。關掉的功能不會出現在畫面上，也不影響排座、標籤、座位表與匯出這些基本功能。</p>
+      {list.map((f) => {
+        const on = doc.settings.features?.[f.id] === true;
+        return (
+          <label key={f.id} class="check" style="align-items:flex-start">
+            <input type="checkbox" checked={on} onChange={(e) => onChange({ ...doc, settings: withFeature(doc.settings, f.id, e.currentTarget.checked) })} />
+            <span>
+              <b>{f.name}</b>{f.scope === 'bcct' && <> <span class="small muted">（只用於會考）</span></>}<br />
+              <span class="small muted">{f.desc}</span>
+            </span>
+          </label>
+        );
+      })}
+    </div>
+  );
+}
