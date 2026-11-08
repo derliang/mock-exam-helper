@@ -96,3 +96,24 @@ describe('高中部：沒匯入名單維持 D82，但座位合計與統計列仍
     expect(html).toContain('<small>考生</small><strong>—</strong>');
   });
 });
+
+describe('步驟③ 教室列：國中部', () => {
+  it('會考不顯示組別欄、不列預備教室、不提「新增預備教室」；高中部不變', async () => {
+    const { RoomList } = await import('./components/RoomList');
+    const rooms = [room('c1', 36), room('c2', 12, 'reserve')];
+    const j = renderToString(<RoomList junior rooms={rooms} paper="B4" onChange={noop} selected={['c1']} onSelect={noop} />);
+    expect(j).toContain('c1');
+    expect(j).not.toContain('c2');
+    expect(j).not.toContain('組別');
+    expect(j).not.toContain('理組');
+    expect(j).not.toContain('新增預備教室');
+    const s = renderToString(<RoomList rooms={rooms} paper="B4" onChange={noop} selected={['c1']} onSelect={noop} />);
+    expect(s).toContain('組別（高中部必選）');
+    expect(s).toContain('新增預備教室');
+  });
+  it('國中部會考整頁③不出現文理組字樣', () => {
+    const { doc, exam } = junior([12]);
+    const html = renderToString(<Step3 doc={doc} exam={exam} onChange={noop} />);
+    expect(html.replace('會考不分文理組', '')).not.toMatch(/理組|文組|組別|文理/);
+  });
+});

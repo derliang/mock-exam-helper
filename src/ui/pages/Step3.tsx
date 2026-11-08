@@ -34,7 +34,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <div class="card stephead"><div><h2>③ 教室設定</h2><p class="small muted">用開關選出本次考試的教室，確認座位夠用；高中部的班級要先分好理組、文組。</p></div></div>
+      <div class="card stephead"><div><h2>③ 教室設定</h2><p class="small muted">用開關選出本次考試的教室，確認座位夠用{senior ? '；高中部的班級要先分好理組、文組' : ''}。</p></div></div>
 
       {/* D56：狀態檢核放頁面上方、隨時看得到；統計列照設計系統「頂部統計列」（D82 修訂） */}
       <StatsBar items={[
@@ -77,8 +77,8 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="card stack">
-        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；預備教室座位另計，不計入班級教室合計。教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
-        <RoomList classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
+        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；{senior ? '預備教室座位另計，不計入班級教室合計。' : ''}教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
+        <RoomList junior={!senior} classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
       </div>
     </section>
   );
