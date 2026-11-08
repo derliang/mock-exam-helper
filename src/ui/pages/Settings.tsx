@@ -1,3 +1,4 @@
+import { syncDiffs } from '../store';
 import { useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
 import { studentCode } from '../../data';
@@ -34,7 +35,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
           <span class="small muted">{division === 'junior' ? '國中部：不分文理組，會考科目固定七科' : '高中部：每個班級分理組或文組'}</span>
         </div>
       )}
-      {tab === 'roster' && <Roster {...p} division={division} />}
+      {tab === 'roster' && <Roster {...p} onChange={(d) => p.onChange(syncDiffs(d))} division={division} />}
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
       {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}

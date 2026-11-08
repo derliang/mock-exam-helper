@@ -3,6 +3,7 @@ import type { ClassInfo, Division, ExamConfig, ExamKind, Semester, Settings, Stu
 import { studentCode } from '../data';
 import type { ExamFiles } from '../data/folder';
 import { defaultLabelLayout } from '../export/model';
+import { diffsStale, refreshDiffs } from '../import/compare';
 import { defaultSubjects, isCustomized } from './subjects';
 
 export interface Doc {
@@ -72,7 +73,26 @@ export function setClassTrack(doc: Doc, division: Division, no: number, track: T
   return mapClass(doc, no, division, (c) => ({ ...c, track }));
 }
 
+/**
+ * 共用名單、班級或參加方式改動後，重算每次考試的名單比對（#60）。
+ * 沒有變動的考試維持原物件（不會被蓋上修改時間）；已處理的差異只在內容相同時保留選擇。
+ */
+export function syncDiffs(doc: Doc): Doc {
+  if (!doc.examFiles) return doc;
+  let files = doc.examFiles;
+  for (const e of doc.exams) {
+    const f = files[e.id];
+    if (!f?.entries) continue;
+    const fresh = refreshDiffs(doc.rosters[e.division], f.entries, e.participation, f.diffs ?? []);
+    if (!diffsStale(f.diffs ?? [], fresh)) continue;
+    files = { ...files, [e.id]: { ...f, diffs: fresh } };
+  }
+  return files === doc.examFiles ? doc : { ...doc, examFiles: files };
+}
+
 export interface NewExamOptions {
+  /** 學測次別（使用者選擇）；沒給就依學年度＋學期推算，不是歷史筆數 */
+  round?: number;
   semester?: Semester;
   /** 沿用上一次同類型模擬考的設定（教室、標示規則、參加方式、標籤格式、自訂考科） */
   prev?: ExamConfig;
@@ -84,10 +104,12 @@ export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts:
   if (kind === 'ast') return fail('分科尚未開放');
   if (doc.exams.some((e) => e.name === n)) return fail('已有同名的模擬考');
   const division: Division = kind === 'bcct' ? 'junior' : 'senior';
-  const round = kind === 'gsat' ? doc.exams.filter((e) => e.kind === 'gsat').length + 1 : undefined;
+  const semester = opts.semester ?? 'first';
+  if (opts.round !== undefined && (!Number.isInteger(opts.round) || opts.round < 1)) return fail('次別要是 1 以上的整數');
+  const round = kind === 'gsat' ? opts.round ?? nextRound(doc, kind, now) : undefined;
   const prev = opts.prev && opts.prev.kind === kind ? opts.prev : undefined;
   const exam: ExamConfig = {
-    id: `exam-${now.getTime()}`, name: n, kind, division, semester: opts.semester ?? 'first', round,
+    id: `exam-${now.getTime()}`, name: n, kind, division, semester, round,
     participation: prev?.participation ?? 'all',
     subjects: prev && isCustomized(prev.subjects) ? structuredClone(prev.subjects) : defaultSubjects(kind, round),
     markRules: prev ? structuredClone(prev.markRules) : [], classroomIds: prev ? [...prev.classroomIds] : [],
@@ -99,13 +121,22 @@ export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts:
   return { ok: true, doc: { ...doc, exams: [...doc.exams, exam] } };
 }
 
+/** 同一學年度、同類型已有幾次，下一次就是第幾次（新學年從第 1 次重新開始，#68） */
+export function nextRound(doc: Doc, kind: ExamKind, now: Date): number {
+  const year = schoolYear(now);
+  return doc.exams.filter((e) => e.kind === kind && schoolYear(new Date(e.createdAt)) === year).length + 1;
+}
+
 /** 新增頁預設的名稱：「學測第三次」「會考第一次」，已被用掉就往後找（資料夾名稱會用它） */
-export function suggestExamName(doc: Doc, kind: ExamKind): string {
+export function suggestExamName(doc: Doc, kind: ExamKind, now: Date = new Date()): string {
   const cn = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
   const base = KIND_LABEL[kind].replace(/（.*）/, '');
-  for (let i = doc.exams.filter((e) => e.kind === kind).length + 1; i < 100; i++) {
+  for (let i = nextRound(doc, kind, now); i < 100; i++) {
     const name = `${base}第${cn[i] ?? i}次`;
     if (!doc.exams.some((e) => e.name === name)) return name;
+    // 同名的是舊學年的考試：新學年的「第一次」改加學年度前綴，次別仍是正確的 i
+    const withYear = `${schoolYear(now)}學年度${name}`;
+    if (doc.exams.some((e) => e.name === name && schoolYear(new Date(e.createdAt)) !== schoolYear(now)) && !doc.exams.some((e) => e.name === withYear)) return withYear;
   }
   return base;
 }
