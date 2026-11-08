@@ -1,7 +1,7 @@
 /**
  * 薄資料介面：畫面只透過它讀寫。施工A 的存檔實作完成後換接；目前記憶體假實作（假資料，無真實學生）。
  */
-import type { ClassInfo, Classroom, Student } from '../data';
+import type { ClassInfo, Classroom, ExamFiles, Student } from '../data';
 import type { Doc } from './store';
 
 export interface Repository {
@@ -12,6 +12,9 @@ export interface Repository {
   adoptDropped(items: DataTransferItemList): Promise<boolean>;
   load(): Promise<Doc>;
   save(doc: Doc): Promise<void>;
+  /** 單次模擬考底下的其他檔案（考試名單、比對結果、覆寫、排座結果） */
+  loadExamFile<K extends keyof ExamFiles>(examId: string, key: K): Promise<ExamFiles[K] | null>;
+  saveExamFile<K extends keyof ExamFiles>(examId: string, key: K, data: ExamFiles[K]): Promise<void>;
 }
 
 const names = ['溫', '良', '恭', '儉', '勤', '誠'];
@@ -52,7 +55,10 @@ export function withDefaults(doc: Doc): Doc {
 export function createMemoryRepository(): Repository {
   let folder = false;
   let doc = demoDoc();
+  const files = new Map<string, unknown>();
   return {
+    loadExamFile: async <K extends keyof ExamFiles>(examId: string, key: K) => structuredClone((files.get(`${examId}/${key}`) ?? null) as ExamFiles[K] | null),
+    saveExamFile: async <K extends keyof ExamFiles>(examId: string, key: K, data: ExamFiles[K]) => { files.set(`${examId}/${key}`, structuredClone(data)); },
     hasFolder: () => folder,
     chooseFolder: async () => { folder = true; },
     adoptDropped: async (items) => { const ok = items.length > 0; if (ok) folder = true; return ok; },
