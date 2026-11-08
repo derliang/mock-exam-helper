@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'preact/hooks';
+import { Footer } from './components/Footer';
 import { Alert, Badge, Button, EmptyState, Seg, StepFooter, StepNav, SummaryBar, TopBar } from './components';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, type NavState, type Route } from './nav';
@@ -90,6 +91,7 @@ export function App() {
         {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRoster={() => go2({ page: 'settings', tab: 'roster' }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onExams={() => go({ page: 'exams' })} />}
         {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
+      <Footer />
     </>
   );
 }
