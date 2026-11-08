@@ -48,3 +48,17 @@ npx vitest run      # 2 檔 20 個測試全綠（含 data 4 個）
 - 排座結果結構目前用 `SeatingResult`（src/data）；施工B 的實際輸出若有欄位差異再調。
 - 考生查詢、領卷清單：第一版先不做（調度員裁示）。
 - 字型檔 4.8MB 進 repo；正式網站需延遲載入（只在匯出時載入），由施工C 整合。
+
+## 追加：⑥ 匯出頁（分支 build/d-ui-export，額度用盡時的進度）
+
+- 已做：`src/export/plan.ts`（勾選→檔案清單、匯出前檢查、產生 Word／PDF 列印頁）、`src/ui/exportInput.ts`（Doc→ExportInput，暫以學生名單當考試名單、即時 runSeating；②、⑤ 併入後改這個檔）、`src/ui/pages/Step6.tsx`、App.tsx 路由 1 行。docx 改用套件原生 embedBold（預設），separate-family 為備案；改用 `Packer.toArrayBuffer`（瀏覽器沒有 Buffer）。
+- 測試：`npm run typecheck` 通過、`npx vitest run` 116 個全綠、`npm run build` 通過。**未在乾淨 clone 重跑，未在瀏覽器實測**（docx 在瀏覽器端的內嵌字型、下載、PDF 列印頁都沒驗到）。
+- 未做：瀏覽器實測 Step6、乾淨 clone 全套、開 PR、領卷清單。
+
+## ⑥ 匯出頁收尾（PR：build/d-ui-export）
+
+- 已 merge 最新 main（含 ②、③）。⑥ 現在讀 `Doc.examFiles` 的考試名單、覆寫與未處理差異數；排座仍即時 `runSeating`（⑤ 未併入）。⑤ 併入後改 `src/ui/exportInput.ts` 用已存 result 與過期判斷。
+- 前檢查訊息改為「缺什麼、去哪補」，缺考試名單／缺教室帶按鈕跳 ②／③。
+- 乾淨 clone：`npm ci`、typecheck、vitest 133 個、build 全過。
+- **沒驗到**：瀏覽器實測 ⑥（下載、PDF 列印頁）；Word 實機字型（步驟照上方〈真檔抽驗〉，embed-bold 現為預設）；「過期」判斷尚未接（無 ⑤）。
+- 待辦給施工C：`src/ui/store.ts` 建立考試的 `labelLayout` 寫死 6×8，應用 `defaultLabelLayout`。

@@ -177,11 +177,13 @@ function fromRoomStats(rs: RoomStats, ctx: Ctx): StatsModel {
 }
 
 /** 座位表：每間教室一頁；每間預備教室的每個抽離考試科目一頁（柔和單色） */
-export function buildSeatPages(input: ExportInput): SeatPageModel[] {
+export type Scope = 'all' | 'class' | 'reserve';
+
+export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPageModel[] {
   const ctx = ctxOf(input);
   const rooms = new Map(input.settings.classrooms.map((c) => [c.id, c]));
   const pages: SeatPageModel[] = [];
-  for (const id of input.exam.classroomIds) {
+  for (const id of scope === 'reserve' ? [] : input.exam.classroomIds) {
     const room = rooms.get(id);
     if (!room) continue;
     const mine = input.result.assignments.filter((a) => a.classroomId === id);
@@ -200,7 +202,7 @@ export function buildSeatPages(input: ExportInput): SeatPageModel[] {
     });
   }
   const groups = new Map<string, typeof input.result.detaches>();
-  for (const d of input.result.detaches) {
+  for (const d of scope === 'class' ? [] : input.result.detaches) {
     if (d.purpose !== 'exam' || !d.seat) continue;
     const k = `${d.roomId}|${d.subjectId}`;
     groups.set(k, [...(groups.get(k) ?? []), d]);
@@ -238,12 +240,12 @@ export function buildSeatPages(input: ExportInput): SeatPageModel[] {
 }
 
 /** 標籤：每間教室一張紙，順序同座位表（排 1 深位 1→depth，再排 2…）。超出格數丟錯，不默默截斷 */
-export function buildLabelPages(input: ExportInput): LabelPageModel[] {
+export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): LabelPageModel[] {
   const ctx = ctxOf(input);
   const layout = input.exam.labelLayout;
   const cap = layout.cols * layout.rows;
   const pages: LabelPageModel[] = [];
-  for (const id of input.exam.classroomIds) {
+  for (const id of scope === 'reserve' ? [] : input.exam.classroomIds) {
     const room = input.settings.classrooms.find((c) => c.id === id);
     if (!room) continue;
     const mine = input.result.assignments
@@ -260,7 +262,61 @@ export function buildLabelPages(input: ExportInput): LabelPageModel[] {
       cells: mine.map((a) => makeCell(a.code, a, ctx)),
     });
   }
+  if (scope !== 'class') {
+    // 預備教室標籤：抽離考試，每間每科一張紙（座位順序同預備教室座位表）
+    const groups = new Map<string, typeof input.result.detaches>();
+    for (const d of input.result.detaches) {
+      if (d.purpose !== 'exam' || !d.seat) continue;
+      const k = `${d.roomId}|${d.subjectId}`;
+      groups.set(k, [...(groups.get(k) ?? []), d]);
+    }
+    for (const [k, ds] of groups) {
+      const [roomId, subjectId] = k.split('|') as [string, string];
+      const room = input.settings.classrooms.find((c) => c.id === roomId);
+      if (!room) continue;
+      if (ds.length > cap) throw new Error(`教室「${room.name}」有 ${ds.length} 個座位，超過標籤每張 ${cap} 格（${layout.cols}×${layout.rows}）`);
+      const sname = ctx.subjectName.get(subjectId) ?? subjectId;
+      const sorted = [...ds].sort((a, b) => a.seat!.row - b.seat!.row || a.seat!.depth - b.seat!.depth);
+      pages.push({
+        kind: 'label',
+        title: `${input.exam.name}　${room.name}　抽離考試（${sname}）`,
+        layout,
+        cells: sorted.map((d) => {
+          const c = makeCell(d.code, d.seat!, ctx);
+          c.tags = [{ kind: 'extra', text: `抽離考試 ${sname}` }];
+          return c;
+        }),
+      });
+    }
+  }
   return pages;
+}
+
+/** 抽離自習名單（D7）：每科一頁，只有名單與人數，不出座位表與標籤 */
+export function buildStudyLists(input: ExportInput): ListPageModel[] {
+  const ctx = ctxOf(input);
+  const bySubject = new Map<string, ListRow[]>();
+  const rooms = new Map(input.settings.classrooms.map((c) => [c.id, c]));
+  for (const d of input.result.detaches) {
+    if (d.purpose !== 'study') continue;
+    const rows = bySubject.get(d.subjectId) ?? [];
+    rows.push({
+      subject: ctx.subjectName.get(d.subjectId) ?? d.subjectId,
+      code: d.code,
+      className: ctx.classes.get(Number(d.code.slice(0, 2)))?.name ?? '',
+      name: ctx.students.get(d.code)?.name ?? '',
+      place: rooms.get(d.roomId)?.name ?? d.roomId,
+      purpose: '抽離自習',
+    });
+    bySubject.set(d.subjectId, rows);
+  }
+  return input.exam.subjects
+    .filter((sub) => bySubject.has(sub.id))
+    .map((sub) => ({
+      kind: 'list' as const,
+      title: `${input.exam.name}　抽離自習名單（${sub.name}，共 ${bySubject.get(sub.id)!.length} 人）`,
+      rows: bySubject.get(sub.id)!.sort((a, b) => a.code.localeCompare(b.code)),
+    }));
 }
 
 /** 抽離名單（A4）：抽離考試與抽離自習都列，單人特例列自填地點（D7/D26/D27） */
