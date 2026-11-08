@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { ExamConfig, Semester, Subject } from '../../data';
-import { Alert, Badge, Button, ConfirmButton, Modal, Seg } from '../components';
+import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StepHead } from '../components';
 import { carryMode, carryRows, carrySource, resumeCarry, stopCarry } from '../carry';
 import { confirmCopy } from '../flow';
 import { updateExam, KIND_LABEL, type Doc } from '../store';
@@ -31,9 +31,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <div class="card stephead">
-        <div><h2>① 考試設定</h2><p class="small muted">名稱、學期、次別與考科表；考科表決定 ② 名單比對的科目與 ⑥ 下載檔的標題。</p></div>
-      </div>
+      <StepHead title="① 考試設定">名稱、學期、次別與考科表；考科表決定 ② 名單比對的科目與 ⑥ 下載檔的標題。</StepHead>
 
       <div class="card stack">
         <div><h3>基本資料</h3><p class="small muted">類型建立後不可更改。</p></div>

@@ -1,5 +1,5 @@
 import type { ExamConfig, Track } from '../../data';
-import { Alert, Button, Seg } from '../components';
+import { Alert, Button, Seg, StepHead } from '../components';
 import { RoomList } from '../components/RoomList';
 import { classCapacity, reserveCheck } from '../capacity';
 import { newClassRoomIds, roomsMissingTrack } from '../rooms';
@@ -29,7 +29,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <div class="card stephead"><div><h2>③ 教室設定</h2><p class="small muted">用開關選出本次考試的教室，確認座位夠用；高中部的班級要先分好理組、文組。</p></div></div>
+      <StepHead title="③ 教室設定">用開關選出本次考試的教室，確認座位夠用；高中部的班級要先分好理組、文組。</StepHead>
 
       <div class="card stack">
         <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。{senior ? '高中部理組、文組各自計算，預備教室不納入。' : ''}</p></div>

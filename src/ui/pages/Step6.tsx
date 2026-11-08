@@ -5,7 +5,7 @@ import { renderPrintHtml } from '../../export/htmlRender';
 import { buildLabelPages, buildSeatPages } from '../../export/model';
 import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, type ExportOptions, type OutputFile } from '../../export/plan';
 import type { FontData } from '../../export/docxRender';
-import { Alert, Badge, Button, FormatPick, Seg } from '../components';
+import { Alert, Badge, Button, FormatPick, Seg, StepHead } from '../components';
 import { enabledExportItems, useIsEnabled } from '../features';
 import { prepareExport, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
@@ -153,7 +153,7 @@ export function Step6(p: {
 
   return (
     <section>
-      <div class="card stephead"><div><h2>⑥ 下載</h2><p class="small muted">下載座位表、標籤與名單；要列印請開下載的檔案。</p></div></div>
+      <StepHead title="⑥ 下載">下載座位表、標籤與名單；要列印請開下載的檔案。</StepHead>
       {!prepared.ok && (
         <div style="margin-top:12px"><Alert tone="danger">
           <b>還不能下載：</b>

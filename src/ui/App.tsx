@@ -5,7 +5,7 @@ import './featureRegister/attendance';
 import './featureRegister/alignment';
 import './featureRegister/quick';
 import { Footer } from './components/Footer';
-import { Alert, Badge, Button, EmptyState, Seg, StepNav, StepNextBar, SummaryBar, TopBar } from './components';
+import { Alert, Badge, Button, EmptyState, Seg, StepNextContext, StepPending, SummaryBar, TopBar } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
@@ -171,11 +171,11 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
   const flow = flowOf(p.doc, exam, p.route.step);
   const step = p.route.step;
   return (
-    <div class="ws wide">
-      <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
+    <StepNextContext.Provider value={{ action: nextAction(flow, step), onGo: p.onStep }}>
+      <div class="ws wide ws-one">
       <div class="stack" style="min-width:0">
         <SummaryBar flow={flow} onGo={p.onStep} />
-        <StepNextBar action={quietPending(nextAction(flow, step), step)} onGo={p.onStep} />
+        <StepPending action={quietPending(nextAction(flow, step), step)} onGo={p.onStep} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
           : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
           : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />
@@ -184,7 +184,8 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
           : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} onExams={p.onExams} />}
         {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange, onStep: p.onStep })}</div>)}
       </div>
-    </div>
+      </div>
+    </StepNextContext.Provider>
   );
 }
 
