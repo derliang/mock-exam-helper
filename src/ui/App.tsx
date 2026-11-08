@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import { Footer } from './components/Footer';
 import { Alert, Badge, Button, EmptyState, Seg, StepFooter, StepNav, SummaryBar, TopBar } from './components';
+import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, goTo, initialNav, pushTo, stepTitle, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
@@ -70,12 +71,15 @@ export function App() {
   });
 
   return (
-    <>
+    <FeatureContext.Provider value={hist.present.settings}>
       <header class="pbar">
         <span class="brand">模擬考小幫手 <Badge>beta 測試版</Badge></span>
         {r.page !== 'init' && (
           <nav class="nav" aria-label="主要導覽">
             <button type="button" onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
+            {enabledNav({ settings: hist.present.settings }).map((n) => (
+              <button key={n.id} type="button" onClick={() => go2(n.route, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === n.route.page}>{n.label}</button>
+            ))}
             <button type="button" onClick={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>設定</button>
           </nav>
         )}
@@ -92,7 +96,7 @@ export function App() {
         {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
       <Footer />
-    </>
+    </FeatureContext.Provider>
   );
 }
 
@@ -124,6 +128,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
           : step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
           : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
           : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} onExams={p.onExams} />}
+        {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange })}</div>)}
         <StepFooter action={nextAction(flow, step)} onGo={p.onStep} />
       </div>
     </div>
