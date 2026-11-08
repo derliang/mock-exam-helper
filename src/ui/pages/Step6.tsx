@@ -1,12 +1,16 @@
 import { useMemo, useState } from 'preact/hooks';
 import type { ExamConfig, LabelPaper } from '../../data';
+import { buildPickupPages } from '../../export/pickup';
+import { renderPrintHtml } from '../../export/htmlRender';
+import { buildLabelPages, buildSeatPages } from '../../export/model';
 import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, type ExportOptions, type OutputFile } from '../../export/plan';
 import type { FontData } from '../../export/docxRender';
 import { Alert, Badge, Button, Seg } from '../components';
-import { enabledExportItems } from '../features';
+import { enabledExportItems, useIsEnabled } from '../features';
 import { prepareExport, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
 import type { Doc } from '../store';
+import { defaultLabelLayout } from '../../export/model';
 
 type Loaded = { fonts: FontData; has: (ch: string) => boolean };
 
@@ -29,6 +33,48 @@ function openPrintPage(f: OutputFile): boolean {
   w.document.write(f.data as string);
   w.document.close();
   return true;
+}
+
+type PreviewKind = 'label' | 'seat' | 'pickup';
+
+/** 預覽卡（原型 vS6）：用與匯出相同的版面模型，當場產生單一教室的標籤紙／座位表／領卷清單 */
+function PreviewCard(p: { prepared: Extract<ReturnType<typeof prepareExport>, { ok: true }>; paper: LabelPaper; pickupOn: boolean }) {
+  const [kind, setKind] = useState<PreviewKind>('label');
+  const [ri, setRi] = useState(0);
+  const { input } = p.prepared;
+  const rooms = input.exam.classroomIds
+    .map((id) => input.settings.classrooms.find((c) => c.id === id))
+    .filter((c): c is NonNullable<typeof c> => !!c && c.kind === 'class');
+  const idx = Math.min(ri, Math.max(0, rooms.length - 1));
+  const room = rooms[idx];
+  const html = useMemo(() => {
+    if (!room) return '';
+    const withPaper = { ...input, exam: { ...input.exam, labelLayout: defaultLabelLayout(p.paper) } };
+    const meta = { generatedAt: input.result.generatedAt, dataVersion: input.result.dataVersion, extraCss: `html{background:#e9ecf1;zoom:${kind === 'label' ? (p.paper === 'A3' ? 0.38 : 0.45) : 0.5}}body{margin:0;padding:8px}.sheet{width:${kind === 'label' ? (p.paper === 'A3' ? 297 : 250) : 210}mm;box-sizing:border-box;margin:0 auto 8px!important;box-shadow:0 1px 4px #0003}` };
+    if (kind === 'label') { const pg = buildLabelPages(withPaper, 'class')[idx]; return pg ? renderPrintHtml({ label: [pg] }, meta) : ''; }
+    if (kind === 'seat') { const pg = buildSeatPages(withPaper, 'class')[idx]; return pg ? renderPrintHtml({ seat: [pg] }, meta) : ''; }
+    const pg = buildPickupPages(withPaper).find((t) => t.subtitle?.startsWith(room.name));
+    return pg ? renderPrintHtml({ table: [pg] }, meta) : '';
+  }, [input, kind, idx, p.paper, room]);
+  const kinds: { value: PreviewKind; label: string }[] = [{ value: 'label', label: '標籤' }, { value: 'seat', label: '座位表' }, ...(p.pickupOn ? [{ value: 'pickup' as const, label: '領卷清單' }] : [])];
+  const cap = kind === 'label'
+    ? `${p.paper === 'A3' ? 'A3（297×420 mm）・7 欄 × 7 列 ＝ 49 格' : 'B4（250×353 mm）・6 欄 × 8 列 ＝ 48 格'}・格子大小固定，不隨人數變；用不到的格子空白，一張紙為限。`
+    : kind === 'seat' ? 'A4 座位表，每頁附該教室的考生統計；實際檔案每間班級教室一頁。' : 'A4 領卷清單，每間教室一頁，列出每科試卷與答案卡份數。';
+  return (
+    <div class="card stack" style="margin-top:12px">
+      <div class="row" style="justify-content:space-between">
+        <div><h3>預覽</h3><p class="small muted">{room ? room.name : '沒有班級教室'}，與匯出檔案同一份版面。</p></div>
+        <div class="row"><Seg<PreviewKind> label="預覽類型" value={kind} onChange={setKind} options={kinds} /></div>
+      </div>
+      {rooms.length > 1 && (
+        <div class="row"><Seg<string> label="預覽教室" value={String(idx)} onChange={(v) => setRi(Number(v))} options={rooms.map((r, i) => ({ value: String(i), label: r.name }))} /></div>
+      )}
+      {html
+        ? <iframe class="pvframe" title="匯出預覽" sandbox="" srcdoc={html} style={`width:100%;height:${kind === 'label' ? 660 : 620}px;border:1px solid var(--line);border-radius:var(--r-sm);background:var(--sunken)`} />
+        : <Alert tone="info">這間教室沒有可預覽的內容。</Alert>}
+      <p class="small muted">{cap}</p>
+    </div>
+  );
 }
 
 const kb = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
@@ -55,6 +101,7 @@ export function Step6(p: {
   const [results, setResults] = useState<OutputFile[] | null>(null);
   const [fontState, setFontState] = useState<Loaded | null>(null);
   const junior = exam.division === 'junior';
+  const pickupOn = useIsEnabled('pickup-list', exam.kind);
   const set = (patch: Partial<ExportOptions>) => { setO((x) => ({ ...x, ...patch })); setResults(null); };
 
   // 選用功能多出的匯出項（D75）：功能關閉時完全不出現
@@ -133,14 +180,14 @@ export function Step6(p: {
           <p class="small muted">每一類合併成<b>一個多頁檔案</b>，不是一個座位表或一個標籤一個檔。Word 為主要成品，方便你編輯；PDF 給確定不再編輯、想避免格式跑掉時使用（D29）。</p>
         </div>
         <div class="field"><span class="label">格式</span>
-          <Seg<ExportFormat> label="格式" value={o.format} onChange={(v) => set({ format: v })} options={[{ value: 'word', label: 'Word（主要）' }, { value: 'pdf', label: 'PDF（輔助）' }]} />
+          <div class="row"><Seg<ExportFormat> label="格式" value={o.format} onChange={(v) => set({ format: v })} options={[{ value: 'word', label: 'Word（主要）' }, { value: 'pdf', label: 'PDF（輔助）' }]} /></div>
         </div>
         <div class="stack">
           {ck('seat', '座位表（A4）', '合併成一個檔案，每間班級教室一頁；每頁附該教室的考生統計')}
           {ck('label', '標籤', '合併成一個檔案，每間班級教室一張紙；標籤格大小固定，每個班級一種底色')}
           <div class="field" style="margin-left:30px">
             <span class="label">標籤紙張（只有標籤可選；座位表與名單固定 A4）</span>
-            <Seg<LabelPaper> label="標籤紙張" value={o.paper} onChange={(v) => set({ paper: v })} options={[{ value: 'B4', label: 'B4（一般，6×8）' }, { value: 'A3', label: 'A3（大尺寸，7×7）' }]} />
+            <div class="row"><Seg<LabelPaper> label="標籤紙張" value={o.paper} onChange={(v) => set({ paper: v })} options={[{ value: 'B4', label: 'B4（一般，6×8）' }, { value: 'A3', label: 'A3（大尺寸，7×7）' }]} /></div>
             <span class="hint">兩種紙張的標籤格大小各自固定，不隨班級人數變；用不到的格子空白。</span>
           </div>
           {!junior && ck('study', '抽離自習名單（A4）', '合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')}
@@ -167,6 +214,8 @@ export function Step6(p: {
       </div>
 
       {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
+
+      {prepared.ok && <PreviewCard prepared={prepared} paper={o.paper} pickupOn={pickupOn} />}
 
       {results && (
         <div class="card stack" style="margin-top:12px">
