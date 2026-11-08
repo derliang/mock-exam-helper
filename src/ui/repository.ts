@@ -1,42 +1,48 @@
 /**
- * 薄資料介面：畫面只透過它讀寫。施工A 的存檔實作完成後換接，目前用記憶體假實作（假資料，無真實學生）。
+ * 薄資料介面：畫面只透過它讀寫。施工A 的存檔實作完成後換接；目前記憶體假實作（假資料，無真實學生）。
  */
-import type { ClassInfo, Classroom, ExamConfig, Settings, Student } from '../data';
+import type { ClassInfo, Classroom, Student } from '../data';
+import type { Doc } from './store';
 
 export interface Repository {
-  /** 是否已授權資料夾（初始化頁用） */
   hasFolder(): boolean;
+  /** 用 showDirectoryPicker 選資料夾 */
   chooseFolder(): Promise<void>;
-  loadSettings(): Promise<Settings>;
-  saveSettings(s: Settings): Promise<void>;
-  listExams(): Promise<ExamConfig[]>;
-  loadRoster(division: 'junior' | 'senior'): Promise<Student[]>;
-  saveRoster(division: 'junior' | 'senior', students: Student[]): Promise<void>;
+  /** 拖拉資料夾（UI-03）：回 false 表示拖進來的不是資料夾 */
+  adoptDropped(items: DataTransferItemList): Promise<boolean>;
+  load(): Promise<Doc>;
+  save(doc: Doc): Promise<void>;
 }
 
-const classes: ClassInfo[] = ['溫', '良', '恭', '儉', '勤', '誠'].map((name, i) => ({
-  no: i + 1, name, division: 'senior' as const, track: i < 3 ? ('science' as const) : ('liberal' as const), colorIndex: i + 1,
+const names = ['溫', '良', '恭', '儉', '勤', '誠'];
+const seniorClasses: ClassInfo[] = names.map((name, i) => ({
+  no: i + 1, name, division: 'senior', track: i < 3 ? 'science' : 'liberal', colorIndex: i + 1,
+}));
+const juniorClasses: ClassInfo[] = ['一', '二', '三'].map((n, i) => ({
+  no: i + 1, name: `${n}年級示範班`, division: 'junior', colorIndex: i + 1,
 }));
 const rooms: Classroom[] = [
   { id: 'r1', name: '第一試場', kind: 'class', rows: 6, depth: 6, seatCount: 36, track: 'science' },
   { id: 'r2', name: '預備教室', kind: 'reserve', rows: 3, depth: 4, seatCount: 12 },
 ];
+const demo = (classNo: number, list: string[]): Student[] => list.map((name, i) => ({ classNo, seatNo: i + 1, name }));
+
+export function demoDoc(): Doc {
+  return {
+    settings: { schoolName: '範例高中', headerText: '模擬考', defaultLabelPaper: 'B4', classes: [...seniorClasses, ...juniorClasses], classrooms: rooms },
+    rosters: { senior: [...demo(1, ['王小明', '李小華', '陳小美']), ...demo(4, ['林小安', '張小宇'])], junior: demo(1, ['趙小晴', '周小豪']) },
+    exams: [],
+  };
+}
 
 export function createMemoryRepository(): Repository {
   let folder = false;
-  let settings: Settings = { schoolName: '範例高中', headerText: '模擬考', defaultLabelPaper: 'B4', classes, classrooms: rooms };
-  const rosters: Record<string, Student[]> = {
-    senior: [{ classNo: 1, seatNo: 1, name: '王小明' }, { classNo: 1, seatNo: 2, name: '李小華' }],
-    junior: [],
-  };
-  const exams: ExamConfig[] = [];
+  let doc = demoDoc();
   return {
     hasFolder: () => folder,
     chooseFolder: async () => { folder = true; },
-    loadSettings: async () => structuredClone(settings),
-    saveSettings: async (s) => { settings = structuredClone(s); },
-    listExams: async () => structuredClone(exams),
-    loadRoster: async (d) => structuredClone(rosters[d] ?? []),
-    saveRoster: async (d, s) => { rosters[d] = structuredClone(s); },
+    adoptDropped: async (items) => { const ok = items.length > 0; if (ok) folder = true; return ok; },
+    load: async () => structuredClone(doc),
+    save: async (d) => { doc = structuredClone(d); },
   };
 }
