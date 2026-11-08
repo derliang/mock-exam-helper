@@ -229,6 +229,20 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
     const cells: TableCell[] = [];
     for (let c = 0; c < layout.cols; c++) {
       const m = page.cells[r * layout.cols + c];
+      // 有「X 不考／＋ 加考」標示的標籤：列高是固定值，內容多一行就會被裁成一條線。
+      // 先算這格需要多高，不夠就只縮小這格的編號與姓名（中文字型行高約字級 1.5 倍），標示字維持可讀。
+      let codeSz = sizeCode;
+      let nameSz = sizeName;
+      const tagSz = sizeSmall * 0.9;
+      if (m && m.tags.length > 0) {
+        const LH = 1.5;
+        const availPt = rowH / 20 - 8;
+        const fixedPt = (sizeSmall + tagSz * m.tags.length) * LH;
+        const flexPt = (sizeCode + sizeName) * LH;
+        const k = Math.max(0.5, Math.min(1, (availPt - fixedPt) / flexPt));
+        codeSz = sizeCode * k;
+        nameSz = sizeName * k;
+      }
       cells.push(
         new TableCell({
           width: { size: colW, type: WidthType.DXA },
@@ -239,9 +253,9 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
           children: m
             ? [
                 para([run(m.coord, { size: sizeSmall }, mode)], AlignmentType.RIGHT),
-                para([run(m.code, { size: sizeCode, bold: true }, mode)]),
-                para([run(`${m.classLabel}｜${m.name}`, { size: sizeName, color: '000000' }, mode)]),
-                ...tagParagraphs(m, sizeSmall, mode),
+                para([run(m.code, { size: codeSz, bold: true }, mode)]),
+                para([run(`${m.classLabel}｜${m.name}`, { size: nameSz, color: '000000' }, mode)]),
+                ...tagParagraphs(m, tagSz, mode),
               ]
             : [para([])],
         }),
