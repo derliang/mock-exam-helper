@@ -1,7 +1,7 @@
 import { useState } from 'preact/hooks';
 import type { Classroom, LabelPaper, Track } from '../../data';
 import { seatLabel } from '../../data';
-import { Button, ConfirmButton, Seg, Stepper } from './index';
+import { Button, ConfirmButton, Seg, Stepper, Switch } from './index';
 import { confirmCopy } from '../flow';
 import { classColorVars } from '../colors';
 import { addRoom, clickSeat, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap, setRoomTrack } from '../rooms';
@@ -30,10 +30,10 @@ export function RoomList(p: {
         const on = p.selected?.includes(r.id) ?? false;
         return (
           <div key={r.id} class="rw">
-            <div class={`roomrow${on ? ' on' : ''}`} onClick={() => setOpen(isOpen ? null : r.id)}>
+            <div class={`roomrow${p.selected ? (on ? ' on' : ' off') : ''}`} onClick={() => setOpen(isOpen ? null : r.id)}>
               {p.selected && p.onSelect ? (
-                <input type="checkbox" aria-label={`使用${r.name}`} checked={on} onClick={(e) => e.stopPropagation()}
-                  onChange={(e) => p.onSelect!(e.currentTarget.checked ? [...p.selected!, r.id] : p.selected!.filter((x) => x !== r.id))} />
+                <Switch label={r.kind === 'class' ? '列為考場' : '列為預備'} ariaLabel={`${r.kind === 'class' ? '列為考場' : '列為預備'}：${r.name}`} checked={on}
+                  onChange={(v) => p.onSelect!(v ? [...p.selected!, r.id] : p.selected!.filter((x) => x !== r.id))} />
               ) : <RoomBadge room={r} index={p.rooms.indexOf(r)} classes={p.classes} />}
               <div class="field"><label class="small" for={`rn-${r.id}`}>{r.kind === 'class' ? '班級教室' : '預備教室'}</label>
                 <input id={`rn-${r.id}`} class="input" value={r.name} onClick={(e) => e.stopPropagation()} onChange={(e) => upd(r.id, (x) => ({ ...x, name: e.currentTarget.value.trim() || x.name }))} /></div>

@@ -207,3 +207,54 @@ export function StepNextBar(p: { action: NextAction; onGo: (step: StepNo) => voi
     </div>
   );
 }
+
+/** 開關（DESIGN 10.9）：某物「納入／不納入」，切換立刻生效。標示在上，右側用文字寫狀態（不只靠顏色） */
+export function Switch(p: { label: string; ariaLabel: string; checked: boolean; onChange: (v: boolean) => void; onText?: string; offText?: string }) {
+  return (
+    <div class="swf" onClick={(e) => e.stopPropagation()}>
+      <span class="cap" aria-hidden="true">{p.label}</span>
+      <label class="sw">
+        <input type="checkbox" role="switch" aria-label={p.ariaLabel} checked={p.checked} onChange={(e) => p.onChange(e.currentTarget.checked)} />
+        <span class="trk" />
+        <span class="st">{p.checked ? (p.onText ?? '已列入') : (p.offText ?? '未列入')}</span>
+      </label>
+    </div>
+  );
+}
+
+export type FormatKind = 'word' | 'pdf' | 'xls';
+const FMT_CLASS: Record<FormatKind, string> = { word: 'w', pdf: 'p', xls: 'x' };
+const FMT_LABEL: Record<FormatKind, string> = { word: 'Word', pdf: 'PDF', xls: 'Excel' };
+
+/** 自繪摺角文件圖示（不用商標原圖）：底色用 --fmt-* tokens，字母／符號白色 */
+export function FormatIcon(p: { kind: FormatKind }) {
+  const c = FMT_CLASS[p.kind];
+  return (
+    <svg viewBox="0 0 26 26" aria-hidden="true" focusable="false">
+      <path class={`ic-bg-${c}`} d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z" />
+      <path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4" />
+      {p.kind === 'word' && <path d="M6.5 11l2 7 2.2-5.5L12.9 18l2-7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />}
+      {p.kind === 'pdf' && <text x="12.5" y="19" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Noto Sans TC,sans-serif">PDF</text>}
+      {p.kind === 'xls' && <path d="M8 11.5l9 7M17 11.5l-9 7" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round" />}
+    </svg>
+  );
+}
+
+/** 下載格式單選鈕組（Word／PDF）：標籤只寫格式名；選中與未選中都看得出各自顏色 */
+export function FormatPick<T extends 'word' | 'pdf'>(p: { value: T; onChange: (v: T) => void; label: string; options: T[] }) {
+  return (
+    <div class="fmts" role="radiogroup" aria-label={p.label}>
+      {p.options.map((k) => (
+        <label key={k} class={`fmt ${FMT_CLASS[k]}`}>
+          <input type="radio" name={`fmt-${p.label}`} checked={p.value === k} onChange={() => p.onChange(k)} />
+          <span><FormatIcon kind={k} />{FMT_LABEL[k]}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
+/** 動作型格式鈕（Excel 下載） */
+export function FormatButton(p: { kind: FormatKind; onClick: () => void; children: ComponentChildren }) {
+  return <button type="button" class={`btn btn-fmt ${FMT_CLASS[p.kind]}`} onClick={p.onClick}><FormatIcon kind={p.kind} />{p.children}</button>;
+}
