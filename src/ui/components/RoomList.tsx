@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
 import type { Classroom, LabelPaper } from '../../data';
 import { seatLabel } from '../../data';
-import { Button, Stepper } from './index';
+import { Button, ConfirmButton, Stepper } from './index';
+import { confirmCopy } from '../flow';
 import { addRoom, clickSeat, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap } from '../rooms';
 
 /**
@@ -12,6 +13,8 @@ export function RoomList(p: {
   rooms: Classroom[]; paper: LabelPaper; onChange: (r: Classroom[]) => void;
   /** 步驟③：勾選本次使用的教室；設定頁不傳 */
   selected?: string[]; onSelect?: (ids: string[]) => void;
+  /** 這間教室是否已被某次模擬考選用（刪除確認時提醒） */
+  inUse?: (id: string) => boolean;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const cap = seatCap(p.paper);
@@ -35,7 +38,7 @@ export function RoomList(p: {
               <div class="info">座位 {r.seatCount}／{roomCapacity(r)}（上限 {cap}）</div>
               <div class="btnrow" onClick={(e) => e.stopPropagation()}>
                 <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '收合座位表' : '編輯座位表'}</Button>
-                <Button small kind="danger" onClick={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</Button>
+                <ConfirmButton small copy={confirmCopy.deleteRoom(r.name, !!p.selected?.includes(r.id) || !!p.inUse?.(r.id))} onConfirm={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</ConfirmButton>
               </div>
             </div>
             {isOpen && <SeatGrid room={r} cap={cap} onChange={(x) => upd(r.id, () => x)} />}
