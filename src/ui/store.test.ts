@@ -57,3 +57,14 @@ describe('班級與考試', () => {
     expect(b.doc.exams[0]?.division).toBe('junior');
   });
 });
+
+describe('預設班級', () => {
+  it('全新資料夾（空 Doc）帶入高中國中預設班級；已有班級就不動', async () => {
+    const { emptyDoc, withDefaults, demoDoc } = await import('./repository');
+    const d = withDefaults(emptyDoc());
+    expect(d.settings.classes.filter((c) => c.division === 'senior').map((c) => c.track)).toEqual(['science', 'science', 'science', 'liberal', 'liberal', 'liberal']);
+    expect(d.settings.classes.filter((c) => c.division === 'junior').every((c) => c.track === undefined)).toBe(true);
+    const demo = demoDoc();
+    expect(withDefaults(demo)).toBe(demo);
+  });
+});
