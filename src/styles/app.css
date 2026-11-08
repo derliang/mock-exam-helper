@@ -6,7 +6,9 @@ body{background:var(--bg);color:var(--text);font-family:var(--f-ui);font-size:14
 .wrap{max-width:1160px;margin:20px auto 64px;padding:24px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-xl);box-shadow:var(--shadow-2)}
 @media (max-width:560px){.wrap{padding:14px;margin-top:12px;border-radius:var(--r-lg)}}
 h1,h2,h3{font-family:var(--f-head);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em}
-h1{font-size:26px} h2{font-size:21px} h3{font-size:16px}
+/* 字級只有四級（DESIGN 10.9）：頁標 26、區塊標 18、內文 14、說明 13 */
+h1,h2{font-size:26px;line-height:1.3} h3{font-size:18px;line-height:1.4}
+.lic-sec h2{font-size:18px}
 p{margin:0}
 .muted{color:var(--text-3)} .small{font-size:13px}
 .num{font-variant-numeric:tabular-nums}
@@ -259,11 +261,13 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .fact{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px}
 .fact b{display:block;font-size:12px;color:var(--text-3);font-weight:700;margin-bottom:2px}
 section{padding-top:0;scroll-margin-top:64px}
-section>header{display:grid;gap:6px;margin-bottom:18px}
+section>header{display:grid;gap:6px;margin-bottom:20px}
 section>header p{color:var(--text-2);max-width:72ch}
-.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px;box-shadow:var(--shadow-1);min-width:0}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:20px;box-shadow:var(--shadow-1);min-width:0}
 .grid{display:grid;gap:16px;grid-template-columns:repeat(auto-fit,minmax(min(100%,320px),1fr))}
-.stack{display:grid;gap:16px;min-width:0}
+.stack{display:grid;gap:20px;min-width:0}
+/* 間距三級（DESIGN 10.9）：卡內元素 14、卡與卡 20、頁面大段落 56；卡片自己也是 .stack 時，內部用 14 */
+.card.stack,.card>.stack{gap:14px}
 .grid2{display:grid;gap:16px;grid-template-columns:260px minmax(0,1fr)}
 /* ===== 原型專用 ===== */
 .pbar{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
@@ -290,7 +294,7 @@ section>header p{color:var(--text-2);max-width:72ch}
 .seg.seg-soft button{border-radius:999px;min-height:32px}
 .seg.seg-soft button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);box-shadow:inset 0 0 0 1.5px var(--accent)}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.pagehead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+.pagehead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
 .pagehead h1,.pagehead h2{margin-right:auto}
 .proto-note{margin:14px 0 0}
 #app{padding-block:18px 80px}
@@ -320,11 +324,11 @@ section>header p{color:var(--text-2);max-width:72ch}
 .tcard strong{font-family:var(--f-head);font-size:20px}
 .tcard .subj{font-size:12px;color:var(--text-2)}
 .tcard .tick{position:absolute;right:12px;top:12px}
-.ws{display:grid;grid-template-columns:230px minmax(0,1fr) 260px;gap:16px;align-items:start}
+.ws{display:grid;grid-template-columns:230px minmax(0,1fr) 260px;gap:20px;align-items:start}
 @media (max-width:1060px){.ws{grid-template-columns:230px minmax(0,1fr)}.ws .side-r{grid-column:1/-1}}
 @media (max-width:760px){.ws{grid-template-columns:minmax(0,1fr)}}
 .ws .side{position:sticky;top:64px;display:grid;gap:12px}
-.ws .main{display:grid;gap:16px;min-width:0;padding-top:0}
+.ws .main{display:grid;gap:20px;min-width:0;padding-top:0}
 .steps .step.skip{opacity:1;color:var(--text-3)}
 .steps .step.skip .no{border-style:dashed}
 .ph{border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--sunken);padding:34px 20px;display:grid;gap:8px;justify-items:center;text-align:center;color:var(--text-2)}
@@ -400,14 +404,14 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 @media print{.pfoot{display:none}}
 
 /* ④⑤（施工B）：自原型移植；座位表在 .scroll 內等比縮小（最小 0.4 倍），再窄才在卡片內捲動 */
-.lab{font-size:12px;font-weight:700;color:var(--text-3);margin-bottom:8px;letter-spacing:.04em}
+.lab{font-family:var(--f-head);font-size:18px;font-weight:700;color:var(--text);margin-bottom:4px;line-height:1.4}
 .scroll{overflow-x:auto;max-width:100%}
 .cell[role="button"]{cursor:pointer}
 .blk-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}
 
 /* ── 引路（施工G，DESIGN 10.7） ── */
 .stepcount{font-size:13px;font-weight:700;color:var(--text-2);margin:0 0 8px}
-.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;margin-bottom:12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;position:sticky;top:60px;z-index:5}
+.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;margin-bottom:20px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;position:sticky;top:60px;z-index:5}
 .sumbar b{font-family:var(--f-no);font-size:18px;font-variant-numeric:tabular-nums}
 .sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}
 .sumbar .ok{color:var(--ok-ink);font-weight:700}
