@@ -5,6 +5,7 @@
 export type Route =
   | { page: 'init' }
   | { page: 'exams' }
+  | { page: 'lookup'; examId?: string }
   | { page: 'settings'; tab?: 'roster' | 'classes' | 'school' | 'rooms' | 'features' }
   | { page: 'step'; examId: string; step: 1 | 2 | 3 | 4 | 5 | 6 }
   | { page: 'reconcile'; examId: string }
