@@ -450,3 +450,6 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 @media (max-width:480px){.seg{width:100%}.seg button{flex:1 1 0;white-space:normal;line-height:1.3;padding-block:6px}}
 /* V3-1 根因：.rw 是 grid，子項預設 min-width:auto 會被內容撐寬而突出卡片 */
 .rw>*{min-width:0}
+/* 教室列：預備教室、國中部班級教室（沒有組別欄）與有組別欄的列用同一套可換行排法，不再突出卡片 */
+.roomrow.notrack{display:flex;flex-wrap:wrap}.roomrow.notrack>.field:nth-of-type(1){flex:1 1 180px}.roomrow.notrack>.field{flex:0 1 auto}.roomrow.notrack .info{flex:1 1 auto}
+.roomrow>.btnrow{flex:0 0 auto;margin-left:auto}

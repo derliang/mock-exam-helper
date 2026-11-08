@@ -18,6 +18,8 @@ export function RoomList(p: {
   inUse?: (id: string) => boolean;
   /** 班級資料：教室名稱與班級名稱相同時，前面的圓圈用該班的縮寫與代表色 */
   classes?: { name: string; colorIndex: number; division?: string; track?: Track }[];
+  /** 步驟③ 國中部會考：沒有文理組（不顯示組別）、沒有抽離（不列預備教室）；高中部與設定頁不傳 */
+  junior?: boolean;
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const cap = seatCap(p.paper);
@@ -30,12 +32,12 @@ export function RoomList(p: {
   return (
     <div class="rw">
       <p class="muted small">點教室那一列，或按「▸ 編輯座位表」，就會在下方展開座位配置。</p>
-      {p.rooms.map((r) => {
+      {p.rooms.filter((r) => !(p.junior && r.kind === 'reserve')).map((r) => {
         const isOpen = open === r.id;
         const on = p.selected?.includes(r.id) ?? false;
         return (
           <div key={r.id} class="rw">
-            <div class={`roomrow${p.selected ? (on ? ' on' : ' off') : ''}${r.kind === 'class' ? ' hastrack' : ''}`} onClick={() => setOpen(isOpen ? null : r.id)}>
+            <div class={`roomrow${p.selected ? (on ? ' on' : ' off') : ''}${r.kind === 'class' && !p.junior ? ' hastrack' : ' notrack'}`} onClick={() => setOpen(isOpen ? null : r.id)}>
               {p.selected && p.onSelect ? (
                 <Switch label={r.kind === 'class' ? '列為考場' : '列為預備'} ariaLabel={`${r.kind === 'class' ? '列為考場' : '列為預備'}：${r.name}`} checked={on}
                   onChange={(v) => p.onSelect!(v ? [...p.selected!, r.id] : p.selected!.filter((x) => x !== r.id))} />
@@ -44,7 +46,7 @@ export function RoomList(p: {
                 <input id={`rn-${r.id}`} class="input" value={r.name} onClick={(e) => e.stopPropagation()} onChange={(e) => upd(r.id, (x) => ({ ...x, name: e.currentTarget.value.trim() || x.name }))} /></div>
               <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">橫排（左右）</span><Stepper label="橫排" value={r.rows} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { rows: n }, cap))} /></div>
               <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">深位（前後）</span><Stepper label="深位" value={r.depth} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { depth: n }, cap))} /></div>
-              {r.kind === 'class' && (
+              {r.kind === 'class' && !p.junior && (
                 <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">組別（高中部必選）</span>
                   <Seg<Track> label={`${r.name}組別`} value={(r.track ?? '') as Track} options={[{ value: 'science', label: '理組' }, { value: 'liberal', label: '文組' }]}
                     onChange={(t) => upd(r.id, (x) => setRoomTrack(x, t))} />
@@ -62,7 +64,7 @@ export function RoomList(p: {
       })}
       <div class="btnrow">
         <Button onClick={() => p.onChange(addRoom(p.rooms, 'class'))}>新增班級教室</Button>
-        <Button onClick={() => p.onChange(addRoom(p.rooms, 'reserve'))}>新增預備教室</Button>
+        {!p.junior && <Button onClick={() => p.onChange(addRoom(p.rooms, 'reserve'))}>新增預備教室</Button>}
       </div>
     </div>
   );

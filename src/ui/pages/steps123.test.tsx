@@ -120,7 +120,10 @@ describe('步驟③ 教室設定', () => {
     const { doc, second } = twoGsat();
     const none = classCapacity(doc, second);
     expect(none).toMatchObject({ lines: [], noList: true });
-    expect(renderToString(<Step3 doc={doc} exam={second} onChange={noop} />)).toContain('尚未匯入考試名單');
+    const html0 = renderToString(<Step3 doc={doc} exam={second} onChange={noop} />);
+    expect(html0).toContain('匯入考試名單後檢核夠不夠');
+    expect(html0).toContain('教室座位合計');
+    expect(html0).not.toMatch(/考生<\/small><strong>0</);
     const some = doc.rosters.senior.slice(0, 3).map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: ['chi'] }));
     const d: Doc = { ...doc, examFiles: { [second.id]: { entries: some, diffs: [] } } };
     const r = classCapacity(d, second);
