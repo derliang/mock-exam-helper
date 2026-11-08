@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { Alert, Badge, Button } from '../components';
+import { Alert } from '../components';
 import type { Repository } from '../repository';
 
 /** 初始化：選資料夾 ＋ 拖拉資料夾（UI-03）。標題列不借用進度條樣式（UI-01/02） */
@@ -21,28 +21,45 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
     } finally { setBusy(false); }
   };
 
+  const pick = () => !busy && run(() => p.repo.chooseFolder());
   return (
-    <section class="init">
-      <h1>模擬考小幫手 <Badge>beta 測試版</Badge></h1>
-      <p class="muted">第一次使用：選一個放資料的資料夾。名單與座位表只存在你的電腦，不會上傳。</p>
-      <div class="btnrow" style="margin-top:16px">
-        <Button kind="primary" disabled={busy || !p.fsSupported} onClick={() => run(() => p.repo.chooseFolder())}>選擇資料夾</Button>
-        {p.onRestore && <Button disabled={busy} onClick={() => run(() => p.onRestore!())}>繼續使用上次的資料夾</Button>}
+    <div class="center-card">
+      <div class="row">
+        <div class="logo" aria-hidden="true">
+          <svg viewBox="0 0 34 34" fill="none">
+            <rect x="2" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55" /><rect x="12.75" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55" /><rect x="23.5" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" />
+            <rect x="2" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55" /><rect x="12.75" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" /><rect x="23.5" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55" />
+            <rect x="2" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" /><rect x="12.75" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55" /><rect x="23.5" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55" />
+          </svg>
+        </div>
+        <div><h1>模擬考小幫手</h1><p class="muted">安排模擬考座位、製作標籤與抽離名單</p></div>
       </div>
-      <div
-        class={`dropzone${over ? ' over' : ''}`} style="margin-top:16px" tabIndex={0} role="button"
-        aria-label="把資料夾拖到這裡，或按一下選擇資料夾"
-        onClick={() => !busy && run(() => p.repo.chooseFolder())}
-        onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && !busy && run(() => p.repo.chooseFolder())}
-        onDragOver={(e) => { e.preventDefault(); setOver(true); }}
-        onDragLeave={() => setOver(false)}
-        onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer && !busy) { const items = e.dataTransfer.items; run(() => p.repo.adoptDropped(items)); } }}
-      >
-        <strong>把資料夾拖到這裡</strong>
-        <span class="muted small">Chrome 的選擇視窗有問題時，可以改用拖拉</span>
+      <div class="card stack">
+        <h2 style="font-size:18px">第一次使用：選一個放資料的資料夾</h2>
+        <p class="muted">學生名單與座位結果只存在你的電腦，不會上傳到網路。請選一個你找得到的資料夾（例如放在雲端硬碟同步的位置）。之後開啟程式會直接使用這個資料夾。</p>
+        <div
+          class={`dropzone${over ? ' over' : ''}`} tabIndex={0} role="button"
+          aria-label="把資料夾拖到這裡，或按一下選擇資料夾"
+          onClick={pick}
+          onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && pick()}
+          onDragOver={(e) => { e.preventDefault(); setOver(true); }}
+          onDragLeave={() => setOver(false)}
+          onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer && !busy) { const items = e.dataTransfer.items; run(() => p.repo.adoptDropped(items)); } }}
+        >
+          <strong>把資料夾拖到這裡</strong>
+          <span class="small">放開後會請你確認授權。按「選擇資料夾」出現問題時（例如視窗打不開），用拖拉最穩；按一下這個區塊也能選擇。</span>
+        </div>
+        <div class="row">
+          <span class="small muted">或者</span>
+          <button type="button" class="btn btn-primary btn-lg" disabled={busy || !p.fsSupported} onClick={pick}>選擇資料夾</button>
+          {p.onRestore && <button type="button" class="btn btn-lg" disabled={busy} onClick={() => run(() => p.onRestore!())}>繼續使用上次的資料夾</button>}
+          <span class="small muted">需要 Chrome 瀏覽器</span>
+        </div>
+        {err && <Alert tone="danger">{err}</Alert>}
       </div>
-      {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
-      <div style="margin-top:12px">{p.fsSupported ? <Alert tone="info">請使用 Chrome 開啟本頁。</Alert> : <Alert tone="danger">這個瀏覽器不支援資料夾授權，無法存檔。請改用 Chrome。</Alert>}</div>
-    </section>
+      {p.fsSupported
+        ? <Alert tone="info">每次模擬考都會在這個資料夾裡自己放一個資料夾，不同次的資料不會互相蓋掉。</Alert>
+        : <Alert tone="danger">這個瀏覽器不支援資料夾授權，無法存檔。請改用 Chrome。</Alert>}
+    </div>
   );
 }

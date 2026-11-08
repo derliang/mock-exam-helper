@@ -820,7 +820,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var d=D(),r=key.charAt(0)==='p'?d.prep[+key.slice(1)]:d.rooms[+key.slice(1)];if(!r)return '';
     var n=seatsOf(r).length,off=r.cols*r.rows-n,g='<div class="prev"><div class="pgrid" style="grid-template-columns:repeat('+r.cols+',minmax(0,1fr));max-width:'+(r.cols*56)+'px;width:100%">';
     for(var rr=r.rows;rr>=1;rr--)for(var c=1;c<=r.cols;c++){var k=c+','+rr,o=!!r.off[k];g+='<button type="button" class="pc'+(o?' off':'')+'" data-act="toff" data-s="'+key+'" data-k="'+k+'" aria-pressed="'+o+'" aria-label="第'+c+'排第'+rr+'深位'+(o?'，不排':'')+'">'+c+'-'+rr+'</button>'}
-    g+='</div><div class="podium">講臺</div><span class="hint">座標是「排－深位」。座位由前往後、由左往右依序坐滿；點一個座位，它和它之後的座位都改成「不排」（空位只能在最後），再點一次恢復。</span></div>';
+    g+='</div><div class="podium">講臺</div><span class="hint">座標是「排－深位」。點哪個座位，哪個就「不排」（例如壞掉的桌椅、走道），再點一次恢復；排座時會跳過不排的座位，人由前往後連續坐。</span></div>';
     return '<div class="roomedit"><div class="row" style="justify-content:space-between"><div><h4>編輯座位表：'+esc(r.name)+'</h4><p class="small muted">橫排 '+r.cols+' × 深位 '+r.rows+' ＝ '+(r.cols*r.rows)+' 個座位，可排 '+n+'、不排 '+off+'。一間教室最多 '+MAXSEAT+' 個座位（一張標籤紙 6×8 格）。</p></div><button class="btn btn-sm" data-act="rexp" data-s="'+key+'" aria-expanded="true">收合</button></div>'+
       (withStep?'<div class="row"><div class="field" style="gap:2px"><span class="small muted">橫排（左右）</span>'+stp(key,'cols','橫排',r.cols)+'</div><div class="field" style="gap:2px"><span class="small muted">深位（前後）</span>'+stp(key,'rows','深位',r.rows)+'</div></div>':'')+g+'</div>'}
   function openTpl(){
@@ -1188,7 +1188,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='dim'){if(g('s'))S.rsel=g('s');var rm=selRoom(),w=g('w'),v=Math.max(1,Math.min(12,rm[w]+ +g('d'))),oc=rm[w],offN=Object.keys(rm.off).length;
       pushUndo('教室座位');rm[w]=v;if(rm.cols*rm.rows>MAXSEAT){rm[w]=oc;UNDO.pop();toast('一間教室最多 '+MAXSEAT+' 個座位（一張標籤紙 6×8 格）');return}
       rm.off={};var ord2=[];for(var c2=1;c2<=rm.cols;c2++)for(var r2=1;r2<=rm.rows;r2++)ord2.push(c2+','+r2);for(var q2=Math.max(0,ord2.length-offN);q2<ord2.length;q2++)rm.off[ord2[q2]]=1;markStale();render()}
-    else if(a==='toff'){pushUndo('教室座位');if(g('s'))S.rsel=g('s');var rm2=selRoom(),k=g('k'),ord=[];for(var c1=1;c1<=rm2.cols;c1++)for(var r1=1;r1<=rm2.rows;r1++)ord.push(c1+','+r1);var ix=ord.indexOf(k),from=b.getAttribute('aria-pressed')==='true'?ix+1:ix;rm2.off={};for(var q=from;q<ord.length;q++)rm2.off[ord[q]]=1;markStale();render()}
+    else if(a==='toff'){pushUndo('教室座位');if(g('s'))S.rsel=g('s');var rm2=selRoom(),k=g('k'),ord=[];for(var c1=1;c1<=rm2.cols;c1++)for(var r1=1;r1<=rm2.rows;r1++)ord.push(c1+','+r1);if(rm2.off[k])delete rm2.off[k];else if(Object.keys(rm2.off).length<ord.length-1)rm2.off[k]=1;markStale();render()}
     else if(a==='padd'){pushUndo('新增預備教室');var pp=D().prep;pp.push({name:'預備教室'+(pp.length+1),cols:6,rows:5,off:{}});S.rsel='p'+(pp.length-1);markStale();render()}
     else if(a==='pdel'){pushUndo('刪除預備教室');var i=+(g('s')||S.rsel||'p0').slice(1);D().prep.splice(i,1);S.rsel='r0';markStale();render()}
     else if(a==='lock'){pushUndo('鎖定標示');D().lock[g('g')+'|'+g('sub')]=g('side');markStale();render()}

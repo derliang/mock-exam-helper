@@ -184,8 +184,8 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(-
 .modal{max-height:calc(100vh - 32px);overflow:auto}
 .modal .t{min-width:0}
 /* UI-03：拖拉資料夾 */
-.dropzone{display:grid;gap:4px;justify-items:center;text-align:center;padding:22px 16px;border:2px dashed var(--accent-line);border-radius:var(--r-lg);background:var(--accent-soft);color:var(--accent-ink);cursor:pointer}
-.dropzone strong{font-size:16px}
+.dropzone{display:grid;gap:8px;justify-items:center;align-content:center;text-align:center;min-height:clamp(200px,34vh,380px);padding:28px 20px;border:2px dashed var(--accent-line);border-radius:var(--r-lg);background:var(--accent-soft);color:var(--accent-ink);cursor:pointer}
+.dropzone strong{font-size:clamp(18px,2.2vw,24px)}
 .dropzone:hover,.dropzone.over{border-color:var(--accent);background:var(--surface)}
 .dropzone:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 /* UI-04：表單欄位對齊（每格都有提示行，高度一致）*/
@@ -277,7 +277,7 @@ section>header p{color:var(--text-2);max-width:72ch}
 .pagehead h1,.pagehead h2{margin-right:auto}
 .proto-note{margin:14px 0 0}
 #app{padding-block:18px 80px}
-.center-card{max-width:620px;margin:32px auto 0;display:grid;gap:18px}
+.center-card{max-width:min(100%,clamp(620px,60vw,900px));margin:32px auto 0;display:grid;gap:18px}
 .logo{width:56px;height:56px;border-radius:var(--r-lg);background:var(--accent);color:var(--accent-on);display:grid;place-items:center}
 .logo svg{width:34px;height:34px;display:block}
 .folder-chip{display:inline-flex;gap:8px;align-items:center;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 12px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
@@ -323,7 +323,7 @@ section>header p{color:var(--text-2);max-width:72ch}
 @media (max-width:560px){.alert{grid-template-columns:auto 1fr}.alert>.btn{grid-column:2;justify-self:start}}
 @media (max-width:760px){.ws .side{position:static}.pbar .seg button,.pbar .badge{white-space:nowrap;padding-inline:8px}.pbar .badge{display:none}.pbar .spacer{display:none}}.t.compact{min-width:0}
 .t.nw td,.t.nw th{white-space:nowrap}
-.stack>*,.grid>*,.grid2>*{min-width:0}.row{min-width:0}.seg{max-width:100%;overflow-x:auto}.seg button{flex:none}
+.stack>*,.grid>*,.grid2>*{min-width:0}.row{min-width:0}.seg{max-width:100%;overflow-x:auto;justify-self:start;width:fit-content}.seg button{flex:none}
 .ws.wide{grid-template-columns:230px minmax(0,1fr)}
 @media (max-width:760px){.ws.wide{grid-template-columns:minmax(0,1fr)}}
 .ws .chart{--cw:90px;--ch:104px}
