@@ -1,9 +1,8 @@
-import { useEffect, useRef, useState } from 'preact/hooks';
+import { useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, RosterDiff, RosterDiffChoice } from '../../data';
 import { studentCode } from '../../data';
 import { allResolved, applyDiffs, compareRosters, readXlsx } from '../../import';
 import { Alert, Badge, Button, StatsBar } from '../components';
-import type { Repository } from '../repository';
 import type { Doc } from '../store';
 import { FIELD_LABEL, parseExamWorkbook, type ExamImport } from '../step2';
 
@@ -15,25 +14,19 @@ const KIND_TEXT: Record<RosterDiff['kind'], string> = {
 const who = (x?: { classNo: number; seatNo: number; name: string }) => (x ? `${studentCode(x.classNo, x.seatNo)} ${x.name}` : '—');
 
 /** ② 考試名單（D63）：匯入大考中心格式名單 → 與學生名單比對（D42/D54/D64） */
-export function Step2(p: { doc: Doc; exam: ExamConfig; repo: Repository; onChange: (d: Doc) => void; onToRoster: () => void }) {
+export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => void; onToRoster: () => void }) {
   const { exam, doc } = p;
   const roster = doc.rosters[exam.division];
-  const [entries, setEntries] = useState<ExamEntry[] | null>(null);
-  const [diffs, setDiffs] = useState<RosterDiff[]>([]);
+  const files = doc.examFiles?.[exam.id];
+  const entries: ExamEntry[] | null = files?.entries ?? null;
+  const diffs: RosterDiff[] = files?.diffs ?? [];
+  /** 考試名單與比對結果存在 doc.examFiles，隨整份快照復原 */
+  const save = (patch: Partial<NonNullable<Doc['examFiles']>[string]>, extra: Partial<Doc> = {}) =>
+    p.onChange({ ...doc, ...extra, examFiles: { ...doc.examFiles, [exam.id]: { ...files, ...patch } } });
   const [pending, setPending] = useState<ExamImport | null>(null);
   const [editing, setEditing] = useState<string | null>(null);
   const [err, setErr] = useState('');
   const input = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    let live = true;
-    void (async () => {
-      const e = await p.repo.loadExamFile(exam.id, 'entries');
-      const d = await p.repo.loadExamFile(exam.id, 'diffs');
-      if (live) { setEntries(e); setDiffs(d ?? []); }
-    })();
-    return () => { live = false; };
-  }, [exam.id]);
 
   const classNames = doc.settings.classes.filter((c) => c.division === exam.division).map((c) => c.name);
   const compare = (list: ExamEntry[]) => compareRosters(roster, list, exam.participation);
@@ -49,28 +42,20 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; repo: Repository; onChang
     }
   };
 
-  const adopt = async () => {
+  const adopt = () => {
     if (!pending) return;
-    const d = compare(pending.entries).diffs;
-    await p.repo.saveExamFile(exam.id, 'entries', pending.entries);
-    await p.repo.saveExamFile(exam.id, 'diffs', d);
-    setEntries(pending.entries); setDiffs(d); setPending(null);
+    save({ entries: pending.entries, diffs: compare(pending.entries).diffs });
+    setPending(null);
   };
 
-  const setChoice = async (code: string, choice: RosterDiffChoice, edited?: RosterDiff['edited']) => {
-    const next = diffs.map((d) => (d.code === code ? { ...d, choice, edited } : d));
-    setDiffs(next);
-    await p.repo.saveExamFile(exam.id, 'diffs', next);
-  };
+  const setChoice = (code: string, choice: RosterDiffChoice, edited?: RosterDiff['edited']) =>
+    save({ diffs: diffs.map((d) => (d.code === code ? { ...d, choice, edited } : d)) });
 
-  /** 全部處理完才套用：學生名單與考試名單依選擇更新（走 onChange，可復原） */
-  const apply = async () => {
+  /** 全部處理完才套用：學生名單與考試名單依選擇更新（一次 onChange，可復原） */
+  const apply = () => {
     if (!entries) return;
     const r = applyDiffs(roster, entries, diffs);
-    p.onChange({ ...doc, rosters: { ...doc.rosters, [exam.division]: r.students } });
-    await p.repo.saveExamFile(exam.id, 'entries', r.entries);
-    await p.repo.saveExamFile(exam.id, 'diffs', []);
-    setEntries(r.entries); setDiffs([]);
+    save({ entries: r.entries, diffs: [] }, { rosters: { ...doc.rosters, [exam.division]: r.students } });
   };
 
   const resolved = diffs.filter((d) => d.choice !== undefined && (d.choice !== 'manual' || d.edited)).length;
@@ -110,7 +95,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; repo: Repository; onChang
           {pending.droppedSubjects > 0 && <div style="margin-top:8px"><Alert tone="warn">有 {pending.droppedSubjects} 位考生的部分科目不在本次考科表，已略過這些科目。</Alert></div>}
           <div class="btnrow" style="margin-top:12px">
             <Button onClick={() => setPending(null)}>取消</Button>
-            <Button kind="primary" disabled={!pending.headers.classNo} onClick={() => void adopt()}>確認匯入並比對</Button>
+            <Button kind="primary" disabled={!pending.headers.classNo} onClick={adopt}>確認匯入並比對</Button>
           </div>
         </div>
       )}
@@ -136,11 +121,11 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; repo: Repository; onChang
                       <td>{KIND_TEXT[d.kind]}</td><td>{who(d.exam)}</td><td>{who(d.roster)}</td>
                       <td>
                         <div class="btnrow">
-                          <Button small kind={d.choice === 'use-exam' ? 'primary' : 'default'} onClick={() => void setChoice(d.code, 'use-exam')}>以考試名單為準</Button>
-                          <Button small kind={d.choice === 'use-roster' ? 'primary' : 'default'} onClick={() => void setChoice(d.code, 'use-roster')}>以學生名單為準</Button>
+                          <Button small kind={d.choice === 'use-exam' ? 'primary' : 'default'} onClick={() => setChoice(d.code, 'use-exam')}>以考試名單為準</Button>
+                          <Button small kind={d.choice === 'use-roster' ? 'primary' : 'default'} onClick={() => setChoice(d.code, 'use-roster')}>以學生名單為準</Button>
                           <Button small kind={d.choice === 'manual' ? 'primary' : 'default'} onClick={() => setEditing(editing === d.code ? null : d.code)}>手動編輯</Button>
                         </div>
-                        {editing === d.code && <Editor diff={d} onSave={(e) => { void setChoice(d.code, 'manual', e); setEditing(null); }} />}
+                        {editing === d.code && <Editor diff={d} onSave={(e) => { setChoice(d.code, 'manual', e); setEditing(null); }} />}
                         {d.choice === 'manual' && d.edited && editing !== d.code && <div class="hint">已改為 {who(d.edited)}</div>}
                       </td>
                     </tr>
@@ -148,7 +133,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; repo: Repository; onChang
                 </tbody>
               </table></div>
               <div class="btnrow" style="margin-top:12px">
-                <Button kind="primary" disabled={!allResolved(diffs)} onClick={() => void apply()}>套用處理結果</Button>
+                <Button kind="primary" disabled={!allResolved(diffs)} onClick={apply}>套用處理結果</Button>
                 {!allResolved(diffs) && <span class="hint">還有 {diffs.length - resolved} 筆未處理</span>}
               </div>
             </>
