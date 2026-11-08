@@ -40,7 +40,23 @@ export function examRooms(doc: Doc, exam: ExamConfig): Classroom[] {
   return exam.classroomIds.map((id) => byId.get(id)).filter((c): c is Classroom => !!c);
 }
 
-export const examEntries = (doc: Doc, exam: ExamConfig): ExamEntry[] => filesOf(doc, exam.id).entries ?? [];
+/** 是否匯入過本次考試名單（會考不需要匯入，見 examEntries） */
+export const hasImportedList = (doc: Doc, exam: ExamConfig): boolean => !!filesOf(doc, exam.id).entries?.length;
+
+/**
+ * 本次考試的考生。已匯入考試名單就用名單；
+ * 會考（國中部）全員參加、每科都考，沒匯入時學生名單就是考試名單（每人考全部七科），不必匯入（D82 修訂）。
+ * 各處（摘要列、③、④、⑤、⑥、排座輸入）都從這裡取考生，口徑只有一個。
+ */
+export const examEntries = (doc: Doc, exam: ExamConfig): ExamEntry[] => {
+  const imported = filesOf(doc, exam.id).entries;
+  if (imported?.length || exam.kind !== 'bcct') return imported ?? [];
+  const subjectIds = exam.subjects.map((x) => x.id);
+  return (doc.rosters[exam.division] ?? []).map((s) => ({
+    classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: [...subjectIds],
+    ...(s.special ? { note: s.special } : {}),
+  }));
+};
 
 /** 實際要排座的考生：預設排除全科缺考者（D79，與 core runSeating 同一份判斷）；設「仍排座」則全部 */
 export const seatableEntries = (doc: Doc, exam: ExamConfig): ExamEntry[] => {
@@ -149,7 +165,7 @@ export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeat
 export function seatingBlockers(doc: Doc, exam: ExamConfig): Blocker[] {
   const out: Blocker[] = [];
   const f = filesOf(doc, exam.id);
-  if (!f.entries?.length) out.push({ step: 2, text: '② 考試名單還沒有匯入' });
+  if (!f.entries?.length && exam.kind !== 'bcct') out.push({ step: 2, text: '② 考試名單還沒有匯入' });
   if ((f.diffs ?? []).some((d) => !d.choice)) out.push({ step: 2, text: '② 名單比對還有沒處理的差異' });
   const rooms = examRooms(doc, exam);
   if (!rooms.some((r) => r.kind === 'class')) out.push({ step: 3, text: '③ 還沒有選班級教室' });
