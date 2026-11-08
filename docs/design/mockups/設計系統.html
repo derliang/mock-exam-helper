@@ -32,6 +32,8 @@
   --c10-bg:#EBDCCB; --c10-line:#C09A72; --c10-ink:#5C3A17;
   --c11-bg:#DFE3E8; --c11-line:#9AA5B1; --c11-ink:#2F3B48;
   --c12-bg:#F8D3DC; --c12-line:#E08AA0; --c12-ink:#7A1B38;
+  --fmt-word:#2A6AC8; --fmt-pdf:#B8423A; --fmt-xls:#1F7A47;
+  --fmt-word-soft:#E6EEFB; --fmt-pdf-soft:#FBEAE8; --fmt-xls-soft:#E3F2E8;
   --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
   --shadow-2:0 4px 14px rgba(34,32,27,.10);
   --shadow-3:0 16px 40px rgba(34,32,27,.22);
@@ -62,6 +64,8 @@
   --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
   --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
+  --fmt-word:#5B93E6; --fmt-pdf:#E0766E; --fmt-xls:#4DB57A;
+  --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
   --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
   color-scheme:dark}}
 :root[data-theme="dark"]{
@@ -86,6 +90,8 @@
   --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
   --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
+  --fmt-word:#5B93E6; --fmt-pdf:#E0766E; --fmt-xls:#4DB57A;
+  --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
   --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
   color-scheme:dark}
 
@@ -94,16 +100,16 @@ body{background:var(--bg);color:var(--text);font-family:var(--f-ui);font-size:14
   padding-block:0;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));}
 .wrap{max-width:1120px;margin:0 auto;padding-block:20px 80px}
 h1,h2,h3{font-family:var(--f-head);font-weight:700;margin:0;text-wrap:balance;letter-spacing:.01em}
-h1{font-size:26px} h2{font-size:21px} h3{font-size:16px}
+h1{font-size:26px} h2{font-size:18px} h3{font-size:18px}
 p{margin:0}
-.muted{color:var(--text-3)} .small{font-size:12px}
+.muted{color:var(--text-3)} .small{font-size:13px}
 .num{font-variant-numeric:tabular-nums}
 code{font-family:ui-monospace,Consolas,monospace;font-size:12px;background:var(--sunken);border:1px solid var(--line);border-radius:6px;padding:1px 5px}
 
 /* 頁首 */
 .top{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;background:var(--bg);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:10px max(16px,env(safe-area-inset-left,0px));display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:30;background:var(--bg)}
-.top .brand{font-family:var(--f-head);font-weight:700;font-size:16px;margin-right:auto}
+.top .brand{font-family:var(--f-head);font-weight:700;font-size:14px;margin-right:auto}
 .toc{display:flex;gap:4px;flex-wrap:wrap}
 .toc a{color:var(--text-2);text-decoration:none;padding:6px 10px;border-radius:var(--r-sm);font-weight:500}
 .toc a:hover{background:var(--sunken);color:var(--text)}
@@ -111,7 +117,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 .hero p{max-width:68ch;color:var(--text-2)}
 .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:12px;margin-top:8px}
 .fact{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:12px 14px}
-.fact b{display:block;font-size:12px;color:var(--text-3);font-weight:700;margin-bottom:2px}
+.fact b{display:block;font-size:13px;color:var(--text-3);font-weight:700;margin-bottom:2px}
 section{padding-top:48px;scroll-margin-top:64px}
 section>header{display:grid;gap:6px;margin-bottom:18px}
 section>header p{color:var(--text-2);max-width:72ch}
@@ -121,30 +127,30 @@ section>header p{color:var(--text-2);max-width:72ch}
 .grid2{display:grid;gap:16px;grid-template-columns:260px minmax(0,1fr)}
 @media (max-width:700px){.grid2{grid-template-columns:minmax(0,1fr)}.prev{overflow-x:auto;justify-items:start}}
 .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
-.lab{font-size:12px;font-weight:700;color:var(--text-3);margin-bottom:8px;letter-spacing:.04em}
-.pending{display:inline-block;font-size:12px;font-weight:700;padding:1px 8px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line);vertical-align:middle;margin-left:6px}
+.lab{font-size:13px;font-weight:700;color:var(--text-3);margin-bottom:8px;letter-spacing:.04em}
+.pending{display:inline-block;font-size:13px;font-weight:700;padding:1px 8px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line);vertical-align:middle;margin-left:6px}
 .scroll{overflow-x:auto;max-width:100%}
 
 /* 色票 */
 .sw-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
 .swatch{border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;background:var(--surface)}
 .swatch i{display:block;height:44px;border-bottom:1px solid var(--line)}
-.swatch div{padding:6px 10px;font-size:12px;line-height:1.4}
-.swatch b{display:block;font-size:12px}
+.swatch div{padding:6px 10px;font-size:13px;line-height:1.4}
+.swatch b{display:block;font-size:13px}
 .swatch span{color:var(--text-3);font-family:ui-monospace,Consolas,monospace}
 
 /* 字型 */
 .fonts{display:grid;gap:12px}
 .fontrow{display:grid;grid-template-columns:170px 1fr;gap:14px;align-items:center;padding:12px 0;border-bottom:1px solid var(--line)}
 .fontrow:last-child{border-bottom:0}
-.fontrow .nm{font-size:12px;color:var(--text-3);font-weight:700}
+.fontrow .nm{font-size:13px;color:var(--text-3);font-weight:700}
 @media (max-width:640px){.fontrow{grid-template-columns:1fr}}
 .no-sample{display:flex;gap:18px;flex-wrap:wrap}
 .no-sample div{background:var(--sunken);border:1px solid var(--line);border-radius:var(--r-md);padding:10px 16px;text-align:center;min-width:128px}
 .no-sample strong{display:block;font-size:34px;line-height:1.1;font-variant-numeric:tabular-nums}
-.no-sample small{display:block;font-size:12px;color:var(--text-3);margin-top:4px}
+.no-sample small{display:block;font-size:13px;color:var(--text-3);margin-top:4px}
 table.t{border-collapse:collapse;width:100%;min-width:560px}
-.t th{text-align:left;font-size:12px;color:var(--text-3);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line-2);background:var(--sunken);white-space:nowrap}
+.t th{text-align:left;font-size:13px;color:var(--text-3);font-weight:700;padding:8px 10px;border-bottom:1px solid var(--line-2);background:var(--sunken);white-space:nowrap}
 .t td{padding:8px 10px;border-bottom:1px solid var(--line)}
 .t tbody tr:hover{background:var(--accent-soft)}
 .t td.n{font-variant-numeric:tabular-nums}
@@ -154,7 +160,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .space-demo{display:flex;gap:14px;align-items:flex-end;flex-wrap:wrap}
 .space-demo i{display:block;background:var(--accent-soft);border:1px solid var(--accent-line);border-radius:3px}
 .rad{display:flex;gap:14px;flex-wrap:wrap}
-.rad div{width:92px;height:62px;background:var(--surface);border:1px solid var(--line-2);display:grid;place-items:center;font-size:12px;color:var(--text-2)}
+.rad div{width:92px;height:62px;background:var(--surface);border:1px solid var(--line-2);display:grid;place-items:center;font-size:13px;color:var(--text-2)}
 
 /* 按鈕 */
 .btn{font:inherit;font-weight:700;min-height:40px;padding:0 16px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface);color:var(--text);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s}
@@ -166,18 +172,18 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .btn-danger:hover{background:var(--danger-soft);border-color:var(--danger)}
 .btn-ghost{background:transparent;border-color:transparent;color:var(--accent-ink)}
 .btn-ghost:hover{background:var(--accent-soft);border-color:transparent}
-.btn-sm{min-height:32px;padding:0 10px;font-size:12px}
-.btn-lg{min-height:48px;padding:0 22px;font-size:15px}
+.btn-sm{min-height:32px;padding:0 10px;font-size:13px}
+.btn-lg{min-height:48px;padding:0 22px;font-size:14px}
 .btn[disabled]{opacity:1;background:var(--sunken);color:var(--text-3);border-color:var(--line);cursor:not-allowed}
 .icon-btn{width:40px;height:40px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface);color:var(--text);font:inherit;font-weight:700;font-size:18px;cursor:pointer}
 .icon-btn:hover{background:var(--sunken)}
 
 /* 表單 */
 .field{display:grid;gap:6px;min-width:0}
-.field label,.label{font-size:12px;font-weight:700;color:var(--text-2)}
+.field label,.label{font-size:13px;font-weight:700;color:var(--text-2)}
 .input{font:inherit;min-height:40px;padding:0 12px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--sunken);color:var(--text);width:100%}
 .input:focus{border-color:var(--accent)}
-.hint{font-size:12px;color:var(--text-3)}
+.hint{font-size:13px;color:var(--text-3)}
 .err .input{border-color:var(--danger)} .err .hint{color:var(--danger-ink)}
 .seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;background:var(--sunken)}
 .seg button{font:inherit;font-weight:700;min-height:36px;padding:0 14px;border:0;background:transparent;color:var(--text-2);cursor:pointer}
@@ -195,7 +201,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .stepper output{min-width:44px;text-align:center;font-weight:700;font-size:18px;font-variant-numeric:tabular-nums}
 
 /* 徽章、提示 */
-.badge{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;padding:2px 9px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2)}
+.badge{display:inline-flex;align-items:center;gap:4px;font-size:13px;font-weight:700;padding:2px 9px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2)}
 .b-acc{background:var(--accent-soft);color:var(--accent-ink);border-color:var(--accent-line)}
 .b-ok{background:var(--ok-soft);color:var(--ok-ink);border-color:var(--ok-line)}
 .b-warn{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn-line)}
@@ -216,14 +222,14 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .empty{border:1.5px dashed var(--line-2);border-radius:var(--r-lg);padding:28px 18px;text-align:center;display:grid;gap:8px;justify-items:center;background:var(--sunken)}
 
 /* 步驟導覽 */
-.shell{display:grid;grid-template-columns:220px minmax(0,1fr) 200px;gap:12px;min-height:150px}
+.shell{display:grid;grid-template-columns:minmax(0,220px) minmax(0,1fr) minmax(0,200px);gap:12px;min-height:150px}
 @media (max-width:760px){.shell{grid-template-columns:1fr}}
-.shell>div{border:1.5px dashed var(--line-2);border-radius:var(--r-md);padding:10px;background:var(--sunken);font-size:12px;color:var(--text-3);font-weight:700}
+.shell>div{border:1.5px dashed var(--line-2);border-radius:var(--r-md);padding:10px;background:var(--sunken);font-size:13px;color:var(--text-3);font-weight:700}
 .steps{display:grid;gap:4px;list-style:none;margin:0;padding:0}
 .step{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:var(--r-md);border:1px solid transparent;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%;min-height:44px}
 .step:hover{background:var(--sunken)}
 .step .no{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;border:1.5px solid var(--line-2);background:var(--surface);color:var(--text-2)}
-.step small{display:block;color:var(--text-3);font-size:12px;line-height:1.3}
+.step small{display:block;color:var(--text-3);font-size:13px;line-height:1.3}
 .step.cur{background:var(--accent-soft);border-color:var(--accent-line)}
 .step.cur .no{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}
 .step.done .no{background:var(--ok-soft);border-color:var(--ok-bar);color:var(--ok-ink)}
@@ -245,7 +251,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .pc{width:40px;height:30px;border-radius:6px;border:1px solid var(--line-2);background:var(--surface);cursor:pointer;padding:0;font:inherit;font-size:11px;color:var(--text-3);font-variant-numeric:tabular-nums}
 .pc:hover{border-color:var(--accent)}
 .pc.off{background:repeating-linear-gradient(135deg,var(--sunken) 0 4px,var(--line-2) 4px 8px);border-style:dashed;color:transparent}
-.podium{width:60%;text-align:center;font-size:12px;font-weight:700;color:var(--text-2);border:1px solid var(--line-2);border-radius:6px;padding:2px 0;background:var(--surface)}
+.podium{width:60%;text-align:center;font-size:13px;font-weight:700;color:var(--text-2);border:1px solid var(--line-2);border-radius:6px;padding:2px 0;background:var(--surface)}
 
 /* 座位格與標籤格（專案專屬） */
 .chart{--cw:96px;--ch:80px}
@@ -276,7 +282,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .cg{display:grid;border:2px solid var(--text)}
 .cg .cell{border-width:0 1px 1px 0}
 .podium-bar{grid-column:2;text-align:center;font-weight:700;border:2px solid var(--text);border-radius:4px;padding:3px;font-size:13px;letter-spacing:.3em}
-.legend{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;font-size:12px;color:var(--text-2)}
+.legend{display:flex;gap:8px 14px;flex-wrap:wrap;align-items:center;font-size:13px;color:var(--text-2)}
 .legend .cell{width:auto;height:auto;display:inline-flex;padding:1px 8px;border-radius:3px}
 .sheet .cell{grid-template-rows:1fr auto auto;padding:4px 2px 5px}
 .sheet .cell .tag-c{font-size:14px;font-weight:700;color:var(--cx);margin-right:10px;padding-right:10px;border-right:1.5px solid var(--cx)}
@@ -291,14 +297,14 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .cls-pal .cp{border-radius:var(--r-md);padding:10px 12px;border:1px solid;display:grid;gap:2px}
 .cp .seg{display:grid;grid-template-columns:1fr 1fr;width:100%}
 .cp .seg button{padding:0 4px;min-height:32px;font-size:13px}
-.cp strong{font-size:18px;font-family:var(--f-head)} .cp span{font-size:12px;font-weight:500}
+.cp strong{font-size:18px;font-family:var(--f-head)} .cp span{font-size:13px;font-weight:500}
 .cp[data-c="1"]{background:var(--c1-bg);border-color:var(--c1-line);color:var(--c1-ink)}
 .cp[data-c="2"]{background:var(--c2-bg);border-color:var(--c2-line);color:var(--c2-ink)}
 .cp[data-c="3"]{background:var(--c3-bg);border-color:var(--c3-line);color:var(--c3-ink)}
 .cp[data-c="4"]{background:var(--c4-bg);border-color:var(--c4-line);color:var(--c4-ink)}
 .cp[data-c="5"]{background:var(--c5-bg);border-color:var(--c5-line);color:var(--c5-ink)}
 .cp[data-c="6"]{background:var(--c6-bg);border-color:var(--c6-line);color:var(--c6-ink)}
-.chip-class{display:inline-flex;gap:6px;align-items:center;padding:2px 10px 2px 6px;border-radius:99px;border:1px solid;font-weight:700;font-size:12px}
+.chip-class{display:inline-flex;gap:6px;align-items:center;padding:2px 10px 2px 6px;border-radius:99px;border:1px solid;font-weight:700;font-size:13px}
 .chip-class i{width:10px;height:10px;border-radius:50%;background:currentColor}
 .chip-class[data-c="1"]{background:var(--c1-bg);border-color:var(--c1-line);color:var(--c1-ink)}
 .chip-class[data-c="2"]{background:var(--c2-bg);border-color:var(--c2-line);color:var(--c2-ink)}
@@ -308,13 +314,50 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .chip-class[data-c="6"]{background:var(--c6-bg);border-color:var(--c6-line);color:var(--c6-ink)}
 .stale-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:var(--r-md);background:var(--warn-soft);border:1.5px dashed var(--warn-bar);color:var(--warn-ink);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* 字級四級、可按與不可按對照（DESIGN §10.9） */
+.scl{display:flex;flex-direction:column}
+.scl>div{display:grid;grid-template-columns:150px minmax(0,1fr);gap:8px 16px;align-items:baseline;padding:12px 0;border-top:1px solid var(--line)}
+.scl>div:first-child{border-top:0}
+.scl .k{font-size:13px;font-weight:700;color:var(--text-3)}
+@media (max-width:560px){.scl>div{grid-template-columns:minmax(0,1fr)}}
+.lnk{font:inherit;font-weight:700;color:var(--accent-ink);text-decoration:underline;text-underline-offset:3px;text-decoration-thickness:1.5px;cursor:pointer;background:none;border:0;padding:0;text-align:left}
+.lnk:hover{background:var(--accent-soft)}
+.lnk::after{content:" →"}
+.lnk:focus-visible,.fmt input:focus-visible+span,.swx input:focus-visible+.trk,.swx.kf .trk{outline:3px solid var(--accent);outline-offset:2px}
+/* 滑動開關（列為考場／列為預備；軌道 46×26） */
+.swf{display:flex;flex-direction:column;gap:6px;align-items:flex-start}
+.swf .cap{font-size:13px;font-weight:700;color:var(--text-2)}
+.swx{display:inline-flex;align-items:center;gap:10px;cursor:pointer}
+.swx input{position:absolute;opacity:0;width:1px;height:1px}
+.swx .trk{width:46px;height:26px;border-radius:99px;background:var(--line-2);position:relative;transition:background .15s;flex:none}
+.swx .trk::after{content:"";position:absolute;left:3px;top:3px;width:20px;height:20px;border-radius:50%;background:var(--surface);box-shadow:var(--shadow-1);transition:transform .15s}
+.swx input:checked+.trk{background:var(--accent)}
+.swx input:checked+.trk::after{transform:translateX(20px)}
+.swx .st{font-size:13px;font-weight:700;color:var(--text-3);min-width:3.5em}
+.swx input:checked~.st{color:var(--accent-ink)}
+.rx-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 24px;padding:14px 0;border-top:1px solid var(--line)}
+.rx-row:first-of-type{border-top:0}
+.rx-nm{display:flex;align-items:center;gap:12px;min-width:150px;flex:1 1 150px}
+.rx-dot{width:36px;height:36px;border-radius:50%;display:grid;place-items:center;font-weight:700;border:1px solid;flex:none}
+.rx-off .rx-nm,.rx-off .rx-sz{opacity:.55}
+/* 下載格式鈕（Word 藍、PDF 磚紅、Excel 綠） */
+.fmts{display:flex;gap:10px;flex-wrap:wrap}
+.fmt{cursor:pointer}
+.fmt input{position:absolute;opacity:0;width:1px;height:1px}
+.fmt span{display:inline-flex;align-items:center;gap:10px;min-height:48px;padding:0 18px 0 12px;border-radius:var(--r-md);border:1.5px solid var(--line-2);background:var(--surface);font-weight:700;color:var(--text)}
+.fmt:hover span{background:var(--sunken)}
+.fmt svg{width:26px;height:26px;flex:none}
+.fmt.w input:checked+span{background:var(--fmt-word-soft);border-color:var(--fmt-word)}
+.fmt.p input:checked+span{background:var(--fmt-pdf-soft);border-color:var(--fmt-pdf)}
+.fmt.x input:checked+span{background:var(--fmt-xls-soft);border-color:var(--fmt-xls)}
+.ic-bg-w{fill:var(--fmt-word)} .ic-bg-p{fill:var(--fmt-pdf)} .ic-bg-x{fill:var(--fmt-xls)}
 /* 全站頁尾（DESIGN §10.1）：sticky footer，短內容頁貼在視窗底部；不進列印 */
-.pfoot{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:center;padding:14px 0 max(20px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);color:var(--text-3);font-size:12px;line-height:1.5}
+.pfoot{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:center;padding:14px 0 max(20px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);color:var(--text-3);font-size:13px;line-height:1.5}
 .pfoot .pf-name{font-family:var(--f-head);font-weight:700;color:var(--text-2)}
 .pfoot .pf-ver{font:inherit;font-weight:700;min-height:32px;padding:0 10px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s}
 .pfoot .pf-ver:hover{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
 .pfoot .pf-ver:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
-.pfoot .pf-pre{font-size:11px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
+.pfoot .pf-pre{font-size:13px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
 .pfoot .pf-link{font:inherit;color:inherit;background:none;border:0;padding:4px 6px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .pf-about{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 10px}
 .pf-about dt{color:var(--text-3);font-weight:700}
@@ -368,9 +411,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       <div class="card">
         <div class="lab">各用途的建議</div>
         <div class="fonts">
-          <div class="fontrow"><div class="nm">頁面與卡片標題<br>Noto Serif TC 700</div><div style="font-family:var(--f-head);font-weight:700;font-size:20px">【115學年第3次學測模擬考】座位表</div></div>
+          <div class="fontrow"><div class="nm">頁面與卡片標題<br>Noto Serif TC 700</div><div style="font-family:var(--f-head);font-weight:700;font-size:18px">【115學年第3次學測模擬考】座位表</div></div>
           <div class="fontrow"><div class="nm">介面、按鈕、表格<br>Noto Sans TC 400／500／700</div><div style="font-size:14px">新增模擬考，匯入考試名單後比對差異。按鈕寫動作，例如「匯入並進行下一步」。</div></div>
-          <div class="fontrow"><div class="nm">姓名小字、班級小字<br>Noto Sans TC 500（9～11pt）</div><div style="font-size:12px;font-weight:500">溫　王小明　　良　李小華</div></div>
+          <div class="fontrow"><div class="nm">姓名小字、班級小字<br>Noto Sans TC 500（9～11pt）</div><div style="font-size:13px;font-weight:500">溫　王小明　　良　李小華</div></div>
           <div class="fontrow"><div class="nm">考生編號大字<br>Noto Sans TC 700（已定）</div><div style="font-family:var(--f-no);font-weight:700;font-size:32px;font-variant-numeric:tabular-nums">0101　0207　0535</div></div>
         </div>
       </div>
@@ -382,6 +425,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         </div>
         <p class="small muted" style="margin-top:12px">與介面同源，標籤與 Word 只需內嵌一種字型。</p>
       </div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <div class="lab">字級只有四級（每頁最多用這四種，DESIGN 10.9）</div>
+      <div class="scl">
+        <div><span class="k">頁標　26 襯線</span><span style="font-family:var(--f-head);font-weight:700;font-size:26px;line-height:1.3">教室設定</span></div>
+        <div><span class="k">區塊標　18 襯線</span><span style="font-family:var(--f-head);font-weight:700;font-size:18px">班級教室座位統計</span></div>
+        <div><span class="k">內文　14</span><span style="font-size:14px">勾選本次使用的教室，座位數會自動合計。</span></div>
+        <div><span class="k">說明　13 灰</span><span class="muted" style="font-size:13px">預備教室的座位另計，不併入班級教室合計。</span></div>
+      </div>
+      <p class="small muted" style="margin-top:10px">說明字用 13 灰（<code>--text-3</code>）；一行說明不超過約 40 字，超過就拆成兩句。不在這四級內的明文例外：座位格與標籤預覽、統計大數字（32）、SVG 內的字母、<code>code</code>；紙面稿用 pt，另計。</p>
     </div>
     <div class="card" style="margin-top:16px">
       <div class="lab">授權與施工注意</div>
@@ -403,7 +456,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   </section>
 
   <section id="comp">
-    <header><h2>基本元件</h2><p>每個畫面只有一個主要按鈕。最小高度 40px，焦點外框 3px 墨藍。</p></header>
+    <header><h2>基本元件</h2><p>每個畫面只有一顆實心藍按鈕（放步驟標題卡右側），其餘按鈕不分主次、一律外框。最小高度 40px，焦點外框 3px 墨藍。</p></header>
     <div class="grid">
       <div class="card"><div class="lab">按鈕</div>
         <div class="stack">
@@ -445,13 +498,78 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     </div>
     <div class="card" style="margin-top:16px"><div class="lab">空狀態</div>
       <div class="empty"><strong>還沒有模擬考</strong><span class="muted">按「新增模擬考」，會帶入上一次的設定。</span><button class="btn btn-primary">新增模擬考</button></div></div>
+
+    <div class="stack" style="margin-top:16px">
+      <div class="card"><div class="lab">滑動開關：列為考場／列為預備（DESIGN 10.9）</div>
+        <p class="small muted" style="margin-bottom:12px">標示文字在開關上方；右側用文字寫「已列入／未列入」，不只靠顏色。班級教室新增時預設開，預備教室預設關。可以直接點擊試試。</p>
+        <div class="row" style="gap:28px;align-items:flex-start">
+          <div class="swf"><span class="cap">列為考場</span><label class="swx"><input type="checkbox" checked><span class="trk"></span><span class="st">已列入</span></label></div>
+          <div class="swf"><span class="cap">列為考場</span><label class="swx"><input type="checkbox"><span class="trk"></span><span class="st">未列入</span></label></div>
+          <div class="swf"><span class="cap">列為預備</span><label class="swx"><input type="checkbox"><span class="trk"></span><span class="st">未列入</span></label></div>
+          <div class="swf"><span class="cap">鍵盤焦點（Tab 到開關時）</span><label class="swx kf"><input type="checkbox" checked><span class="trk"></span><span class="st">已列入</span></label></div>
+        </div>
+        <div class="lab" style="margin:16px 0 0">教室列範例（編號圓的位置換成開關；關掉的教室整列變淡，座位不計入合計）</div>
+        <div>
+          <div class="rx-row">
+            <div class="swf"><span class="cap">列為考場</span><label class="swx"><input type="checkbox" checked><span class="trk"></span><span class="st">已列入</span></label></div>
+            <div class="rx-nm"><span class="rx-dot" style="background:var(--c1-bg);border-color:var(--c1-line);color:var(--c1-ink)">溫</span><div><b>溫</b><div class="muted small">座位 42／42</div></div></div>
+            <div class="row"><button class="btn btn-sm">編輯座位表</button><button class="btn btn-sm btn-danger">刪除</button></div>
+          </div>
+          <div class="rx-row rx-off">
+            <div class="swf"><span class="cap">列為考場</span><label class="swx"><input type="checkbox"><span class="trk"></span><span class="st">未列入</span></label></div>
+            <div class="rx-nm"><span class="rx-dot" style="background:var(--c2-bg);border-color:var(--c2-line);color:var(--c2-ink)">良</span><div><b>良</b><div class="muted small">座位 30／30</div></div></div>
+            <div class="row"><button class="btn btn-sm">編輯座位表</button><button class="btn btn-sm btn-danger">刪除</button></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card"><div class="lab">下載格式鈕（Word 藍、PDF 磚紅、Excel 綠）</div>
+        <p class="small muted" style="margin-bottom:12px">標籤只寫「Word」「PDF」「Excel」，不分主次。紅色只用在圖示與選中底色，文字維持深色，避免被當成錯誤。圖示是自繪 SVG，不使用商標原圖。</p>
+        <div class="lab" style="margin-bottom:6px">選中</div>
+        <div class="fmts">
+          <label class="fmt w"><input type="radio" name="fs1" checked><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-w" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M6.5 11l2 7 2.2-5.5L12.9 18l2-7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Word</span></label>
+          <label class="fmt p"><input type="radio" name="fs2" checked><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-p" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><text x="12.5" y="19" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Noto Sans TC,sans-serif">PDF</text></svg>PDF</span></label>
+          <label class="fmt x"><input type="radio" name="fs3" checked><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-x" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M8 11.5l9 7M17 11.5l-9 7" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>Excel</span></label>
+        </div>
+        <div class="lab" style="margin:14px 0 6px">未選</div>
+        <div class="fmts">
+          <label class="fmt w"><input type="radio" name="fu1"><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-w" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M6.5 11l2 7 2.2-5.5L12.9 18l2-7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Word</span></label>
+          <label class="fmt p"><input type="radio" name="fu2"><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-p" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><text x="12.5" y="19" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Noto Sans TC,sans-serif">PDF</text></svg>PDF</span></label>
+          <label class="fmt x"><input type="radio" name="fu3"><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-x" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M8 11.5l9 7M17 11.5l-9 7" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>Excel</span></label>
+        </div>
+        <p class="small muted" style="margin-top:12px">Word、PDF 是單選（步驟⑥）；Excel 用在設定頁學生名單的下載。</p>
+      </div>
+
+      <div class="card"><div class="lab">可按與不可按，一眼分得出來</div>
+        <div class="scl">
+          <div><span class="k">實心藍主按鈕</span><span><button class="btn btn-primary">完成此步，前往 ④</button></span></div>
+          <div><span class="k">外框次按鈕</span><span><button class="btn">編輯座位表</button></span></div>
+          <div><span class="k">文字連結</span><span><button class="lnk">去 ② 匯入考試名單</button></span></div>
+          <div><span class="k">說明文字</span><span class="muted small">這句是說明，灰色、沒有底線、沒有箭頭，點了不會有反應。</span></div>
+        </div>
+        <p class="small muted" style="margin-top:10px">規則：實心藍鈕每頁一顆，放步驟標題卡右側；說明字不得用藍色或底線，可按的字不得用灰色。</p>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:16px"><div class="lab">控制元件選用表（選錯元件視為 Bug，DESIGN 10.9）</div>
+      <div class="scroll"><table class="t" style="min-width:0"><thead><tr><th>元件</th><th>用在</th><th>本站例子</th></tr></thead><tbody>
+        <tr><td><b>按鈕</b></td><td>觸發一個動作</td><td>完成此步、編輯座位表、刪除</td></tr>
+        <tr><td><b>開關</b></td><td>某物「納入／不納入」，切換立刻生效</td><td>列為考場、列為預備</td></tr>
+        <tr><td><b>選項卡 <code>tcard</code></b></td><td>少數幾個獨立的大選項，要看說明</td><td>學期、考試種類</td></tr>
+        <tr><td><b>分段鈕 <code>seg</code></b></td><td>二到三個短選項，互斥</td><td>淺／深色、部別</td></tr>
+        <tr><td><b>格式鈕</b></td><td>檔案格式，帶顏色與圖示</td><td>Word、PDF、Excel</td></tr>
+        <tr><td><b>勾選框</b></td><td>清單多選，按「套用」才生效</td><td>匯入時挑要處理的筆數</td></tr>
+        <tr><td><b>下拉</b></td><td>單選且多於 3 項</td><td>學年度、班級</td></tr>
+        <tr><td><b>文字連結</b></td><td>跳到別處、不改資料</td><td>去 ② 匯入考試名單</td></tr>
+      </tbody></table></div>
+    </div>
   </section>
 
   <section id="steps">
-    <header><h2>版面與步驟導覽</h2><p>桌機三欄：左側步驟導覽、中間工作區、右側詳細面板（D20）。步驟有四種狀態；名單或設定改了，已排好的結果標「過期」，不會自動重算（D22）。<span class="pending">待使用者確認：過期的呈現方式</span></p></header>
+    <header><h2>版面與步驟導覽</h2><p>桌機：左側步驟欄＋主區，只有步驟①④ 有右側欄（照原型；D20、DESIGN 10.7）。步驟有四種狀態；名單或設定改了，已排好的結果標「過期」，不會自動重算（D22）。<span class="pending">待使用者確認：過期的呈現方式</span></p></header>
     <div class="grid">
-      <div class="card"><div class="lab">三欄骨架</div>
-        <div class="shell"><div>步驟導覽<br>220px</div><div>工作區<br>彈性寬度</div><div>詳細面板<br>200～320px</div></div></div>
+      <div class="card"><div class="lab">頁面骨架（照原型）</div>
+        <div class="shell"><div>左側步驟欄<br>220px</div><div>主區<br>彈性寬度</div><div>右側欄<br>只有步驟①④<br>200～320px</div></div></div>
       <div class="card"><div class="lab">步驟狀態</div>
         <ol class="steps" id="stepList"></ol>
         <p class="small muted" style="margin-top:10px">可點的步驟都能直接跳（我的假設，D20 未決議題 5 尚待使用者確認）。</p></div>
@@ -550,10 +668,10 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         <li><b>注意事項</b>：表格下方，做成墨藍左邊條的「注意事項」小卡，文字採用使用者指定的三行（0101 開始為第一排第一個位置以此類推／請貼於桌面右上角／請使用透明膠帶黏貼），重點字粗體（紅色在本系統只表示錯誤，不拿來強調）。已定案（2026-11-09）：文字可在共用設定頁「學校與表頭」修改，最多 4 行、每行 30 字，<code>**粗體**</code> 語法，可還原預設（「以舊的班級座號為主」是學校專屬說法，預設不放）。</li>
       </ul></div>
 
-    <div class="card" style="margin-top:16px"><div class="lab">③ 標籤 B4（直式，最多 6 排 × 8 深位，每格約 38 × 35 mm，D74；下圖示意 6 排 × 7 深位的教室）</div>
+    <div class="card" style="margin-top:16px"><div class="lab">③ 標籤 B4（直式，最多 6 排 × 8 深位，每格寬約 38.3mm、格高最多 35mm，D74；下圖示意 6 排 × 7 深位的教室）</div>
       <div class="pp-stage"><div class="pp-fit" data-w="250" data-h="353" id="ppB4Fit"></div></div>
       <ul class="pp-spec">
-        <li>與 A3 同一套格子樣式、同一套注意事項；格寬 38.3mm、列高 35mm，為了在同一張紙下方留出注意事項（D74 只定格數，格高為本稿提案）。<span class="pending">待使用者確認：B4 格高</span></li>
+        <li>與 A3 同一套格子樣式、同一套注意事項；格寬 38.3mm、列高 35mm，格高最多 35mm，排到 8 列時縮到 33.6mm，才放得下下方的注意事項與頁尾（<code>labelBoxMm</code>；使用者 2026-11-09 確認 B4 6×8、A3 7×7 沒有錯）。</li>
         <li>教室小於 6×8 時只畫實際的排數與深位數，格子大小不變、靠左上對齊，不拉伸。</li>
       </ul></div>
 
@@ -716,7 +834,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   function v(n){return getComputedStyle(root).getPropertyValue(n).trim()}
   function sw(el,list){el.innerHTML='';list.forEach(function(x){var d=document.createElement('div');d.className='swatch';d.innerHTML='<i style="background:var('+x[0]+')"></i><div><b>'+x[1]+'</b><span>'+x[0]+' '+v(x[0])+'</span></div>';el.appendChild(d)})}
   function drawSwatches(){
-    sw(document.getElementById('swBase'),[['--bg','頁面底'],['--surface','卡片、座位表紙面'],['--sunken','凹陷底'],['--line','分隔線'],['--line-2','控制項邊框'],['--text','主要文字'],['--text-2','次要文字'],['--text-3','輔助文字'],['--cut','標籤裁切線']]);
+    sw(document.getElementById('swBase'),[['--bg','頁面底'],['--surface','卡片、座位表紙面'],['--sunken','凹陷底'],['--line','分隔線'],['--line-2','控制項邊框'],['--text','內文文字'],['--text-2','次要文字'],['--text-3','說明文字'],['--cut','標籤裁切線']]);
     sw(document.getElementById('swState'),[['--accent','主色（墨藍）'],['--accent-soft','主色淡底'],['--ok-bar','完成'],['--warn-bar','過期、提醒'],['--danger','錯誤、禁排'],['--att-fill','不考標示（黑白章）']]);
   }
   drawSwatches();
