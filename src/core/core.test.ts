@@ -199,7 +199,7 @@ describe('標示規則（D11/D12/D67）', () => {
 
   it('套用規則產生標記，英聽規則被忽略', () => {
     const cls = classes(2, true);
-    const entries = [entry(1, 1, ['soc']), entry(1, 2, []), entry(2, 1, ['sci'])];
+    const entries = [entry(1, 1, ['soc']), entry(1, 2, ['sci']), entry(2, 1, ['sci'])];
     const marks = applyMarks(entries, cls, subjects, [
       { track: 'science', subjectId: 'soc', mode: 'mark-absent' },
       { track: 'liberal', subjectId: 'sci', mode: 'mark-extra' },
@@ -336,7 +336,7 @@ describe('runSeating 整合入口', () => {
       room('L', 1, 3, 3, { track: 'liberal' }),
       room('P', 1, 4, 4, { kind: 'reserve' }),
     ],
-    entries: [entry(1, 1, ['soc']), entry(1, 2, []), entry(2, 1, ['soc', 'sci'])],
+    entries: [entry(1, 1, ['soc']), entry(1, 2, ['sci']), entry(2, 1, ['soc', 'sci'])],
     subjects,
     markRules: [
       { track: 'science' as const, subjectId: 'soc', mode: 'mark-absent' as const },

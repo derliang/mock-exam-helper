@@ -80,3 +80,12 @@
 - 先寫會失敗的回歸測試（`export.property.test.ts`〈匯出統計＝畫面統計〉，修前失敗：期望 `[1,2,1,3]` 實得 `[0,2,0,3]`），再修；修後全綠。測試同時要求至少有案例真的受特例影響，避免空轉。
 - 已 merge 最新 main（含 ④⑤）；標籤頁數檢查改用 `buildLabelPages(input, 'class')`（main 新增 scope，預設含抽離標籤）。
 - 驗證：typecheck 通過、`npm test` 23 檔 187 項全綠。
+
+## 追加二（PR build/f-correctness-2）：F-2、F-3 依使用者裁示（D79、D80）落實
+
+- **F-2／D79**：`runSeating` 新增 `seatFullyAbsent`（預設不排）；`subjectIds` 為空者不排座、不做標示，編號回在結果的 `fullyAbsent`。資料版本碼只在選項開啟時才納入，舊存檔不會因此變過期。`ExamConfig.seatFullyAbsent` 存畫面開關；`seatingInputOf` 與匯出輸入都會帶入。畫面最小改動：② 考試名單的統計列加「全科缺考 N」，並有一行提示與「仍排座」勾選（`Step2.tsx`）。
+- **F-3／D80**：`allocateDetaches` 與 `specialOf` 的特例 purpose 改為 `override.purpose`；沒有覆寫的人仍依標示方向。座位表統計（`roomStats`）、抽離名單因此一致。
+- 先寫失敗測試再修：`src/core/d79d80.test.ts`（修前 6 項失敗）。性質測試同步更新：不變式改以「應排座名單」為準（`seatableEntries`），新增 INV-9b（特例歸類依手動設定）。
+- 既有測試／文件受影響處：`core.test.ts` 整合案例與 `core-api.md` 範例的「測試乙」原本科目為空（會被視為全科缺考），改為有考一科；邊界案例的考生沒填科目，改用 `seatFullyAbsent: true`；真實 E3 回歸改為驗證「排座人數＝有科目人數、fullyAbsent＝全科缺考人數」。
+- 未做：「領卷份數」與「缺考清單」在目前程式中沒有對應功能（grep 無結果），所以只做到不排座、不進統計（座位表與統計本來就以 assignments 為準）；缺考清單的列印輸出留給日後有該功能時接上 `fullyAbsent`。
+- 驗證：`npm run typecheck` 通過、`npm test` 24 檔 195 項全綠。

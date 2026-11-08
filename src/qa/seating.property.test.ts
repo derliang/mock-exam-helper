@@ -6,12 +6,13 @@ import { describe, expect, it } from 'vitest';
 import { classroomSeats, studentCode } from '../data/helpers';
 import { runSeating, seatingVersion } from '../core';
 import { genCase, makeRng } from './gen';
-import { checkMainSeating, checkMarksAndDetach } from './invariants';
+import { checkMainSeating, checkMarksAndDetach, seatableEntries } from './invariants';
 
 const N = 600;
 
 /** 獨立 oracle：座位夠不夠（主排座）。高中部分組，國中部全體 */
 function mainCapacityShort(i: ReturnType<typeof genCase>): boolean {
+  i = { ...i, entries: seatableEntries(i) }; // D79：全科缺考者不排座
   const rooms = i.classrooms.filter((c) => c.kind === 'class');
   const groups: [string | undefined, string[]][] =
     i.division === 'junior'
@@ -25,6 +26,7 @@ function mainCapacityShort(i: ReturnType<typeof genCase>): boolean {
 
 /** 獨立 oracle：預備教室夠不夠（每科：考試教室取最少前綴，自習再從下一間起取） */
 function reserveShort(i: ReturnType<typeof genCase>): boolean {
+  i = { ...i, entries: seatableEntries(i) };
   const reserve = i.classrooms.filter((c) => c.kind === 'reserve');
   const track = new Map(i.classes.map((c) => [c.no, c.track]));
   const ov = new Set(i.overrides.map((o) => o.code));
@@ -136,7 +138,8 @@ describe('排座性質測試（固定種子）', () => {
 });
 
 describe('邊界案例', () => {
-  const base = genCase(makeRng(1), { division: 'junior' });
+  // 邊界案例的考生沒有填科目，用 seatFullyAbsent 讓他們照排（全科缺考的行為另見 core/d79d80.test.ts）
+  const base = { ...genCase(makeRng(1), { division: 'junior' }), seatFullyAbsent: true };
   const room = (id: string, rows: number, depth: number, seatCount = rows * depth) => ({ id, name: id, kind: 'class' as const, rows, depth, seatCount });
 
   it('單一考生', () => {

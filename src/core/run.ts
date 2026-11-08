@@ -19,26 +19,32 @@ export interface RunSeatingInput {
   subjects: readonly Subject[];
   markRules: readonly MarkRule[];
   overrides: readonly Override[];
+  /** D79：全科缺考者（無任何考科）預設不排座、不計份數；設 true 才照排 */
+  seatFullyAbsent?: boolean;
   /** 產生時間（ISO 字串）；由呼叫端給，讓函式保持純粹 */
   now: string;
 }
 
 export type RunSeatingResult =
-  | { ok: true; result: SeatingResult; special: SpecialPlacement[]; warnings: string[] }
+  | { ok: true; result: SeatingResult; special: SpecialPlacement[]; warnings: string[]; /** D79：未排座的全科缺考者編號 */ fullyAbsent: string[] }
   | { ok: false; errors: string[] };
 
 /** 資料版本碼的輸入：只含影響排座結果的資料（不含產生時間） */
 export function seatingVersion(input: RunSeatingInput): string {
   const { examId, division, classes, classrooms, entries, subjects, markRules, overrides } = input;
-  return dataVersion({ examId, division, classes, classrooms, entries, subjects, markRules, overrides });
+  // 只在開啟時才放進版本碼，避免舊存檔的版本碼全部變成「過期」
+  return dataVersion({ examId, division, classes, classrooms, entries, subjects, markRules, overrides, ...(input.seatFullyAbsent ? { seatFullyAbsent: true } : {}) });
 }
 
 export function runSeating(input: RunSeatingInput): RunSeatingResult {
-  const codes = input.entries.map((e) => studentCode(e.classNo, e.seatNo));
+  const fullyAbsent = input.seatFullyAbsent ? [] : input.entries.filter((e) => e.subjectIds.length === 0).map((e) => studentCode(e.classNo, e.seatNo));
+  const absentSet = new Set(fullyAbsent);
+  const seatable = input.entries.filter((e) => !absentSet.has(studentCode(e.classNo, e.seatNo)));
+  const codes = seatable.map((e) => studentCode(e.classNo, e.seatNo));
   const seated = seatExam({ division: input.division, classes: input.classes, classrooms: input.classrooms, codes });
   if (!seated.ok) return { ok: false, errors: seated.errors };
 
-  const marks = applyMarks(input.entries, input.classes, input.subjects, input.markRules);
+  const marks = applyMarks(seatable, input.classes, input.subjects, input.markRules);
   const detached = allocateDetaches({
     subjects: input.subjects,
     marks,
@@ -61,5 +67,6 @@ export function runSeating(input: RunSeatingInput): RunSeatingResult {
     },
     special: detached.special,
     warnings: overrideWarnings(input.overrides, codes),
+    fullyAbsent,
   };
 }

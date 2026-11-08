@@ -3,7 +3,7 @@ import type { ExamConfig, ExamEntry, RosterDiff, RosterDiffChoice } from '../../
 import { studentCode } from '../../data';
 import { allResolved, applyDiffs, compareRosters, readXlsx, type Sheet } from '../../import';
 import { Alert, Badge, Button, StatsBar } from '../components';
-import type { Doc } from '../store';
+import { updateExam, type Doc } from '../store';
 import { ImportWizard } from './ImportWizard';
 
 const KIND_TEXT: Record<RosterDiff['kind'], string> = {
@@ -28,6 +28,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const [err, setErr] = useState('');
   const input = useRef<HTMLInputElement>(null);
 
+  const fullyAbsent = entries ? entries.filter((e) => e.subjectIds.length === 0).length : 0;
   const classNames = doc.settings.classes.filter((c) => c.division === exam.division).map((c) => c.name);
   const compare = (list: ExamEntry[]) => compareRosters(roster, list, exam.participation);
 
@@ -94,7 +95,15 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             { label: '差異', value: diffs.length, bad: diffs.length > 0 },
             { label: '已處理', value: `${resolved}／${diffs.length}` },
             ...(exam.participation === 'partial' ? [{ label: '未參加', value: notJoin }] : []),
+            ...(fullyAbsent > 0 ? [{ label: '全科缺考', value: fullyAbsent }] : []),
           ]} /></div>
+          {fullyAbsent > 0 && (
+            <div style="margin-top:12px"><Alert tone="info">
+              有 {fullyAbsent} 人全科缺考，已列入缺考清單：{exam.seatFullyAbsent ? '目前照樣排座。' : '預設不排座、不計領卷份數。'}
+              <label style="margin-left:12px"><input type="checkbox" checked={!!exam.seatFullyAbsent}
+                onChange={(e) => { const r = updateExam(doc, exam.id, { seatFullyAbsent: (e.target as HTMLInputElement).checked }); if (r.ok) p.onChange(r.doc); }} /> 仍排座</label>
+            </Alert></div>
+          )}
           {diffs.length === 0 ? (
             <div style="margin-top:12px"><Alert tone="ok">考試名單與學生名單一致，可以繼續下一步。</Alert></div>
           ) : (

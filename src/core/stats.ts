@@ -83,6 +83,6 @@ export function detachRoomCounts(detaches: readonly Detach[], subjectId: string,
 export function specialOf(result: SeatingResult): { code: string; subjectId: string; purpose: 'exam' | 'study'; location: string }[] {
   const o = new Map(result.overrides.map((x) => [x.code, x]));
   return result.marks.filter((m) => o.has(m.code)).map((m) => ({
-    code: m.code, subjectId: m.subjectId, purpose: m.mode === 'extra' ? 'exam' : 'study', location: o.get(m.code)!.location,
+    code: m.code, subjectId: m.subjectId, purpose: o.get(m.code)!.purpose, location: o.get(m.code)!.location,
   }));
 }

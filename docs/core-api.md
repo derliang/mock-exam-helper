@@ -33,6 +33,9 @@ if (!r.ok) {
 
 不合硬規則時一定回 `ok: false`，絕不輸出部分結果（D25）。
 
+**全科缺考（D79）**：`subjectIds` 為空的考生預設**不排座**、不計份數，編號回在 `r.fullyAbsent`（`seatFullyAbsent: true` 才照排；有開時才進資料版本碼，舊存檔不會變過期）。畫面開關存在 `ExamConfig.seatFullyAbsent`。
+**單人特例（D80）**：`special[].purpose` 以覆寫的 `purpose` 為準，不看標示方向；`specialOf(result)` 同。
+
 ## 二、結果結構
 
 `SeatingResult`（`types.ts`）：
@@ -77,7 +80,7 @@ classrooms = [
 ];
 entries = [
   { classNo: 1, seatNo: 1, name: '測試甲', subjectIds: ['soc'] },
-  { classNo: 1, seatNo: 2, name: '測試乙', subjectIds: [] },
+  { classNo: 1, seatNo: 2, name: '測試乙', subjectIds: ['sci'] },
   { classNo: 2, seatNo: 1, name: '測試丙', subjectIds: ['soc', 'sci'] },
 ];
 markRules = [
