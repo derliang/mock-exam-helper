@@ -30,8 +30,8 @@ export function RoomList(p: {
               ) : <span class="no" aria-hidden="true">{r.kind === 'class' ? '班' : '備'}</span>}
               <div class="field"><label class="small" for={`rn-${r.id}`}>{r.kind === 'class' ? '班級教室' : '預備教室'}</label>
                 <input id={`rn-${r.id}`} class="input" value={r.name} onClick={(e) => e.stopPropagation()} onChange={(e) => upd(r.id, (x) => ({ ...x, name: e.currentTarget.value.trim() || x.name }))} /></div>
-              <div onClick={(e) => e.stopPropagation()}><Stepper label="橫排" value={r.rows} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { rows: n }, cap))} /></div>
-              <div onClick={(e) => e.stopPropagation()}><Stepper label="深位" value={r.depth} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { depth: n }, cap))} /></div>
+              <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">橫排（左右）</span><Stepper label="橫排" value={r.rows} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { rows: n }, cap))} /></div>
+              <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">深位（前後）</span><Stepper label="深位" value={r.depth} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { depth: n }, cap))} /></div>
               <div class="info">座位 {r.seatCount}／{roomCapacity(r)}（上限 {cap}）</div>
               <div class="btnrow" onClick={(e) => e.stopPropagation()}>
                 <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '收合座位表' : '編輯座位表'}</Button>
