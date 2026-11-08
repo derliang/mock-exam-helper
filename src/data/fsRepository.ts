@@ -55,10 +55,12 @@ export function isFsAccessSupported(): boolean {
 export function createFsRepository(): FsRepository {
   let fs: DirFS | null = null;
   let warning: string | undefined;
+  let folder = '';
 
   const adopt = async (h: PermHandle): Promise<boolean> => {
     if (!(await ensurePermission(h))) return false;
     fs = createHandleFS(h);
+    folder = h.name;
     await idb('readwrite', (s) => s.put(h, KEY));
     return true;
   };
@@ -69,6 +71,7 @@ export function createFsRepository(): FsRepository {
 
   return {
     hasFolder: () => fs !== null,
+    folderName: () => folder,
     lastWarning: () => warning,
     async chooseFolder() {
       const pick = (window as unknown as { showDirectoryPicker: (o: object) => Promise<PermHandle> }).showDirectoryPicker;
