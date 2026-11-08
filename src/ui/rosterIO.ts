@@ -32,7 +32,14 @@ export function planImport(doc: Doc, division: Division, students: readonly Stud
 
 /** 套用匯入：取代該部別整份名單（匯入的是「整年一份」名單，D35/D62）；學號不合法者忽略 */
 export function applyImport(doc: Doc, division: Division, plan: ImportPlan): Doc {
-  return { ...doc, rosters: { ...doc.rosters, [division]: plan.students } };
+  // 範本沒有組別與特殊生需求欄：同班同座號的舊紀錄沿用，避免匯入後被清空
+  const old = new Map(doc.rosters[division].map((s) => [`${s.classNo}-${s.seatNo}`, s]));
+  const students = plan.students.map((s) => {
+    const o = old.get(`${s.classNo}-${s.seatNo}`);
+    if (!o || o.name !== s.name) return s;
+    return { ...s, ...(s.groupCode === undefined && o.groupCode ? { groupCode: o.groupCode } : {}), ...(s.special === undefined && o.special ? { special: o.special } : {}) };
+  });
+  return { ...doc, rosters: { ...doc.rosters, [division]: students } };
 }
 
 export const codeLabel = (s: Pick<Student, 'classNo' | 'seatNo'>): string => studentCode(s.classNo, s.seatNo);
