@@ -99,7 +99,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           ]} /></div>
           {fullyAbsent > 0 && (
             <div style="margin-top:12px"><Alert tone="info">
-              有 {fullyAbsent} 人全科缺考，已列入缺考清單：{exam.seatFullyAbsent ? '目前照樣排座。' : '預設不排座、不計領卷份數。'}
+              有 {fullyAbsent} 人全科缺考：{exam.seatFullyAbsent ? '目前照樣排座。' : '預設不排座、不計領卷份數。'}
               <label style="margin-left:12px"><input type="checkbox" checked={!!exam.seatFullyAbsent}
                 onChange={(e) => { const r = updateExam(doc, exam.id, { seatFullyAbsent: (e.target as HTMLInputElement).checked }); if (r.ok) p.onChange(r.doc); }} /> 仍排座</label>
             </Alert></div>
