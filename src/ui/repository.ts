@@ -3,17 +3,23 @@
  */
 import type { ClassInfo, Classroom, ExamFiles, Student } from '../data';
 import type { Doc } from './store';
+import type { SaveStatus } from '../data/saveQueue';
 
 export interface Repository {
   hasFolder(): boolean;
   /** 目前資料夾的名稱（列表頁顯示用）；沒有或不支援時可省略 */
   folderName?(): string;
-  /** 用 showDirectoryPicker 選資料夾 */
-  chooseFolder(): Promise<void>;
+  /** 用 showDirectoryPicker 選資料夾；回 false＝新資料夾沒取得授權，仍使用原資料夾（使用者取消則丟 AbortError） */
+  chooseFolder(): Promise<boolean>;
   /** 拖拉資料夾（UI-03）：回 false 表示拖進來的不是資料夾 */
   adoptDropped(items: DataTransferItemList): Promise<boolean>;
   load(): Promise<Doc>;
   save(doc: Doc): Promise<void>;
+  /** 存檔狀態（#58）：寫入失敗時畫面要顯示錯誤與重試；沒有佇列的實作可省略 */
+  saveStatus?(): SaveStatus;
+  onSaveStatus?(f: (s: SaveStatus) => void): () => void;
+  /** 重寫失敗的存檔；回傳是否存妥 */
+  retrySave?(): Promise<boolean>;
   /** 單次模擬考底下的其他檔案（考試名單、比對結果、覆寫、排座結果） */
   loadExamFile<K extends keyof ExamFiles>(examId: string, key: K): Promise<ExamFiles[K] | null>;
   saveExamFile<K extends keyof ExamFiles>(examId: string, key: K, data: ExamFiles[K]): Promise<void>;
@@ -63,7 +69,7 @@ export function createMemoryRepository(): Repository {
     saveExamFile: async <K extends keyof ExamFiles>(examId: string, key: K, data: ExamFiles[K]) => { files.set(`${examId}/${key}`, structuredClone(data)); },
     hasFolder: () => folder,
     folderName: () => (folder ? '示範資料夾（記憶體）' : ''),
-    chooseFolder: async () => { folder = true; },
+    chooseFolder: async () => { folder = true; return true; },
     adoptDropped: async (items) => { const ok = items.length > 0; if (ok) folder = true; return ok; },
     load: async () => structuredClone(doc),
     save: async (d) => { doc = structuredClone(d); },

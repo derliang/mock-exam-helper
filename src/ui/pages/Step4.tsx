@@ -77,7 +77,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             <thead><tr><th>組別代碼</th><th>考科</th><th>人數</th></tr></thead>
             <tbody>
               {groups.map((g) => (
-                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} /></td><td class="n">{g.count}</td></tr>
+                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} />{g.differing > 0 && <><br /><Badge tone="warn">{g.differing} 人考科不同</Badge> <span class="small muted">（上列為人數最多的組合）</span></>}</td><td class="n">{g.count}</td></tr>
               ))}
             </tbody>
           </table>

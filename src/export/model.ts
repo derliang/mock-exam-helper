@@ -369,14 +369,21 @@ export function buildDetachList(input: ExportInput): ListPageModel {
       purpose: d.purpose === 'exam' ? '抽離考試' : '抽離自習',
     };
   });
+  const sps = specialOf(input.result);
   for (const o of input.result.overrides) {
+    // 一人一列；各科用途不同時逐科寫明（#66），不讓單一用途蓋掉全部標示科目
+    const mine = sps.filter((x) => x.code === o.code);
+    const kinds = new Set(mine.map((x) => x.purpose));
+    const purpose = kinds.size > 1
+      ? mine.map((x) => `${ctx.subjectName.get(x.subjectId) ?? x.subjectId}${x.purpose === 'exam' ? '考試' : '自習'}`).join('、')
+      : (mine.length ? mine[0]!.purpose : o.purpose) === 'exam' ? '單人考試' : '單人自習';
     rows.push({
       subject: '（全科）',
       code: o.code,
       className: ctx.classes.get(Number(o.code.slice(0, 2)))?.name ?? '',
       name: ctx.students.get(o.code)?.name ?? ctx.entries.get(o.code)?.name ?? '',
       place: o.location,
-      purpose: o.purpose === 'exam' ? '單人考試' : '單人自習',
+      purpose,
     });
   }
   rows.sort((a, b) => a.subject.localeCompare(b.subject, 'zh-TW') || a.code.localeCompare(b.code));
