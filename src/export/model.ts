@@ -449,3 +449,59 @@ export function findMissingChars(input: ExportInput, has: (ch: string) => boolea
   for (const s of input.students) for (const ch of new Set(s.name)) if (!has(ch)) out.push({ classNo: s.classNo, seatNo: s.seatNo, ch });
   return out;
 }
+
+/* ---------- 座位表與標籤的版面尺寸（列印頁與 Word 共用，照設計系統稿件 #paper） ---------- */
+
+/** 同小標的科目合併成一個標示（例：X 數B、社會），格子才不擠 */
+export function groupMarks(c: CellModel): { kind: 'x' | 'add'; text: string }[] {
+  const g = new Map<string, { kind: 'x' | 'add'; subs: string[] }>();
+  for (const m of c.marks) {
+    const e = g.get(m.head) ?? { kind: m.kind === 'absent' ? 'x' : 'add', subs: [] };
+    e.subs.push(m.subject);
+    g.set(m.head, e);
+  }
+  return [...g.entries()].map(([h, e]) => ({ kind: e.kind, text: `${h} ${e.subs.join('、')}` }));
+}
+
+/** 統計表的列：各科人數與每班完全相同的科目合併成一列（例：考國文、英文） */
+export function statRows(p: SeatPageModel): { label: string; per: number[]; total: number }[] {
+  const out: { label: string; per: number[]; total: number; subs: string[] }[] = [];
+  const [first, ...rest] = p.stats.table.rows;
+  if (first) out.push({ ...first, subs: [] });
+  for (const r of rest) {
+    const same = out.find((x) => x.subs.length > 0 && x.total === r.total && x.per.join() === r.per.join());
+    if (same) same.subs.push(r.label);
+    else out.push({ ...r, subs: [r.label] });
+  }
+  return out.map((x) => ({ label: x.subs.length ? `考${x.subs.join('、')}` : x.label, per: x.per, total: x.total }));
+}
+
+export const SEAT_PAGE = { w: 210, h: 297, padX: 15, padY: 12 };
+
+/** 座位表的格子尺寸（mm）與統計列。統計表列數隨科目變：先扣掉標題、小標籤、講臺、統計表、頁尾，剩下的才給座位格 */
+export function seatGeometry(p: SeatPageModel): { cw: number; ch: number; st: ReturnType<typeof statRows> } {
+  const innerW = SEAT_PAGE.w - 2 * SEAT_PAGE.padX;
+  const cw = Math.min(25, +((innerW - 6.5) / p.rows).toFixed(2));
+  const st = statRows(p);
+  const fixed = 22 + 12 + 4 + 5 + 11 + (5 + 8 * (st.length + 1)) + 16;
+  const ch = Math.min(23, +((SEAT_PAGE.h - 2 * SEAT_PAGE.padY - fixed) / p.depth).toFixed(2));
+  return { cw, ch, st };
+}
+
+/** 標籤頁格子以外要留的高度（mm）：抬頭、注意事項框、頁尾。B4 的注意事項字較小 */
+function labelReserveMm(paper: LabelPaper): number {
+  const header = 15;
+  const note = paper === 'B4' ? 5 + 6 + 8.6 + 1 + 3 * 8 : 8 + 10 + 13.6 + 2 + 3 * 12.35;
+  const footer = 14;
+  return header + note + footer;
+}
+
+/** 標籤格尺寸：格高最多 35mm，而且要讓下方的注意事項與頁尾放得下（B4 排 8 列時會比 35mm 矮）；左右邊界讓整排置中 */
+export function labelBoxMm(layout: LabelLayout, margin: number): { w: number; h: number; padX: number } {
+  const paper = PAPER_MM[layout.paper];
+  const base = labelCellMm(layout, margin);
+  const w = base.w;
+  const fit = Math.floor(((paper.h - margin - labelReserveMm(layout.paper)) / layout.rows) * 10) / 10;
+  const h = Math.min(35, base.h, fit);
+  return { w, h, padX: Math.max(margin, +((paper.w - layout.cols * w) / 2).toFixed(2)) };
+}

@@ -142,7 +142,7 @@ describe('Word 輸出（D44/D45）', () => {
     );
     expect(doc).toContain('第4排');
     expect(doc).toContain('0101');
-    expect(doc).toContain('各科考試人數');
+    expect(doc).toContain('本教室考生人數');
     expect(doc).toContain('<w:b/>');
     const footers = await Promise.all(Object.keys(z.files).filter((n) => /word\/footer\d+\.xml/.test(n)).map((n) => text(n)));
     expect(footers.length).toBeGreaterThan(0);
@@ -166,22 +166,23 @@ describe('Word 輸出（D44/D45）', () => {
       const doc = await (await unzip(buf)).text('word/document.xml');
       const pg = [...doc.matchAll(/<w:pgSz w:w="(\d+)" w:h="(\d+)"/g)].map((m) => [Number(m[1]), Number(m[2])]);
       expect(pg).toEqual(Array(2).fill([mmToTwip(250), mmToTwip(353)]));
-      const grid = [...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)][0]![1]!;
-      const widths = [...grid.matchAll(/w:w="(\d+)"/g)].map((m) => Number(m[1]));
-      expect(widths).toHaveLength(cols);
+      // 版面有抬頭表、格子表、注意事項框：格子表是欄數等於 cols 的那個（每頁一個）
+      const grids = [...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)].map((m) => [...m[1]!.matchAll(/w:w="(\d+)"/g)].map((x) => Number(x[1]))).filter((w) => w.length === cols);
+      expect(grids).toHaveLength(2);
+      const widths = grids[0]!;
       expect(new Set(widths).size).toBe(1);
       expect(widths[0]! * cols).toBeLessThanOrEqual(mmToTwip(250 - 20));
       const heights = [...doc.matchAll(/<w:trHeight w:val="(\d+)" w:hRule="exact"/g)].map((m) => Number(m[1]));
       expect(heights).toHaveLength(rows * 2);
       expect(new Set(heights).size).toBe(1);
-      expect(heights[0]! * rows).toBeLessThanOrEqual(mmToTwip(353 - 20));
+      expect(heights[0]!).toBeLessThanOrEqual(mmToTwip(35)); // 稿件：格高最多 35mm，格子下方留給注意事項
     }
   });
 
   it('A3 7×7：每格 35mm 正方、格子大小不隨人數變', async () => {
     const f = makeFixture({ paper: 'A3', labelCols: 7, labelRows: 7 });
     const doc = await (await unzip(await renderDocx({ label: buildLabelPages(f, 'class') }, { fonts, ...meta }))).text('word/document.xml');
-    const widths = [...[...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)][0]![1]!.matchAll(/w:w="(\d+)"/g)].map((m) => Number(m[1]));
+    const widths = [...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)].map((m) => [...m[1]!.matchAll(/w:w="(\d+)"/g)].map((x) => Number(x[1]))).find((w) => w.length === 7)!;
     expect(widths).toEqual(Array(7).fill(mmToTwip(35)));
     const heights = new Set([...doc.matchAll(/<w:trHeight w:val="(\d+)" w:hRule="exact"/g)].map((m) => Number(m[1])));
     expect([...heights]).toEqual([mmToTwip(35)]);
@@ -270,11 +271,14 @@ describe('PDF 列印 HTML：照稿件版面（設計系統成品頁「座位表�
     expect(h).toContain('請使用<b>透明膠帶</b>黏貼');
   });
 
-  it('標籤：B4 格高最多 35mm、頁寬等於紙張', () => {
-    const h = html({ paper: 'B4', labelCols: 6, labelRows: 8 }, 'label');
-    expect(h).toContain('page:b4');
-    expect(h).toContain('height:35mm');
-    expect(h).toContain('width:250mm');
+  it('標籤：B4 格高最多 35mm、頁寬等於紙張；排 8 列時縮到放得下注意事項與頁尾', () => {
+    const h7 = html({ paper: 'B4', labelCols: 6, labelRows: 7 }, 'label');
+    expect(h7).toContain('page:b4');
+    expect(h7).toContain('height:35mm');
+    expect(h7).toContain('width:250mm');
+    const h8 = html({ paper: 'B4', labelCols: 6, labelRows: 8 }, 'label');
+    expect(h8).not.toContain('height:35mm');
+    expect(h8).toContain('height:33.6mm');
   });
 
   it('抽離考試座位表：柔和單色、小標「抽離考試 科目」', () => {

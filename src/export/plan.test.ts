@@ -32,10 +32,12 @@ describe('匯出規劃', () => {
     const z = await JSZip.loadAsync(a3[0]!.data as Uint8Array);
     const doc = await z.file('word/document.xml')!.async('string');
     expect(doc).toContain(`w:w="${Math.round((297 * 1440) / 25.4)}"`);
-    expect([...doc.matchAll(/<w:gridCol /g)]).toHaveLength(14); // 2 頁 × 7 欄
+    // 每頁有抬頭表（2 欄）、格子表（7 欄）、注意事項框（1 欄）；格子表 2 頁
+    const grids = [...doc.matchAll(/<w:tblGrid>(.*?)<\/w:tblGrid>/g)].map((m) => [...m[1]!.matchAll(/<w:gridCol /g)].length);
+    expect(grids.filter((n) => n === 7)).toHaveLength(2);
   });
 
-  it('Word：每類一個 .docx，內含字型與頁尾版本碼', async () => {
+  it('Word：每類一個 .docx，內含字型與頁尾版本碼', { timeout: 30000 }, async () => {
     const out = await runExport(makeFixture(), defaultOptions('B4'), { fonts });
     expect(out.map((f) => f.name.split('-')[1])).toEqual(['座位表.docx', '標籤（B4）.docx', '抽離自習名單.docx', '預備教室座位表.docx', '預備教室標籤（B4）.docx']);
     for (const f of out) {

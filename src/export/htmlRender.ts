@@ -4,7 +4,7 @@
  * 座位表與標籤的樣式照設計系統成品頁「座位表與標籤」稿件（docs/design/mockups/設計系統.html #paper）：
  * 改這裡的版面要同步改稿件，反之亦然。
  */
-import { footerText, labelCellMm, labelGrid, PAPER_MM, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
+import { footerText, groupMarks, labelBoxMm, labelGrid, PAPER_MM, SEAT_PAGE, seatGeometry, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
 
 export interface HtmlOptions {
   generatedAt: string;
@@ -22,15 +22,8 @@ export function esc(s: string): string {
 const DETACH = { bg: '#E6EBF7', fg: '#274690' };
 const mm = (n: number): string => `${+n.toFixed(2)}mm`;
 
-/** 同小標的科目合併成一個標示（例：X 數B、社會），格子才不擠 */
 function marksHtml(c: CellModel): string {
-  const g = new Map<string, { kind: string; subs: string[] }>();
-  for (const m of c.marks) {
-    const e = g.get(m.head) ?? { kind: m.kind === 'absent' ? 'x' : 'add', subs: [] };
-    e.subs.push(m.subject);
-    g.set(m.head, e);
-  }
-  return [...g.entries()].map(([h, e]) => `<span class="pp-mk ${e.kind}">${esc(h)} ${esc(e.subs.join('、'))}</span>`).join('');
+  return groupMarks(c).map((m) => `<span class="pp-mk ${m.kind}">${esc(m.text)}</span>`).join('');
 }
 
 /** 一格：座位表用班級色（抽離考試用柔和單色），標籤用白底，有標示的標籤格用淺黃 */
@@ -43,28 +36,8 @@ function cellHtml(c: CellModel | undefined, w: number, h: number, mode: 'seat' |
   return `<div class="pp-c${marked ? ' mk' : ''}" style="${size};background:${bg}"><i class="pp-co">${esc(c.coord)}</i><b class="pp-no">${esc(c.code)}</b><span class="pp-nm"><em style="color:${em}">${esc(c.classLabel)}</em><span>${esc(c.name)}</span></span>${marksHtml(c)}</div>`;
 }
 
-/** 統計表的列：各科人數與每班完全相同的科目合併成一列（例：考國文、英文） */
-function statRows(p: SeatPageModel): { label: string; per: number[]; total: number }[] {
-  const out: { label: string; per: number[]; total: number; subs: string[] }[] = [];
-  const [first, ...rest] = p.stats.table.rows;
-  if (first) out.push({ ...first, subs: [] });
-  for (const r of rest) {
-    const same = out.find((x) => x.subs.length > 0 && x.total === r.total && x.per.join() === r.per.join());
-    if (same) same.subs.push(r.label);
-    else out.push({ ...r, subs: [r.label] });
-  }
-  return out.map((x) => ({ label: x.subs.length ? `考${x.subs.join('、')}` : x.label, per: x.per, total: x.total }));
-}
-
-const SEAT_PAGE = { w: 210, h: 297, padX: 15, padY: 12 };
-
 function seatHtml(p: SeatPageModel, o: HtmlOptions): string {
-  const innerW = SEAT_PAGE.w - 2 * SEAT_PAGE.padX;
-  const cw = Math.min(25, +((innerW - 6.5) / p.rows).toFixed(2));
-  const st = statRows(p);
-  // 統計表列數隨科目變：先扣掉標題、小標籤、講臺、統計表、頁尾，剩下的才給座位格
-  const fixed = 22 + 12 + 4 + 5 + 11 + (5 + 8 * (st.length + 1)) + 16;
-  const ch = Math.min(23, +((SEAT_PAGE.h - 2 * SEAT_PAGE.padY - fixed) / p.depth).toFixed(2));
+  const { cw, ch, st } = seatGeometry(p);
   const mode = p.detachStyle ? 'detach' : 'seat';
   let cells = '';
   for (let d = p.depth; d >= 1; d--) for (let r = 1; r <= p.rows; r++) cells += cellHtml(p.cells.get(`${r}-${d}`), cw, ch, mode);
@@ -88,12 +61,11 @@ function labelHtml(p: LabelPageModel, o: HtmlOptions): string {
   const { layout } = p;
   const paper = PAPER_MM[layout.paper];
   // 稿件：格高最多 35mm，格子下方才留得出注意事項與頁尾（Word 版待下一步對齊後再共用）
-  const base = labelCellMm(layout, margin);
-  const cell = { w: base.w, h: Math.min(35, base.h) };
+  const cell = labelBoxMm(layout, margin);
   const cells = labelGrid(p)
     .map((m) => cellHtml(m, cell.w, cell.h, 'label'))
     .join('');
-  const padX = Math.max(margin, +((paper.w - layout.cols * cell.w) / 2).toFixed(2));
+  const padX = cell.padX;
   const cls = layout.paper.toLowerCase();
   return `<section class="sheet pp pp-lab ${cls}" style="page:${cls};width:${paper.w}mm;height:${paper.h - 0.5}mm;padding:${margin}mm ${mm(padX)}">
 <div class="pp-hd" style="margin-bottom:3mm"><div><div class="pp-h1">${esc(p.examName)}　標籤</div></div><span class="pp-room" style="font-size:12pt;padding:1mm 4mm">${esc(p.roomName)}</span></div>
