@@ -1,7 +1,8 @@
 import { useState } from 'preact/hooks';
 import type { ExamConfig, SeatingResult } from '../../data';
 import { studentCode } from '../../data';
-import { Alert, Badge, Button, Modal, Seg, StatsBar } from '../components';
+import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StatsBar } from '../components';
+import { confirmCopy } from '../flow';
 import { ChartLegend, SeatChart } from '../components/SeatChart';
 import {
   afterOverrideChange, chartModel, detachChartModel, detachSummary, examClasses, examEntries, examOverrides, examResult, examRooms,
@@ -114,7 +115,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         <div class="card stack">
           <div class="btnrow" style="justify-content:space-between">
             <div><h3>座位表預覽</h3><p class="small muted">班級底色；橫排（左右）與深位（前後），講臺在下方。{!stale && '點任一位考生可做個別覆寫。'}</p></div>
-            <Button onClick={run}>重新排座</Button>
+            <ConfirmButton kind="default" copy={confirmCopy.reseat(overrides.length)} onConfirm={run}>重新排座</ConfirmButton>
           </div>
           {classRooms.length > 1 && (
             <Seg label="教室" value={room.id} onChange={(v) => { setRoomId(v); setOnly(''); }} options={classRooms.map((r) => ({ value: r.id, label: `${r.name}${trackOf(r.track)}` }))} />
