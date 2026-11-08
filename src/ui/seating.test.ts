@@ -3,7 +3,13 @@ import type { ExamConfig, ExamEntry } from '../data';
 import type { Doc } from './store';
 import {
   afterOverrideChange,
+  chartModel,
+  detachChartModel,
   detachPreview,
+  detachSummary,
+  markRows,
+  overrideNotes,
+  roomStatTable,
   effectiveMarkRules,
   groupTable,
   isStale,
@@ -134,5 +140,63 @@ describe('⑤ 排座', () => {
     expect(d2.examFiles!.e1!.result!.detaches.some((x) => x.code === '0203')).toBe(false);
     const d3 = afterOverrideChange(removeOverride(d2, e2, '0203'), e2, NOW);
     expect(d3.examFiles!.e1!.result!.detaches.some((x) => x.code === '0203' && x.roomId === 'P')).toBe(true);
+  });
+});
+
+describe('⑤ 座位表與統計', () => {
+  const e2 = exam({ markRules: setMarkChoice(exam(), 'science', 'soc', 'mark-absent') });
+  const seated = () => {
+    const r = reseat(doc(e2), e2, NOW);
+    if (!r.ok) throw new Error(r.error);
+    return r.doc;
+  };
+
+  it('④ 標示表：接近一半的列鎖定後標 locked', () => {
+    expect(markRows(doc(), exam()).map((r) => `${r.track}/${r.subjectId}:${r.state}:${r.taking}/${r.notTaking}`)).toEqual([
+      'science/soc:undecided:2/2', 'science/sci:none:4/0', 'liberal/soc:none:3/0', 'liberal/sci:auto:1/2',
+    ]);
+    expect(markRows(doc(e2), e2)[0]).toMatchObject({ state: 'locked', mode: 'mark-absent', nearHalf: true });
+  });
+
+  it('講臺在下：最上一列是最深位；尾端沒有的座位是 off', () => {
+    const d = seated();
+    const room = d.settings.classrooms[0]!; // 2 排 × 3 深位、5 座
+    const m = chartModel(d, e2, d.examFiles!.e1!.result!, room);
+    expect(m.lines.map((l) => l.map((c) => (c.kind === 'student' ? c.code : c.kind)))).toEqual([
+      ['0103', 'off'], ['0102', 'free'], ['0101', '0104'],
+    ]);
+    const c = m.lines[1]![0]!;
+    expect(c.kind === 'student' && [c.co, c.className, c.marks, c.markKind]).toEqual(['1-2', '溫', ['X社會'], 'x']);
+  });
+
+  it('抽離考試座位表與總覽；統計扣掉抽離與到他處考試的人', () => {
+    const d = seated();
+    const res = d.examFiles!.e1!.result!;
+    const p = detachChartModel(d, e2, res, d.settings.classrooms[2]!, 'sci');
+    expect(p.count).toBe(1);
+    expect(detachSummary(e2, res)).toEqual([
+      { subjectId: 'soc', name: '社會', examRooms: [], study: 2, special: 0 },
+      { subjectId: 'sci', name: '自然', examRooms: [{ roomId: 'P', count: 1 }], study: 0, special: 0 },
+    ]);
+    expect(roomStatTable(d, e2, res, 'L')).toEqual({
+      classes: [{ no: 2, name: '良' }],
+      rows: [
+        { label: '本教室考生人數', per: [3], total: 3 },
+        { label: '在本教室考社會', per: [3], total: 3 },
+        { label: '在本教室考自然', per: [0], total: 0 },
+        { label: '在本教室考英聽', per: [3], total: 3 },
+      ],
+    });
+    // 0203 加考自然，覆寫到教務處考：不佔預備教室，也不在本教室考自然
+    const o = setOverride(d, e2, { kind: 'single', code: '0203', location: '教務處', purpose: 'exam' });
+    if (!o.ok) throw new Error(o.error);
+    const d2 = afterOverrideChange(o.doc, e2, NOW);
+    const res2 = d2.examFiles!.e1!.result!;
+    expect(roomStatTable(d2, e2, res2, 'L').rows[2]).toEqual({ label: '在本教室考自然', per: [0], total: 0 });
+    expect(detachSummary(e2, res2)[1]).toMatchObject({ examRooms: [], special: 1 });
+    expect(overrideNotes(d2, e2, res2).size).toBe(0);
+    const o2 = setOverride(d2, e2, { kind: 'single', code: '0201', location: '圖書館', purpose: 'study' });
+    if (!o2.ok) throw new Error(o2.error);
+    expect(overrideNotes(o2.doc, e2, res2).get('0201')).toMatch(/不會生效/);
   });
 });

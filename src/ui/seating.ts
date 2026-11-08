@@ -3,10 +3,12 @@
  * 排座本身在 src/core；這裡負責從 Doc 組輸入、判斷擋下原因與過期、存回結果與覆寫。
  */
 import type { ClassInfo, Classroom, ExamConfig, ExamEntry, MarkMode, MarkRule, Override, SeatingResult, SingleOverride, Track } from '../data';
-import { studentCode } from '../data';
+import { classroomSeats, studentCode } from '../data';
 import {
   allocateDetaches,
   applyMarks,
+  roomStats,
+  specialOf,
   runSeating,
   seatingVersion,
   suggestMarks,
@@ -73,6 +75,31 @@ export function setMarkChoice(exam: ExamConfig, track: Track | undefined, subjec
   const rest = exam.markRules.filter((r) => ruleKey(r.track, r.subjectId) !== k);
   if (mode === undefined) return rest;
   return [...rest, { ...(track ? { track } : {}), subjectId, mode, locked: true }];
+}
+
+/** ④ 各科標示表的一列；state：auto＝照標少數、locked＝使用者選過、undecided＝接近一半待選、none＝全考或全不考，不用標 */
+export interface MarkRow {
+  track?: Track;
+  subjectId: string;
+  subjectName: string;
+  taking: number;
+  notTaking: number;
+  mode: MarkMode | undefined;
+  state: 'auto' | 'locked' | 'undecided' | 'none';
+  nearHalf: boolean;
+}
+
+export function markRows(doc: Doc, exam: ExamConfig): MarkRow[] {
+  const locked = new Map(exam.markRules.filter((r) => r.locked).map((r) => [ruleKey(r.track, r.subjectId), r]));
+  const name = new Map(exam.subjects.map((s) => [s.id, s.name]));
+  return markSuggestions(doc, exam).map((s) => {
+    const l = locked.get(ruleKey(s.track, s.subjectId));
+    const state: MarkRow['state'] = l ? 'locked' : s.needsDecision ? 'undecided' : s.suggested === 'none' ? 'none' : 'auto';
+    return {
+      ...(s.track ? { track: s.track } : {}), subjectId: s.subjectId, subjectName: name.get(s.subjectId) ?? s.subjectId,
+      taking: s.taking, notTaking: s.total - s.taking, mode: l ? l.mode : s.needsDecision ? undefined : s.suggested, state, nearHalf: s.needsDecision,
+    };
+  });
 }
 
 export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeatingInput {
@@ -195,6 +222,127 @@ export function detachPreview(doc: Doc, exam: ExamConfig): DetachResult {
     reserveRooms: examRooms(doc, exam).filter((r) => r.kind === 'reserve'),
     classes: examClasses(doc, exam),
   });
+}
+
+/* ---------- 座位表（⑤ 預覽） ---------- */
+
+/** 座位表的一格：off＝這間教室沒有這個座位（D72 尾端空位）；free＝有座位但沒排人 */
+export type ChartCell =
+  | { kind: 'off'; co: string }
+  | { kind: 'free'; co: string }
+  | {
+      kind: 'student'; co: string; code: string; name: string; classNo: number; className: string; colorIndex: number;
+      /** 標示文字，例「X社會」「＋自然」「→教務處」 */
+      marks: string[];
+      markKind?: 'x' | 'add';
+    };
+
+export interface ChartModel {
+  rows: number;
+  depth: number;
+  /** 由上到下＝深位大到小（講臺在下方，D50）；每列由左到右＝第 1 排到最後一排 */
+  lines: ChartCell[][];
+  count: number;
+}
+
+function studentCtx(doc: Doc, exam: ExamConfig, result: SeatingResult) {
+  const entries = new Map(examEntries(doc, exam).map((e) => [studentCode(e.classNo, e.seatNo), e]));
+  const classes = new Map(examClasses(doc, exam).map((c) => [c.no, c]));
+  const subjName = new Map(exam.subjects.map((s) => [s.id, s.name]));
+  const marksBy = new Map<string, string[]>();
+  const absent = new Set<string>();
+  for (const m of result.marks) {
+    if (m.mode === 'absent') absent.add(m.code);
+    marksBy.set(m.code, [...(marksBy.get(m.code) ?? []), `${m.mode === 'absent' ? 'X' : '＋'}${subjName.get(m.subjectId) ?? m.subjectId}`]);
+  }
+  const over = new Map(result.overrides.map((o) => [o.code, o]));
+  return (code: string, co: string): ChartCell => {
+    const e = entries.get(code);
+    const classNo = e?.classNo ?? Number(code.slice(0, 2));
+    const c = classes.get(classNo);
+    // 覆寫只改「被標示的那幾科」去哪裡（core/detach）；沒標示的人覆寫不生效，座位表照常
+    const own = marksBy.get(code) ?? [];
+    const o = own.length ? over.get(code) : undefined;
+    const marks = o ? [...own, `→${o.location}`] : own;
+    const markKind = marks.length ? (absent.has(code) ? 'x' : 'add') : undefined;
+    return {
+      kind: 'student', co, code, name: e?.name ?? '（不在名單）', classNo, className: c?.name ?? String(classNo), colorIndex: c?.colorIndex ?? classNo,
+      marks, ...(markKind ? { markKind } : {}),
+    };
+  };
+}
+
+function buildChart(room: Classroom, seated: Map<string, string>, cell: (code: string, co: string) => ChartCell): ChartModel {
+  const exists = new Set(classroomSeats(room).map((s) => `${s.row}-${s.depth}`));
+  const lines: ChartCell[][] = [];
+  for (let d = room.depth; d >= 1; d--) {
+    const line: ChartCell[] = [];
+    for (let r = 1; r <= room.rows; r++) {
+      const co = `${r}-${d}`;
+      const code = seated.get(co);
+      line.push(code ? cell(code, co) : exists.has(co) ? { kind: 'free', co } : { kind: 'off', co });
+    }
+    lines.push(line);
+  }
+  return { rows: room.rows, depth: room.depth, lines, count: seated.size };
+}
+
+/** 班級教室的座位表 */
+export function chartModel(doc: Doc, exam: ExamConfig, result: SeatingResult, room: Classroom): ChartModel {
+  const seated = new Map(result.assignments.filter((a) => a.classroomId === room.id).map((a) => [`${a.row}-${a.depth}`, a.code]));
+  return buildChart(room, seated, studentCtx(doc, exam, result));
+}
+
+/** 預備教室某科抽離考試的座位表（柔和單色，D69⑧）；格內不再印標示，標題就寫科目 */
+export function detachChartModel(doc: Doc, exam: ExamConfig, result: SeatingResult, room: Classroom, subjectId: string): ChartModel {
+  const seated = new Map(
+    result.detaches.filter((d) => d.purpose === 'exam' && d.subjectId === subjectId && d.roomId === room.id && d.seat)
+      .map((d) => [`${d.seat!.row}-${d.seat!.depth}`, d.code]),
+  );
+  const ctx = studentCtx(doc, exam, { ...result, marks: [], overrides: [] });
+  return buildChart(room, seated, ctx);
+}
+
+/** ⑤ 抽離總覽：每科抽離考試（教室與人數）、抽離自習人數、單人特例人數 */
+export function detachSummary(exam: ExamConfig, result: SeatingResult): { subjectId: string; name: string; examRooms: { roomId: string; count: number }[]; study: number; special: number }[] {
+  const sp = specialOf(result);
+  return exam.subjects.map((s) => {
+    const ex = result.detaches.filter((d) => d.subjectId === s.id && d.purpose === 'exam');
+    const rooms = [...new Set(ex.map((d) => d.roomId))].map((roomId) => ({ roomId, count: ex.filter((d) => d.roomId === roomId).length }));
+    return {
+      subjectId: s.id, name: s.name, examRooms: rooms,
+      study: result.detaches.filter((d) => d.subjectId === s.id && d.purpose === 'study').length,
+      special: sp.filter((x) => x.subjectId === s.id).length,
+    };
+  }).filter((x) => x.examRooms.length || x.study || x.special);
+}
+
+/** ⑤ 座位表統計表（D40）：依這間教室，每班考生人數與每班在本教室考各科的人數 */
+export function roomStatTable(doc: Doc, exam: ExamConfig, result: SeatingResult, roomId: string): { classes: { no: number; name: string }[]; rows: { label: string; per: number[]; total: number }[] } {
+  const st = roomStats(roomId, result.assignments, examEntries(doc, exam), exam.subjects, result.detaches, specialOf(result));
+  const names = new Map(examClasses(doc, exam).map((c) => [c.no, c.name]));
+  const classes = st.perClass.map((c) => ({ no: c.classNo, name: names.get(c.classNo) ?? String(c.classNo) }));
+  const pick = (l: { classNo: number; count: number }[]) => classes.map((c) => l.find((x) => x.classNo === c.no)?.count ?? 0);
+  const subjName = new Map(exam.subjects.map((s) => [s.id, s.name]));
+  return {
+    classes,
+    rows: [
+      { label: '本教室考生人數', per: pick(st.perClass), total: st.total },
+      ...st.perSubject.map((s) => ({ label: `在本教室考${subjName.get(s.subjectId) ?? s.subjectId}`, per: pick(s.inRoomPerClass), total: s.inRoom })),
+    ],
+  };
+}
+
+/** 個別覆寫的提醒：覆寫的人已不在名單、或這個人沒有任何標示（覆寫不會生效） */
+export function overrideNotes(doc: Doc, exam: ExamConfig, result: SeatingResult | undefined): Map<string, string> {
+  const codes = new Set(examEntries(doc, exam).map((e) => studentCode(e.classNo, e.seatNo)));
+  const marked = new Set((result?.marks ?? []).map((m) => m.code));
+  const out = new Map<string, string>();
+  for (const o of examOverrides(doc, exam)) {
+    if (!codes.has(o.code)) out.set(o.code, '已不在考試名單，請移除');
+    else if (result && !marked.has(o.code)) out.set(o.code, '這位考生每科都在原教室考，沒有要抽離的科目，覆寫不會生效');
+  }
+  return out;
 }
 
 /** ④ 組別對照表：大考中心組別代碼 → 人數與考科（D15） */

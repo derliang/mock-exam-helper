@@ -7,6 +7,8 @@ import { Settings } from './pages/Settings';
 import { Step1 } from './pages/Step1';
 import { Step2 } from './pages/Step2';
 import { Step3 } from './pages/Step3';
+import { Step4 } from './pages/Step4';
+import { Step5 } from './pages/Step5';
 import { createFsRepository, isFsAccessSupported } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
 import type { Doc } from './store';
@@ -106,7 +108,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
   return (
     <div class="ws wide">
       <aside class="side"><StepNav steps={steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
-      {exam && p.route.step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} /> : exam && p.route.step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} /> : <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">{exam ? '施工中' : '找不到這個模擬考'}</p></section>}
+      {exam && p.route.step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} /> : exam && p.route.step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} /> : exam && p.route.step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} /> : <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">{exam ? '施工中' : '找不到這個模擬考'}</p></section>}
     </div>
   );
 }
