@@ -6,7 +6,6 @@ import {
   applyMarks,
   dataVersion,
   fnv1a64,
-  largestRemainder,
   overrideWarnings,
   roomStats,
   seatExam,
@@ -15,7 +14,6 @@ import {
   suggestMarkMode,
   suggestMarks,
   validateSeating,
-  type SeatingStrategy,
 } from './index';
 
 const room = (id: string, rows: number, depth: number, seatCount = rows * depth, extra: Partial<Classroom> = {}): Classroom => ({
@@ -45,9 +43,9 @@ function rng(seed: number): () => number {
 }
 
 describe('seatGroup / seatExam', () => {
-  it.each<SeatingStrategy>(['rotation', 'proportional'])('%s：隨機 300 組教室與人數都通過驗證器、空位只在各教室最後', (strategy) => {
-    const rand = rng(strategy === 'rotation' ? 1 : 2);
-    for (let t = 0; t < 300; t++) {
+  it('隨機 500 組教室與人數都通過驗證器，且只有最後一間有空位（D73）', () => {
+    const rand = rng(1);
+    for (let t = 0; t < 500; t++) {
       const nClass = 1 + Math.floor(rand() * 6);
       const sizes = Array.from({ length: nClass }, () => 1 + Math.floor(rand() * 45));
       const total = sizes.reduce((a, b) => a + b, 0);
@@ -61,18 +59,22 @@ describe('seatGroup / seatExam', () => {
         cap += seatCount;
       }
       const list = codes(sizes);
-      const r = seatExam({ division: 'junior', classes: classes(nClass), classrooms: rooms, codes: list, strategy });
+      const r = seatExam({ division: 'junior', classes: classes(nClass), classrooms: rooms, codes: list });
       expect(r.ok, JSON.stringify(r)).toBe(true);
+      if (!r.ok) continue;
+      rooms.slice(0, -1).forEach((c) => {
+        expect(r.assignments.filter((a) => a.classroomId === c.id).length).toBe(c.seatCount);
+      });
     }
   });
 
   it('座位不足時擋下並說明差幾個（D25）', () => {
-    const r = seatExam({ division: 'junior', classes: classes(2), classrooms: [room('A', 2, 5)], codes: codes([6, 6]), strategy: 'rotation' });
+    const r = seatExam({ division: 'junior', classes: classes(2), classrooms: [room('A', 2, 5)], codes: codes([6, 6]) });
     expect(r).toEqual({ ok: false, errors: ['全體：座位不足：考生 12 人，座位 10 個，還差 2 個'] });
   });
 
   it('rotation：班序跨教室延續、空位落在最後一間尾端', () => {
-    const r = seatGroup([room('A', 2, 3), room('B', 2, 3)], codes([4, 4]), 'rotation');
+    const r = seatGroup([room('A', 2, 3), room('B', 2, 3)], codes([4, 4]));
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     const fmt = r.assignments.map((a) => `${a.classroomId}${a.row}-${a.depth}:${a.code}`);
@@ -83,26 +85,25 @@ describe('seatGroup / seatExam', () => {
     ]);
   });
 
-  it('proportional：各教室人數按座位比例，空位分散在各間尾端', () => {
-    const r = seatGroup([room('A', 2, 3), room('B', 2, 3)], codes([4, 4]), 'proportional');
-    expect(r.ok).toBe(true);
-    if (!r.ok) return;
-    const inA = r.assignments.filter((a) => a.classroomId === 'A').map((a) => a.code);
-    const inB = r.assignments.filter((a) => a.classroomId === 'B').map((a) => a.code);
-    expect(inA).toEqual(['0101', '0102', '0201', '0202']);
-    expect(inB).toEqual(['0103', '0104', '0203', '0204']);
+  it('某班用完時同一排接下一班，下一排從輪到的班開始', () => {
+    const r = seatGroup([room('A', 3, 3)], codes([2, 4, 3]));
+    expect(r.ok && r.assignments.map((a) => `${a.row}-${a.depth}:${a.code}`)).toEqual([
+      '1-1:0101', '1-2:0102', '1-3:0201',
+      '2-1:0202', '2-2:0203', '2-3:0204',
+      '3-1:0301', '3-2:0302', '3-3:0303',
+    ]);
   });
 
   it('高中部：理組、文組只排進同組別教室（D9/D10）', () => {
     const cls = classes(4, true);
     const rooms = [room('S', 2, 5, 10, { track: 'science' }), room('L', 2, 5, 10, { track: 'liberal' })];
-    const r = seatExam({ division: 'senior', classes: cls, classrooms: rooms, codes: codes([5, 5, 4, 4]), strategy: 'rotation' });
+    const r = seatExam({ division: 'senior', classes: cls, classrooms: rooms, codes: codes([5, 5, 4, 4]) });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
     for (const a of r.assignments) {
       expect(a.classroomId).toBe(Number(a.code.slice(0, 2)) <= 2 ? 'S' : 'L');
     }
-    const bad = seatExam({ division: 'senior', classes: cls, classrooms: [rooms[0]!], codes: codes([5, 5, 4, 4]), strategy: 'rotation' });
+    const bad = seatExam({ division: 'senior', classes: cls, classrooms: [rooms[0]!], codes: codes([5, 5, 4, 4]) });
     expect(bad).toEqual({ ok: false, errors: ['文組沒有可用的教室'] });
   });
 
@@ -112,15 +113,8 @@ describe('seatGroup / seatExam', () => {
       classes: classes(1),
       classrooms: [room('P', 1, 5, 5, { kind: 'reserve' }), room('A', 1, 5)],
       codes: codes([3]),
-      strategy: 'rotation',
     });
     expect(r.ok && r.assignments.every((a) => a.classroomId === 'A')).toBe(true);
-  });
-
-  it('largestRemainder 總和不變、同餘數序號小者優先', () => {
-    expect(largestRemainder(10, [1, 1, 1])).toEqual([4, 3, 3]);
-    expect(largestRemainder(0, [3, 4])).toEqual([0, 0]);
-    expect(largestRemainder(7, [0, 0])).toEqual([0, 0]);
   });
 });
 
@@ -233,7 +227,6 @@ describe('抽離分配（D26/D27）', () => {
       overrides: [],
       reserveRooms: reserve,
       classes: cls,
-      strategy: 'rotation',
     });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -248,7 +241,7 @@ describe('抽離分配（D26/D27）', () => {
 
   it('自習人數超過一間時依教室順序分下去', () => {
     const marks = ['0101', '0102', '0103', '0104', '0105', '0106'].map((code) => ({ code, subjectId: 'soc', mode: 'absent' as const }));
-    const r = allocateDetaches({ subjects, marks, overrides: [], reserveRooms: reserve, classes: cls, strategy: 'rotation' });
+    const r = allocateDetaches({ subjects, marks, overrides: [], reserveRooms: reserve, classes: cls });
     expect(r.ok && r.detaches.map((d) => `${d.code}@${d.roomId}`)).toEqual([
       '0101@P1', '0102@P1', '0103@P1', '0104@P2', '0105@P2', '0106@P3',
     ]);
@@ -261,14 +254,13 @@ describe('抽離分配（D26/D27）', () => {
       overrides: [{ kind: 'single', code: '0101', location: '教務處', purpose: 'exam' }],
       reserveRooms: reserve,
       classes: cls,
-      strategy: 'rotation',
     });
     expect(r).toEqual({ ok: true, detaches: [], special: [{ code: '0101', subjectId: 'sci', purpose: 'exam', location: '教務處' }] });
   });
 
   it('預備教室不足時擋下', () => {
     const marks = Array.from({ length: 11 }, (_, i) => ({ code: studentCode(1, i + 1), subjectId: 'sci', mode: 'extra' as const }));
-    const r = allocateDetaches({ subjects, marks, overrides: [], reserveRooms: reserve, classes: cls, strategy: 'rotation' });
+    const r = allocateDetaches({ subjects, marks, overrides: [], reserveRooms: reserve, classes: cls });
     expect(r).toEqual({ ok: false, errors: ['自然：預備教室座位不足以容納抽離考試 11 人'] });
   });
 

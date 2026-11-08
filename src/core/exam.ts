@@ -5,7 +5,7 @@
  */
 import type { ClassInfo, Classroom, Division, SeatAssignment, StudentCode, Track } from '../data/types';
 import { parseStudentCode } from '../data/helpers';
-import { seatGroup, type SeatingStrategy } from './seating';
+import { seatGroup } from './seating';
 import { validateSeating } from './validate';
 
 export interface SeatExamInput {
@@ -14,7 +14,6 @@ export interface SeatExamInput {
   /** 本次勾選的教室（依清單順序）；預備教室會被略過 */
   classrooms: readonly Classroom[];
   codes: readonly StudentCode[];
-  strategy: SeatingStrategy;
 }
 
 export type SeatExamResult =
@@ -53,7 +52,7 @@ export function seatExam(input: SeatExamInput): SeatExamResult {
       errors.push(`${g.label}沒有可用的教室`);
       continue;
     }
-    const r = seatGroup(g.rooms, g.codes, input.strategy);
+    const r = seatGroup(g.rooms, g.codes);
     if (r.ok) assignments.push(...r.assignments);
     else errors.push(`${g.label}：${r.error}`);
   }
