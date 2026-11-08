@@ -2,7 +2,9 @@ import { useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
 import { studentCode } from '../../data';
 import { Alert, Button, ClassChip, Modal, Seg } from '../components';
+import { RoomList } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
+import { RosterIO } from './RosterIO';
 import { addStudent, removeStudent, searchStudents, setClassColor, setClassTrack, updateStudent, type Doc } from '../store';
 
 type Tab = 'roster' | 'classes' | 'school' | 'rooms';
@@ -25,7 +27,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab })
       {tab === 'roster' && <Roster {...p} division={division} />}
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
-      {tab === 'rooms' && <Rooms doc={p.doc} />}
+      {tab === 'rooms' && <RoomList rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} />}
     </section>
   );
 }
@@ -42,6 +44,7 @@ function Roster({ doc, onChange, division }: Props) {
       <div class="btnrow">
         <input class="input" style="max-width:360px" type="search" aria-label="搜尋姓名、考生編號、學號" placeholder="搜尋姓名、考生編號、學號" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
         <Button kind="primary" onClick={() => setEditing('new')}>新增學生</Button>
+        <RosterIO doc={doc} division={division} onChange={onChange} />
       </div>
       <p class="muted small" style="margin:8px 0">共 {doc.rosters[division].length} 人。刪除後空號保留。</p>
       <div style="overflow-x:auto">
@@ -147,18 +150,3 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   );
 }
 
-function Rooms({ doc }: { doc: Doc }) {
-  return (
-    <div style="overflow-x:auto">
-      <table class="t">
-        <thead><tr><th>名稱</th><th>種類</th><th>橫排</th><th>深位</th><th>座位數</th></tr></thead>
-        <tbody>
-          {doc.settings.classrooms.map((r) => (
-            <tr key={r.id}><td>{r.name}</td><td>{r.kind === 'class' ? '班級教室' : '預備教室'}</td><td>{r.rows}</td><td>{r.depth}</td><td>{r.seatCount}</td></tr>
-          ))}
-        </tbody>
-      </table>
-      <p class="muted small" style="margin-top:8px">座位表編輯（展開、步進器）隨步驟③一起交付。</p>
-    </div>
-  );
-}

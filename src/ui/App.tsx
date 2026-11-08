@@ -5,6 +5,8 @@ import { Exams } from './pages/Exams';
 import { Init } from './pages/Init';
 import { Settings } from './pages/Settings';
 import { Step1 } from './pages/Step1';
+import { Step2 } from './pages/Step2';
+import { Step3 } from './pages/Step3';
 import { createFsRepository, isFsAccessSupported } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
 import type { Doc } from './store';
@@ -81,7 +83,7 @@ export function App() {
         {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
         {r.page === 'exams' && <Exams doc={hist.present} onChange={edit} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} />}
         {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} />}
-        {r.page === 'step' && <Workspace route={r} doc={hist.present} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} />}
+        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRoster={() => go2({ page: 'settings', tab: 'roster' }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} />}
         {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
     </>
@@ -98,13 +100,13 @@ export function pageName(r: Route, doc: Doc): string {
   }
 }
 
-function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void }) {
+function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: () => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void }) {
   const exam = p.doc.exams.find((e) => e.id === p.route.examId);
   const steps = STEP_NAMES.map((name, i) => ({ no: i + 1, name, state: (i + 1 === p.route.step ? 'cur' : 'todo') as StepState }));
   return (
     <div class="ws wide">
       <aside class="side"><StepNav steps={steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
-      {exam && p.route.step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} /> : <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">{exam ? '施工中' : '找不到這個模擬考'}</p></section>}
+      {exam && p.route.step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} /> : exam && p.route.step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={p.onToRoster} /> : exam && p.route.step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} /> : <section><h2>{stepTitle(p.route.step)}</h2><p class="muted">{exam ? '施工中' : '找不到這個模擬考'}</p></section>}
     </div>
   );
 }
