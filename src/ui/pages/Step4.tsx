@@ -38,7 +38,9 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     return (
       <section class="stack">
         <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
-        <div class="card"><p class="small muted">這一步要依考試名單算出每組每科考與不考的人數，匯入考試名單後才會出現內容。</p></div>
+        <Alert tone="info" action={<Button onClick={() => p.onStep(2)}>前往 ② 考試名單</Button>}>
+          <b>還沒有考試名單。</b>這一步要依考試名單算出每組每科考與不考的人數，請先到 ② 匯入大考中心的考生名單。
+        </Alert>
       </section>
     );
   }

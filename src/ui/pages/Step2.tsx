@@ -172,7 +172,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           options={[{ value: 'all', label: '全員參加' }, { value: 'partial', label: '部分參加' }]} />
         {exam.participation === 'partial'
           ? <Alert tone="info">共用學生名單裡有、但不在本次考試名單的人，<b>不視為名單錯誤</b>，只在統計列顯示「未參加 {notJoin} 人」，不排座、不出現在座位表。</Alert>
-          : <p class="hint">共用學生名單有、考試名單沒有的人，會列為差異，逐筆處理。</p>}
+          : <Alert tone="info">共用學生名單有、考試名單沒有的人，會列為差異，逐筆處理。</Alert>}
         {fullyAbsent > 0 && (
           <Alert tone="info">
             有 {fullyAbsent} 人全科缺考：{exam.seatFullyAbsent ? '目前照樣排座。' : '預設不排座、不計領卷份數。'}
@@ -192,7 +192,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           {!entries && bcctAll
             ? <p class="small muted">會考全員參加，不需比對；考生 {roster.length} 人，與共用學生名單相同。</p>
             : !entries
-            ? <p class="small muted">匯入考試名單後，這裡會逐筆列出和共用學生名單的差異。</p>
+            ? <Alert tone="warn"><b>尚未比對本次考試名單</b>。排座前要處理完所有差異。</Alert>
             : diffs.length > 0
               ? <Alert tone="warn">差異 {diffs.length} 筆，已處理 {resolved} 筆。</Alert>
               : <Alert tone="ok">與考試名單已比對，沒有未處理的差異。</Alert>}

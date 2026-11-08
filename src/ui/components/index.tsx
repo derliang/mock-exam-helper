@@ -184,7 +184,7 @@ export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
         ? <span class="ok">待處理 <b>0</b>　✓ 沒有待處理的事</span>
         : (
           <button type="button" class="warnbtn" onClick={() => p.onGo(issues[0]!.step)} title={issues.map((i) => i.text).join('；')}>
-            ⚠ 待處理 <b>{issues.length}</b>　<u>去處理</u>
+            ⚠ 待處理 <b>{issues.length}</b>　{issues[0]!.text}　<u>{issues[0]!.fix}</u>
           </button>
         )}
     </div>
