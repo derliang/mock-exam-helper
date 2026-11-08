@@ -20,10 +20,18 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab })
   return (
     <section>
       <h2>設定</h2>
-      <div class="btnrow" style="margin:12px 0">
-        <Seg<Division> label="部別" value={division} onChange={setDivision} options={[{ value: 'senior', label: '高中部' }, { value: 'junior', label: '國中部' }]} />
-        <Seg<Tab> label="設定分頁" value={tab} onChange={setTab} options={TABS} />
+      <div class="utabs" role="group" aria-label="設定項目" style="margin:12px 0">
+        {TABS.map((t) => <button type="button" key={t.value} aria-pressed={tab === t.value} onClick={() => setTab(t.value)}>{t.label}</button>)}
       </div>
+      {tab !== 'school' && tab !== 'rooms' && (
+        <div class="row" style="margin-bottom:12px">
+          <span class="label" style="margin:0">部別</span>
+          <div class="seg seg-soft" role="group" aria-label="部別">
+            {([['senior', '高中部'], ['junior', '國中部']] as const).map(([v, l]) => <button type="button" key={v} aria-pressed={division === v} onClick={() => setDivision(v)}>{l}</button>)}
+          </div>
+          <span class="small muted">{division === 'junior' ? '國中部：不分文理組，會考科目固定七科' : '高中部：每個班級分理組或文組'}</span>
+        </div>
+      )}
       {tab === 'roster' && <Roster {...p} division={division} />}
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
