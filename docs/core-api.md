@@ -51,7 +51,8 @@ if (!r.ok) {
 
 | 函式 | 用途 |
 |---|---|
-| `roomStats(classroomId, assignments, entries, subjects, detaches)` → `RoomStats` | 座位表統計（D40）：`total`、`perClass[{classNo, count}]`、`perSubject[{subjectId, taking, detachedOut, inRoom}]`。inRoom＝在本教室考這科的人數 |
+| `roomStats(classroomId, assignments, entries, subjects, detaches, special?)` → `RoomStats` | 座位表統計（D40）：`total`、`perClass[{classNo, count}]`、`perSubject[{subjectId, taking, detachedOut, inRoom, inRoomPerClass}]`。inRoom＝在本教室考這科的人數；**傳入 `special`（單人特例）時，到他處考試的人也扣掉**，不傳則和舊版相同 |
+| `specialOf(result)` → `{code, subjectId, purpose, location}[]` | 由存檔的 `SeatingResult`（只存 overrides）推回單人特例；匯出統計請用 `roomStats(..., result.detaches, specialOf(result))`，才會和 ⑤ 畫面一致 |
 | `detachRoomCounts(detaches, subjectId, roomId)` | 抽離教室的總人數與每班人數 |
 | `suggestMarks(entries, classes, subjects)` → `MarkSuggestion[]` | 標示建議（D11）：每組每科一筆 `{track?, subjectId, total, taking, suggested, needsDecision}`。`needsDecision` 為 true 時畫面要讓使用者選、選完鎖定（D12） |
 | `NEAR_HALF_RATIO` | 「接近一半」的門檻，目前是 0.4：少數方占比達到就要使用者選。這是暫定值，待使用者確認 |
