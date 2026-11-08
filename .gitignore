@@ -1,5 +1,5 @@
 # 學生資料與考試成果一律不進版本庫（本儲存庫為公開 repo）
-data/
+/data/
 *.xlsx
 *.xls
 *.csv
