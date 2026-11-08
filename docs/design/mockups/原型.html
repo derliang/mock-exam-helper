@@ -404,14 +404,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .stephead{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
 .fmtseg{width:max-content;max-width:100%}
 .fmtseg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-on);border-color:var(--accent)}
-.roomrow{display:grid;grid-template-columns:auto minmax(150px,1.3fr) auto auto minmax(190px,1fr) auto;gap:10px 14px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.roomrow{display:grid;grid-template-columns:auto minmax(110px,1.1fr) auto auto minmax(110px,1fr) auto;gap:8px 8px;align-items:center;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
 .roomrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
 .roomrow .no{width:30px;height:30px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;border:1.5px solid var(--line-2);background:var(--surface)}
 .roomrow .info{font-size:13px;color:var(--text-2);font-variant-numeric:tabular-nums}
-.roomrow .stepper output{font-size:14px}
+.roomrow .stepper output{font-size:14px;min-width:26px}.roomrow .stepper{gap:4px}.roomrow .stepper .icon-btn{width:34px;height:34px}.roomrow .sw{gap:8px}.roomrow .field,.roomrow .info{min-width:0}
 .roomlist{display:grid;gap:8px}
-@media (max-width:1500px){.roomrow{display:flex;flex-wrap:wrap}.roomrow>.field:nth-of-type(1){flex:1 1 180px}.roomrow>.field{flex:0 1 auto}.roomrow .info{flex:1 1 160px}}
-@media (max-width:900px){.roomrow .info{flex:1 1 100%}}
+@media (max-width:900px){.roomrow{display:flex;flex-wrap:wrap}.roomrow>.field:nth-of-type(1){flex:1 1 180px}.roomrow>.field{flex:0 1 auto}.roomrow .info{flex:1 1 100%}}
 .prev .pgrid .pc{width:52px;height:44px;font-size:13px}
 .vcode{font-size:13px;color:var(--text-3);text-align:right;font-variant-numeric:tabular-nums}
 .swatches{display:flex;gap:6px;flex-wrap:wrap}
@@ -974,7 +973,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var e=S.cur,d=D(),isJ=e.type==='會考',sel=S.rsel||'r0',ex=S.rexp;
     var cls=isJ?'<div class="alert a-info"><span class="ico" data-i="i"></span><span>會考不分文理組，所有班級打散到所有教室（D10、D30）。</span><span></span></div>':'<div class="cls-pal">'+d.cls.map(function(c,i){return '<div class="cp" data-c="'+cc(i)+'"><strong>'+CNAME[i]+'</strong><span>0'+(i+1)+' 班・'+d.stu.filter(function(s){return s.c===i}).length+' 人</span><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組" style="margin-top:6px"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></div>'}).join('')+'</div>';
     function rrow(r,key,lab,kind){var n=seatsOf(r).length,off=r.cols*r.rows-n,open=ex===key;
-      return '<div class="rw"><div class="roomrow'+(sel===key?' on':'')+'" data-act="rexp" data-s="'+key+'"><label class="sw" data-act="rsw"><input type="checkbox" data-sw="'+key+'"'+((S.rsw&&key in S.rsw)?(S.rsw[key]?' checked':''):(kind==='p'?'':' checked'))+'><span class="trk"></span><span class="no" aria-label="'+(kind==='p'?'預備教室':'第'+lab+'間')+'">'+lab+'</span><span class="st">'+(kind==='p'?'列為預備':'列為考場')+'</span></label><div class="field" style="gap:2px"><label class="small muted" for="rn'+key+'">教室名稱（可改）</label><input class="input" id="rn'+key+'" data-rn="'+key+'" value="'+esc(r.name)+'"></div>'+
+      return '<div class="rw"><div class="roomrow'+(sel===key?' on':'')+'" data-act="rexp" data-s="'+key+'"><label class="sw" data-act="rsw"><input type="checkbox" data-sw="'+key+'"'+((S.rsw&&key in S.rsw)?(S.rsw[key]?' checked':''):(kind==='p'?'':' checked'))+'><span class="trk"></span><span class="st">'+(kind==='p'?'列為預備':'列為考場')+'</span></label><div class="field" style="gap:2px"><label class="small muted" for="rn'+key+'">'+lab+'・教室名稱（可改）</label><input class="input" id="rn'+key+'" data-rn="'+key+'" value="'+esc(r.name)+'"></div>'+
         '<div class="field" style="gap:2px"><span class="small muted">橫排（左右）</span>'+stp(key,'cols','橫排',r.cols)+'</div><div class="field" style="gap:2px"><span class="small muted">深位（前後）</span>'+stp(key,'rows','深位',r.rows)+'</div>'+
         '<div class="info">座位 <b>'+(r.cols*r.rows)+'</b>・不排 <b>'+off+'</b>・可排 <b>'+n+'</b>'+(kind==='p'?'<br>預備教室，不計入班級教室':(isJ?'':'<br>'+(d.cls[r.c].grp==='sci'?'理組':'文組')))+'</div>'+
         '<div class="row" style="flex-wrap:nowrap"><button class="btn btn-sm'+(open?' btn-primary':'')+'" data-act="rexp" data-s="'+key+'" aria-expanded="'+open+'">'+(open?'收合座位表':'編輯座位表')+'</button>'+(kind==='p'?'<button class="btn btn-sm btn-danger" data-act="pdel" data-s="'+key+'">刪除</button>':'')+'</div></div>'+(open?roomEditorHTML(key,false):'')+'</div>'}
