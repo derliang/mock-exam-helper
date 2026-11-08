@@ -1,0 +1,3 @@
+#!/bin/sh
+# 本機 CI：push 前跑型別檢查與測試，沒過就擋下
+npm run typecheck && npm test
