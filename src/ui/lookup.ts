@@ -4,6 +4,7 @@
  */
 import type { ExamConfig, ExamEntry, SeatingResult } from '../data';
 import { seatLabel, studentCode } from '../data';
+import { mixedMarkCodes, overridePurpose } from '../core/detach';
 import { examClasses, examEntries, examOverrides, examRooms } from './seating';
 import type { Doc } from './store';
 
@@ -99,7 +100,8 @@ export function lookupExaminee(doc: Doc, exam: ExamConfig, result: SeatingResult
     // 單人特例：座位保留、不佔預備教室，所以結果裡沒有抽離紀錄，改看標示（D80）
     const marked = result.marks.some((m) => m.code === code && m.subjectId === s.id);
     if (ov && (det || marked)) {
-      const exam_ = ov.purpose === 'exam';
+      const mk = result.marks.find((m) => m.code === code && m.subjectId === s.id);
+      const exam_ = (mk ? overridePurpose(ov, s.id, mk.mode, mixedMarkCodes(result.marks).has(code)) : ov.purpose) === 'exam';
       return { ...row, kind: exam_ ? 'override-exam' : 'override-study', place: ov.location, note: `單人特例：${exam_ ? '在這個地點考試' : '在這個地點自習'}（手動設定）` } as LookupRow;
     }
     if (det) {

@@ -30,6 +30,24 @@ export type DetachResult =
   | { ok: true; detaches: Detach[]; special: SpecialPlacement[] }
   | { ok: false; errors: string[] };
 
+/**
+ * 單人特例某一科的用途（#66）：有逐科設定用逐科；舊資料只有單一 purpose，
+ * 但同一人 X 與＋並存時單一值必有一科被竄改，所以混合標示者退回依標示方向。
+ */
+export function overridePurpose(o: Override, subjectId: string, mode: 'absent' | 'extra', mixed: boolean): 'exam' | 'study' {
+  const p = o.purposes?.[subjectId];
+  if (p) return p;
+  if (mixed) return mode === 'extra' ? 'exam' : 'study';
+  return o.purpose;
+}
+
+/** 這個人的標示是否同時有 X 與＋ */
+export function mixedMarkCodes(marks: readonly { code: string; mode: 'absent' | 'extra' }[]): Set<string> {
+  const a = new Set<string>(); const e = new Set<string>();
+  for (const m of marks) (m.mode === 'absent' ? a : e).add(m.code);
+  return new Set([...a].filter((c) => e.has(c)));
+}
+
 function byClassSeat(a: StudentCode, b: StudentCode): number {
   const x = parseStudentCode(a);
   const y = parseStudentCode(b);
@@ -55,6 +73,7 @@ export function allocateDetaches(input: DetachInput): DetachResult {
   const detaches: Detach[] = [];
   const special: SpecialPlacement[] = [];
   const overrideOf = new Map(input.overrides.map((o) => [o.code, o]));
+  const mixed = mixedMarkCodes(input.marks);
 
   for (const subject of input.subjects) {
     const exam: StudentCode[] = [];
@@ -63,7 +82,7 @@ export function allocateDetaches(input: DetachInput): DetachResult {
       if (m.subjectId !== subject.id) continue;
       const o = overrideOf.get(m.code);
       // D80：有手動覆寫就以覆寫的 purpose 為準，否則依標示方向
-      const purpose = o ? o.purpose : m.mode === 'extra' ? 'exam' : 'study';
+      const purpose = o ? overridePurpose(o, subject.id, m.mode, mixed.has(m.code)) : m.mode === 'extra' ? 'exam' : 'study';
       if (o) special.push({ code: m.code, subjectId: subject.id, purpose, location: o.location });
       else (purpose === 'exam' ? exam : study).push(m.code);
     }

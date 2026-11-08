@@ -176,6 +176,8 @@ export interface SingleOverride {
   location: string;
   /** 考試或自習 */
   purpose: 'exam' | 'study';
+  /** 各科各自的用途（#66）：沒設的科目依標示方向（＋加考→考試、X不考→自習）；舊資料只有 purpose */
+  purposes?: Record<string, 'exam' | 'study'>;
 }
 export type Override = SingleOverride;
 

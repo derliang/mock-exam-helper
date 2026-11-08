@@ -4,9 +4,10 @@
  * 不在匯出時重算：⑤ 驗證的、⑥ 預覽的、實際匯出的永遠是同一份（同座位、同版本碼、同產生時間）。
  * 沒有結果或已過期（名單或設定在排座後改過）就擋下，請回 ⑤ 重新排座。
  */
-import { examResult, isStale } from './seating';
+import { examResult, isStale, validationChecks } from './seating';
 import type { ExamConfig, ExamEntry, Override } from '../data';
 import type { ExportInput } from '../export';
+import type { preflight } from '../export/plan';
 import type { Doc } from './store';
 
 /** 該次考試的考試名單（②匯入）；沒匯入時為 null */
@@ -34,6 +35,16 @@ export function prepareExport(doc: Doc, exam: ExamConfig): Prepared {
   const result = examResult(doc, exam);
   if (!result) return { ok: false, errors: ['缺排座結果：請先到 ⑤ 排座並完成驗證，再回來下載。'] };
   if (isStale(doc, exam)) return { ok: false, errors: ['排座已過期：名單或設定在排座之後改過，請先到 ⑤ 重新排座，再回來下載。'] };
+  // 最後輸出邊界再驗一次（與 ⑤ 同一份驗證）：存得下結果不代表驗證通過
+  const failed = validationChecks(doc, exam, result).filter((c) => !c.ok);
+  if (failed.length) return { ok: false, errors: [`排座驗證未通過：${failed.map((c) => `${c.title}（${c.detail}）`).join('；')}。請先到 ⑤ 處理並重新排座，再回來下載。`] };
   return { ok: true, warnings: [], input: { settings: doc.settings, exam, students, entries, result } };
 }
 
+
+/**
+ * 「至少選一項」：核心項目（座位表、標籤、抽離）全不選、但有勾選用文件時，算有選，不再擋「還沒勾選」。
+ * 畫面的按鈕狀態與按下去的檢查都要用這同一條，避免按鈕可按卻無聲沒輸出（#65）。
+ */
+export const relevantIssues = (list: ReturnType<typeof preflight>, mainNone: boolean, extrasChosen: number): ReturnType<typeof preflight> =>
+  list.filter((i) => !(mainNone && extrasChosen > 0 && i.text.startsWith('還沒勾選')));
