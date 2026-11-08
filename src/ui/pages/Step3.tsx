@@ -2,7 +2,7 @@ import type { ExamConfig, Track } from '../../data';
 import { Alert, Button, Seg } from '../components';
 import { RoomList } from '../components/RoomList';
 import { classCapacity, reserveCheck } from '../capacity';
-import { roomsMissingTrack } from '../rooms';
+import { newClassRoomIds, roomsMissingTrack } from '../rooms';
 import { examRooms } from '../seating';
 import { setClassTrack, updateExam, type Doc } from '../store';
 
@@ -17,18 +17,19 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const roster = doc.rosters[exam.division];
   const classes = doc.settings.classes.filter((c) => c.division === exam.division);
   const noTrack = roster.length === 0 ? 0 : classes.filter((c) => !c.track).length;
-  // 新增的班級教室預設列為考場（預備教室預設不列入，由使用者手動打開）
+  /** 新增的班級教室直接列入本次考試（TODO-15），預備教室預設不列入；其他變更不動選用狀態 */
   const setRooms = (classrooms: typeof rooms) => {
-    const added = classrooms.filter((r) => r.kind === 'class' && !rooms.some((o) => o.id === r.id)).map((r) => r.id);
-    let d = { ...doc, settings: { ...doc.settings, classrooms } };
-    if (added.length) { const r = updateExam(d, exam.id, { classroomIds: [...exam.classroomIds, ...added] }); if (r.ok) d = r.doc; }
-    p.onChange(d);
+    const added = newClassRoomIds(rooms, classrooms);
+    const next = { ...doc, settings: { ...doc.settings, classrooms } };
+    if (!added.length) return p.onChange(next);
+    const r = updateExam(next, exam.id, { classroomIds: [...exam.classroomIds, ...added] });
+    p.onChange(r.ok ? r.doc : next);
   };
   const setIds = (ids: string[]) => { const r = updateExam(doc, exam.id, { classroomIds: ids }); if (r.ok) p.onChange(r.doc); };
 
   return (
     <section class="stack">
-      <div class="card stephead"><div><h2>③ 教室設定</h2><p class="small muted">把本次要用的教室打開「列為考場」，確認座位夠用；高中部的班級要先分好理組、文組。</p></div></div>
+      <div class="card stephead"><div><h2>③ 教室設定</h2><p class="small muted">用開關選出本次考試的教室，確認座位夠用；高中部的班級要先分好理組、文組。</p></div></div>
 
       <div class="card stack">
         <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。{senior ? '高中部理組、文組各自計算，預備教室不納入。' : ''}</p></div>
@@ -60,7 +61,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       <div class="card stack">
-        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開「列為考場」的教室才會計入座位；預備教室座位另計，不計入班級教室合計。教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
+        <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；預備教室座位另計，不計入班級教室合計。教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
         <RoomList classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
       </div>
     </section>

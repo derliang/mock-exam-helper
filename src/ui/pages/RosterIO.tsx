@@ -1,8 +1,7 @@
 import { useRef, useState } from 'preact/hooks';
 import type { Division, Track } from '../../data';
 import { readXlsx, writeXlsx } from '../../import';
-import { Alert, Button, Modal } from '../components';
-import { FormatIcon } from '../components/FormatPick';
+import { Alert, Button, FormatButton, Modal } from '../components';
 import { downloadBytes, XLSX_MIME } from '../download';
 import { applyImport, exportRows, planImport, templateRows, type ImportPlan, type UnknownClassAction } from '../rosterIO';
 import { setClassTrack, type Doc } from '../store';
@@ -48,9 +47,9 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
 
   return (
     <>
-      <Button onClick={() => setTpl(true)}><FormatIcon kind="excel" size={20} />下載名單範本</Button>
+      <Button onClick={() => setTpl(true)}>下載名單範本</Button>
       <Button onClick={() => input.current?.click()}>匯入學生名單</Button>
-      <Button onClick={async () => downloadBytes(`${DIV_NAME[p.division]}學生名單.xlsx`, await writeXlsx(exportRows(p.doc.rosters[p.division]), '學生名單'), XLSX_MIME)}><FormatIcon kind="excel" size={20} />下載學生名單</Button>
+      <FormatButton kind="xls" onClick={async () => downloadBytes(`${DIV_NAME[p.division]}學生名單.xlsx`, await writeXlsx(exportRows(p.doc.rosters[p.division]), '學生名單'), XLSX_MIME)}>下載學生名單</FormatButton>
       <input ref={input} type="file" accept=".xlsx" hidden aria-label="選擇學生名單 Excel 檔"
         onChange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ''; if (f) void onFile(f); }} />
       {tpl && (

@@ -5,8 +5,7 @@ import { renderPrintHtml } from '../../export/htmlRender';
 import { buildLabelPages, buildSeatPages } from '../../export/model';
 import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, type ExportOptions, type OutputFile } from '../../export/plan';
 import type { FontData } from '../../export/docxRender';
-import { Alert, Badge, Button, Seg } from '../components';
-import { FormatPick } from '../components/FormatPick';
+import { Alert, Badge, Button, FormatPick, Seg } from '../components';
 import { enabledExportItems, useIsEnabled } from '../features';
 import { prepareExport, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
@@ -182,7 +181,7 @@ export function Step6(p: {
           <p class="small muted">每一類合併成<b>一個多頁檔案</b>，不是一個座位表或一個標籤一個檔。Word 方便你編輯，每類下載一個檔；PDF 是先開啟列印用頁面，再用瀏覽器的列印另存成 PDF，適合確定不再編輯、想避免格式跑掉時使用。</p>
         </div>
         <div class="field"><span class="label">格式</span>
-          <div class="row"><FormatPick label="格式" value={o.format} onChange={(v) => set({ format: v })} /></div>
+          <div class="row"><FormatPick<ExportFormat> label="格式" value={o.format} onChange={(v) => set({ format: v })} options={['word', 'pdf']} /></div>
         </div>
         <div class="stack">
           {ck('seat', '座位表（A4）', '合併成一個檔案，每間班級教室一頁；每頁附該教室的考生統計')}

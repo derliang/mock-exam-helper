@@ -95,6 +95,10 @@ export function addRoom(rooms: Classroom[], kind: Classroom['kind']): Classroom[
   return [...rooms, { id: `room-${n}`, name: `${base}${same}`, kind, rows: 5, depth: 6, seatCount: 30 }];
 }
 
+/** 新增後多出來的班級教室 id（預備教室預設不列入，故不回傳）；步驟③新增時用來預設列入 */
+export const newClassRoomIds = (before: Classroom[], after: Classroom[]): string[] =>
+  after.filter((r) => r.kind === 'class' && !before.some((b) => b.id === r.id)).map((r) => r.id);
+
 export const removeRoom = (rooms: Classroom[], id: string): Classroom[] => rooms.filter((r) => r.id !== id);
 export const patchRoom = (rooms: Classroom[], id: string, f: (r: Classroom) => Classroom): Classroom[] => rooms.map((r) => (r.id === id ? f(r) : r));
 
