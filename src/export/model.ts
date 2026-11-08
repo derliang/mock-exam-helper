@@ -5,6 +5,7 @@
  */
 import {
   classroomSeats,
+  labelNoteLines,
   seatLabel,
   studentCode,
   type ClassInfo,
@@ -13,6 +14,7 @@ import {
   type ExamEntry,
   type LabelLayout,
   type LabelPaper,
+  type NoteLine,
   type SeatingResult,
   type Settings,
   type Student,
@@ -77,6 +79,8 @@ export interface LabelPageModel {
   examName: string;
   roomName: string;
   layout: LabelLayout;
+  /** 注意事項框的行（設定頁可改）；空陣列＝不印框 */
+  notes: NoteLine[];
   /** 依座位順序，長度 ≤ cols*rows；其餘格空白 */
   cells: CellModel[];
 }
@@ -351,6 +355,7 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
       examName: input.exam.name,
       roomName: room.name,
       layout,
+      notes: labelNoteLines(input.settings.labelNotes),
       cells: mine.map((a) => makeCell(a.code, a, ctx)),
     });
   }
@@ -375,6 +380,7 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
         examName: input.exam.name,
         roomName: `${room.name}　抽離考試（${sname}）`,
         layout,
+        notes: labelNoteLines(input.settings.labelNotes),
         cells: sorted.map((d) => {
           const c = makeCell(d.code, d.seat!, ctx);
           detachMark(c, sname);
@@ -496,19 +502,19 @@ export function seatGeometry(p: SeatPageModel): { cw: number; ch: number; st: Re
 }
 
 /** 標籤頁格子以外要留的高度（mm）：抬頭、注意事項框、頁尾。B4 的注意事項字較小 */
-function labelReserveMm(paper: LabelPaper): number {
+function labelReserveMm(paper: LabelPaper, noteLines: number): number {
   const header = 15;
-  const note = paper === 'B4' ? 5 + 6 + 8.6 + 1 + 3 * 8 : 8 + 10 + 13.6 + 2 + 3 * 12.35;
+  const note = noteLines === 0 ? 0 : paper === 'B4' ? 5 + 6 + 8.6 + 1 + noteLines * 8 : 8 + 10 + 13.6 + 2 + noteLines * 12.35;
   const footer = 14;
   return header + note + footer;
 }
 
 /** 標籤格尺寸：格高最多 35mm，而且要讓下方的注意事項與頁尾放得下（B4 排 8 列時會比 35mm 矮）；左右邊界讓整排置中 */
-export function labelBoxMm(layout: LabelLayout, margin: number): { w: number; h: number; padX: number } {
+export function labelBoxMm(layout: LabelLayout, margin: number, noteLines = 3): { w: number; h: number; padX: number } {
   const paper = PAPER_MM[layout.paper];
   const base = labelCellMm(layout, margin);
   const w = base.w;
-  const fit = Math.floor(((paper.h - margin - labelReserveMm(layout.paper)) / layout.rows) * 10) / 10;
+  const fit = Math.floor(((paper.h - margin - labelReserveMm(layout.paper, noteLines)) / layout.rows) * 10) / 10;
   const h = Math.min(35, base.h, fit);
   return { w, h, padX: Math.max(margin, +((paper.w - layout.cols * w) / 2).toFixed(2)) };
 }

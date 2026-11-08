@@ -224,6 +224,8 @@ export interface Settings {
   /** 座位表與標籤的固定表頭文字 */
   headerText: string;
   defaultLabelPaper: LabelPaper;
+  /** 標籤下方注意事項框的文字（每行一句，**粗體**）；沒有這個欄位（舊存檔）＝預設文字，空字串＝不印 */
+  labelNotes?: string;
   classes: ClassInfo[];
   /** 教室常用清單（D65） */
   classrooms: Classroom[];
