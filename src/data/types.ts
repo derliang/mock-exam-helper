@@ -209,6 +209,8 @@ export interface Settings {
   classes: ClassInfo[];
   /** 教室常用清單（D65） */
   classrooms: Classroom[];
+  /** 考試名單科目標示的對應（E 包）：標示寫法 → 科目 id 或 ignore，可重用 */
+  markMap?: Record<string, string>;
 }
 
 /** 磁碟檔案外殼：版本與損壞偵測用（D21） */
