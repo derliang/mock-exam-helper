@@ -308,12 +308,25 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .chip-class[data-c="6"]{background:var(--c6-bg);border-color:var(--c6-line);color:var(--c6-ink)}
 .stale-banner{display:flex;gap:10px;align-items:center;flex-wrap:wrap;padding:10px 14px;border-radius:var(--r-md);background:var(--warn-soft);border:1.5px dashed var(--warn-bar);color:var(--warn-ink);font-weight:700}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+/* 全站頁尾（DESIGN §10.1）：sticky footer，短內容頁貼在視窗底部；不進列印 */
+.pfoot{display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:center;padding:14px 0 max(20px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);color:var(--text-3);font-size:12px;line-height:1.5}
+.pfoot .pf-name{font-family:var(--f-head);font-weight:700;color:var(--text-2)}
+.pfoot .pf-ver{font:inherit;font-weight:700;min-height:32px;padding:0 10px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s}
+.pfoot .pf-ver:hover{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
+.pfoot .pf-ver:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pfoot .pf-pre{font-size:11px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
+.pf-about{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 10px}
+.pf-about dt{color:var(--text-3);font-weight:700}
+.pf-about dd{margin:0}
+@media (max-width:560px){.pfoot{flex-direction:column;gap:2px}}
+
+
 </style>
 
 <div class="top">
   <span class="brand">模擬考小幫手 設計系統</span>
   <nav class="toc" aria-label="目錄">
-    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#open">待確認</a>
+    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#footer">頁尾</a><a href="#open">待確認</a>
   </nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">跟隨系統</button>
@@ -482,6 +495,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         <div><small>考生</small><strong>139</strong></div><div><small>座位</small><strong>139</strong></div><div><small>禁用</small><strong>11</strong></div>
         <div><small>班級教室</small><strong>4 間</strong></div><div><small>預備教室</small><strong>2 間</strong></div><div><small>驗證</small><strong style="color:var(--ok-ink)">通過</strong><div class="bar"><i style="width:100%;background:var(--ok-bar)"></i></div></div>
       </div></div>
+  </section>
+
+  <section id="footer">
+    <header><h2>全站頁尾</h2><p>每一頁（初始化、各步驟、設定頁）底部都有同一個頁尾：程式名稱、版本號、版權。短內容頁貼在視窗底部（sticky footer），不遮擋內容；版本號是按鈕，點開「關於」看版本、建置日期與資料只存本機的說明。頁尾不進 Word／PDF，列印時隱藏。</p></header>
+    <div class="grid">
+      <div class="card"><div class="lab">測試版（beta）</div>
+        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v0.1.0-beta.1<span class="pf-pre">beta</span></button><span class="pf-copy">© 2026 模擬考小幫手</span></footer></div>
+      <div class="card"><div class="lab">正式版（無預發布標籤）</div>
+        <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v1.0.0</button><span class="pf-copy">© 2026 模擬考小幫手</span></footer></div>
+    </div>
   </section>
 
   <section id="open">
