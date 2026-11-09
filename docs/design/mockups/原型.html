@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.15</title>
+<title>模擬考原型 稿 v2.16</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -734,7 +734,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.15・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.16・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -814,7 +814,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       return '<article class="exam"><div><h3>'+e.name+'</h3><div class="meta"><span class="badge">'+typeLabel(e.type)+'</span><span>'+e.year+' 學年・'+e.level+'・'+e.n+' 人</span></div></div>'+
         '<div>'+dots(e.prog)+''+progText(e)+'<div class="small muted" style="margin-top:4px">最後修改 '+e.edit+'</div></div>'+
         '<div class="row"><button class="btn btn-primary" data-act="open" data-id="'+e.id+'">開啟</button></div></article>'}).join('');
-    return '<div class="pagehead"><h1>模擬考</h1><span class="folder-chip" title="資料夾（模擬）">'+S.folder+'</span><button class="btn" data-act="pick">更換資料夾</button><button class="btn" data-act="tosettings" data-v="stu">設定</button><button class="btn btn-primary" data-act="new">新增模擬考</button></div>'+
+    return '<div class="pagehead"><h1>模擬考</h1><span class="folder-chip" title="目前使用的資料夾">'+esc(FN())+'</span><button class="btn" data-act="pick">更換資料夾</button><button class="btn" data-act="tosettings" data-v="stu">設定</button><button class="btn btn-primary" data-act="new">新增模擬考</button></div>'+
       (S.exams.length?'<div class="exam-list">'+rows+'</div>':'<div class="empty"><strong>還沒有模擬考</strong><span class="muted">按「新增模擬考」開始。</span><button class="btn btn-primary" data-act="new">新增模擬考</button></div>')+
       '<div class="plegend" aria-label="進度條圖例">六格＝六個步驟　<span><i class="d"></i>完成</span><span><i class="s"></i>過期</span><span><i class="c"></i>目前</span><span><i class="n"></i>不需要</span><span><i></i>未開始</span></div>'}
   function progText(e){var done=e.prog.filter(function(x){return x==='d'}).length,need=e.prog.filter(function(x){return x==='n'}).length,total=6-need,si=e.prog.indexOf('s'),ci=e.prog.indexOf('c'),h='<div class="prog">'+done+'／'+total+' 步完成';if(si>-1)h+='<span class="amb">・'+STEPS[si][0]+'已過期</span>';else if(ci>-1)h+='<span class="mut">・進行中：'+STEPS[ci][0]+'</span>';else h+='<span class="mut">・已下載</span>';return h+'</div>'}
@@ -854,6 +854,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(e.round>=3)l.push(['數學A','組別','diff'],['數學B','組別','diff']);else l.push(['數學','全體','diff']);
     l.push(['自然','組別'],['社會','組別']);return l}
   function prevRound(e){var b=null;S.exams.forEach(function(x){if(x.type===e.type&&x.id!==e.id&&x.round<e.round&&(!b||x.round>b.round))b=x});return b}
+  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.16） */
+  function FN(){return String(S.folder||'').split(/[\\/]/).filter(Boolean).pop()||''}
   function v1(){
     var e=S.cur,isJ=e.type==='會考',subs=subjectsOf(e),prev=prevRound(e);
     var seg=isJ?'':e.type==='分科'?'<div class="field"><span class="label">次別</span><span class="hint">分科有沒有次別、怎麼分，還沒確認。<span class="pending">待使用者確認：分科有無次別</span></span></div>':'<div class="field"><span class="label">次別（學測模擬考第幾次）</span><div class="seg" role="group" aria-label="次別">'+[1,2,3,4].map(function(r){return '<button type="button" data-act="round" data-r="'+r+'" aria-pressed="'+(e.round===r)+'">第'+CN[r]+'次</button>'}).join('')+'</div><span class="hint">第 1、2 次數學是單一科，第 3 次起分為數學A、數學B</span></div>';
@@ -1453,7 +1455,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       seatPaperHTML(room,map,e,seq)+vcodeHTML();
     var ready=ok&&files.length>0;
     var banner=stale?'<div class="stale-banner"><span class="badge b-warn">過期</span>排座結果過期，下載已停用。<button class="btn btn-sm btn-primary" data-act="reseat">重新排座</button></div>':(ok?'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span><b>驗證通過：</b>'+checks.length+' 項檢查全部符合，可以下載。</span><span></span></div>':'<div class="alert a-err"><span class="ico" data-i="×"></span><span><b>驗證沒有通過，不能下載。</b>回 ⑤ 查看原因。</span><span></span></div>');
-    var result=S.expDone?'<div class="card stack"><div class="alert a-ok"><span class="ico" data-i="✓"></span><span><b>已下載 '+S.expDone.length+' 個檔案</b>，放在「'+(S.folder||'')+'\\'+esc(e.name)+'\\下載\\」（模擬，沒有真的寫檔）。</span><span></span></div><div class="scroll"><table class="t compact"><thead><tr><th>檔案</th><th>內容</th></tr></thead><tbody>'+S.expDone.map(function(f){return '<tr><td><b>'+esc(f.n)+'</b></td><td class="muted">'+esc(f.p)+'</td></tr>'}).join('')+'</tbody></table></div>'+(x.fmt==='Word'?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>Word 檔下載後若手動編輯，就不再受驗證器保護。</span><span></span></div>':'')+'</div>':'';
+    var result=S.expDone?'<div class="card stack"><div class="alert a-ok"><span class="ico" data-i="✓"></span><span><b>已下載 '+S.expDone.length+' 個檔案</b>，放在「'+esc(FN())+'\\'+esc(e.name)+'\\下載\\」（模擬，沒有真的寫檔）。</span><span></span></div><div class="scroll"><table class="t compact"><thead><tr><th>檔案</th><th>內容</th></tr></thead><tbody>'+S.expDone.map(function(f){return '<tr><td><b>'+esc(f.n)+'</b></td><td class="muted">'+esc(f.p)+'</td></tr>'}).join('')+'</tbody></table></div>'+(x.fmt==='Word'?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>Word 檔下載後若手動編輯，就不再受驗證器保護。</span><span></span></div>':'')+'</div>':'';
     return banner+
       '<div class="card stack"><div><h3>下載內容</h3><p class="small muted">每一類合併成<b>一個多頁檔案</b>，不是一個座位表或一個標籤一個檔。Word 方便你編輯，PDF 方便直接列印、避免格式跑掉。</p></div>'+
       '<div class="row"><div class="field"><span class="label">格式</span><div class="fmts" role="radiogroup" aria-label="格式"><label class="fmt w"><input type="radio" name="efmt" data-act="efmt" data-v="Word"'+(x.fmt==='Word'?' checked':'')+'><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-w" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M6.5 11l2 7 2.2-5.5L12.9 18l2-7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Word</span></label><label class="fmt p"><input type="radio" name="efmt" data-act="efmt" data-v="PDF"'+(x.fmt==='PDF'?' checked':'')+'><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-p" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><text x="12.5" y="19" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Noto Sans TC,sans-serif">PDF</text></svg>PDF</span></label></div></div></div>'+
@@ -1631,7 +1633,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='epaper'){S.exp=S.exp||{fmt:'Word',paper:'B4',seat:true,label:true,pull:false,prepSeat:true,rcv:true,att:true,align:true};S.exp.paper=g('v');S.expDone=null;render()}
     else if(a==='pv'){S.pv=g('v');render()}
     else if(a==='ps'){S.ps=g('s');render()}
-    else if(a==='expgo'){var fl=exportFiles(e);showModal('<div class="modal" role="dialog" aria-label="下載"><h3>下載 '+fl.length+' 個檔案？</h3><p class="muted small">會寫入「'+esc(S.folder||'')+'\\'+esc(e.name)+'\\下載\\」。原型只模擬，不會真的產生檔案。</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="egodo">下載</button></div></div>',function(ev2){if(ev2.target.id!=='egodo')return;S.expDone=fl;closeModal();render();toast('已下載 '+fl.length+' 個檔案（模擬）')})}
+    else if(a==='expgo'){var fl=exportFiles(e);showModal('<div class="modal" role="dialog" aria-label="下載"><h3>下載 '+fl.length+' 個檔案？</h3><p class="muted small">會寫入「'+esc(FN())+'\\'+esc(e.name)+'\\下載\\」。原型只模擬，不會真的產生檔案。</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="egodo">下載</button></div></div>',function(ev2){if(ev2.target.id!=='egodo')return;S.expDone=fl;closeModal();render();toast('已下載 '+fl.length+' 個檔案（模擬）')})}
   });
   $('#app').addEventListener('change',function(ev){var fk=ev.target.getAttribute&&ev.target.getAttribute('data-feat');if(fk){FEAT[fk]=ev.target.checked;render();return}var sk=ev.target.getAttribute&&ev.target.getAttribute('data-sw');if(sk){S.rsw=S.rsw||{};S.rsw[sk]=ev.target.checked;if(sk.charAt(0)==='p'){markStale();render();return}var stx=ev.target.parentNode.querySelector('.st');if(stx)stx.textContent=ev.target.checked?'已列入':'未列入';var rrw=ev.target.closest('.roomrow');if(rrw)rrw.classList.toggle('off',!ev.target.checked);return}if(ev.target.getAttribute&&ev.target.getAttribute('data-act')==='eck'){S.exp[ev.target.getAttribute('data-k')]=ev.target.checked;S.expDone=null;render()}});
   $('#app').addEventListener('input',function(ev){var t=ev.target,rn=t.getAttribute&&t.getAttribute('data-rn');if(rn){var dd=D(),rr=rn.charAt(0)==='p'?dd.prep[+rn.slice(1)]:dd.rooms[+rn.slice(1)];if(rr){rr.name=t.value;markStale()}return}
