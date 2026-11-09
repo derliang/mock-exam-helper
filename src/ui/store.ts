@@ -101,7 +101,6 @@ export interface NewExamOptions {
 export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts: NewExamOptions = {}): Result<Doc> {
   const n = name.trim();
   if (!n) return fail('請輸入考試名稱');
-  if (kind === 'ast') return fail('分科尚未開放');
   if (doc.exams.some((e) => e.name === n)) return fail('已有同名的模擬考');
   const division: Division = kind === 'bcct' ? 'junior' : 'senior';
   const semester = opts.semester ?? 'first';
@@ -110,7 +109,7 @@ export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts:
   const prev = opts.prev && opts.prev.kind === kind ? opts.prev : undefined;
   const exam: ExamConfig = {
     id: `exam-${now.getTime()}`, name: n, kind, division, semester, round,
-    participation: prev?.participation ?? 'all',
+    participation: prev?.participation ?? (kind === 'ast' ? 'partial' : 'all'), // 分科不是人人參加（D64）
     subjects: prev && isCustomized(prev.subjects) ? structuredClone(prev.subjects) : defaultSubjects(kind, round),
     markRules: prev ? structuredClone(prev.markRules) : [], classroomIds: prev ? [...prev.classroomIds] : [],
     // 標籤格數待使用者定案（D72），這裡只是預設值，一律由參數帶
@@ -174,7 +173,7 @@ export function examLabel(e: Pick<ExamConfig, 'division' | 'kind'>): string {
   return `${e.division === 'senior' ? '高中部' : '國中部'}・${KIND_LABEL[e.kind].replace(/（.*）/, '')}`;
 }
 
-export const KIND_LABEL: Record<ExamKind, string> = { gsat: '學測', ast: '分科（尚未開放）', bcct: '會考' };
+export const KIND_LABEL: Record<ExamKind, string> = { gsat: '學測', ast: '分科', bcct: '會考' };
 
 /** 更新某次模擬考的欄位（名稱同名檢查） */
 export function updateExam(doc: Doc, id: string, patch: Partial<ExamConfig>): Result<Doc> {

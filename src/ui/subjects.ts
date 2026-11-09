@@ -9,9 +9,16 @@ export const BCCT_SUBJECTS: Subject[] = [
   s('social', '社會'), s('science', '自然'), s('writing', '寫作測驗'),
 ];
 
+/** 分科測驗八科（大考中心；每科都是選考，國英不加考，採學測成績） */
+export const AST_SUBJECTS: Subject[] = [
+  s('math-jia', '數學甲'), s('math-yi', '數學乙'), s('physics', '物理'), s('chemistry', '化學'),
+  s('biology', '生物'), s('history', '歷史'), s('geography', '地理'), s('civics', '公民與社會'),
+];
+
 /** 學測：第 1、2 次數學單一科且有英聽；第 3、4 次數學分 A、B，無英聽（D36/D52） */
 export function defaultSubjects(kind: ExamKind, round = 1): Subject[] {
   if (kind === 'bcct') return BCCT_SUBJECTS.map((x) => ({ ...x }));
+  if (kind === 'ast') return AST_SUBJECTS.map((x) => ({ ...x }));
   const early = round <= 2;
   return [
     s('chinese', '國文'), s('english', '英文'),
@@ -45,6 +52,7 @@ const GROUP_IDS = new Set(['math-a', 'math-b', 'science', 'social']);
 export function subjectWho(kind: ExamKind, s: Subject): SubjectWho {
   if (s.who) return s.who;
   if (kind === 'bcct') return 'all';
+  if (kind === 'ast') return 'group'; // 分科每一科都是選考
   return GROUP_IDS.has(s.id) ? 'group' : 'all';
 }
 export const WHO_LABEL: Record<SubjectWho, string> = { all: '每位考生都考', group: '依組別代碼決定' };
