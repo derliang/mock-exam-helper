@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考設計系統 稿 v2.6</title>
+<title>模擬考設計系統 稿 v2.11</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -378,7 +378,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="top">
-  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.6・2026-11-09</span></span>
+  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.11・2026-11-09</span></span>
   <nav class="toc" aria-label="目錄">
     <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#paper">座位表與標籤</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
   </nav>
@@ -475,7 +475,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
           <div class="field err"><label for="f2">座號</label><input class="input" id="f2" value="48"><span class="hint">這個班已有 47 位，座號不可超過 60</span></div>
           <div class="field"><label for="f3">班級</label><select class="input" id="f3"><option>溫（01）</option><option>良（02）</option></select></div>
           <div class="row"><label class="sw"><input type="checkbox" id="s1" checked><span></span>理組班</label><label class="check"><input type="checkbox" checked>全選</label>
-            <div class="seg" role="group" aria-label="類型"><button type="button" aria-pressed="true">學測</button><button type="button" aria-pressed="false" disabled title="即將推出">分科</button></div></div>
+            <div class="seg" role="group" aria-label="類型"><button type="button" aria-pressed="true">學測</button><button type="button" aria-pressed="false">分科</button></div></div>
         </div></div>
       <div class="card"><div class="lab">徽章與提示</div>
         <div class="stack">
@@ -653,6 +653,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         <div><small>考生</small><strong>139</strong></div><div><small>座位</small><strong>139</strong></div><div><small>禁用</small><strong>11</strong></div>
         <div><small>班級教室</small><strong>4 間</strong></div><div><small>預備教室</small><strong>2 間</strong></div><div><small>驗證</small><strong style="color:var(--ok-ink)">通過</strong><div class="bar"><i style="width:100%;background:var(--ok-bar)"></i></div></div>
       </div></div>
+    <div class="card" style="margin-top:16px"><div class="lab">檢核格：一項一格、大數字、狀態徽章（步驟③ 狀態檢核）</div>
+      <p class="small muted" style="margin-bottom:12px">上方項目名稱、中間大數字（座位數，32，明文例外）、小字補充（考生人數）、下方狀態徽章：剛好＝綠、多出＝琥珀（頂端色條）、不足＝紅（整格淡紅底）。原本的說明文字留在格子下方 13px 小字，不足的那句用紅字。</p>
+      <div class="stats chkgrid">
+        <div class="chk"><small>文組座位</small><strong>133</strong><span class="sub">考生 133</span><span class="badge b-ok">剛好</span></div>
+        <div class="chk warnc"><small>理組座位</small><strong>140</strong><span class="sub">考生 133</span><span class="badge b-warn">多 7</span></div>
+        <div class="chk bad"><small>理組座位</small><strong>115</strong><span class="sub">考生 133</span><span class="badge b-err">不足 18</span></div>
+        <div class="chk"><small>預備教室座位</small><strong>72</strong><span class="sub">2 間</span><span class="badge b-ok">夠用</span></div>
+      </div>
+      <div class="stack" style="gap:6px;margin-top:10px"><p class="small muted"><b>文組：</b>教室座位 133，考生 133，剛好排滿。</p><p class="small errnote"><b>無法排座：</b>理組教室座位 115，理組考生 133。座位不能比考生少，請增加 18 個座位。</p></div>
+    </div>
   </section>
 
   <section id="footer">
@@ -823,6 +833,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .stats>div{position:relative;padding-top:13px}
 .stats>div::before{content:"";position:absolute;left:14px;top:0;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--accent-line)}
 .stats .bad::before{background:var(--danger)}
+.stats.chkgrid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;background:var(--surface)}
+.stats.chkgrid>div.chk{border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.stats>div.chk .sub{font-size:13px;color:var(--text-3);font-weight:500}
+.stats>div.chk .badge{margin-top:6px}
+.stats>div.chk.bad{background:var(--danger-soft)}
+.stats>div.chk.warnc::before{background:var(--warn-bar)}
+.errnote{color:var(--danger-ink)}
 
 /* 提示條：左側 4px 色條表達語氣，不再只靠底色 */
 .alert{box-shadow:inset 4px 0 0 var(--bar,var(--line-2));padding-left:18px}
