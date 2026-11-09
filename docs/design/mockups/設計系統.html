@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考設計系統 稿 v2.14</title>
+<title>模擬考設計系統 稿 v2.15</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -371,14 +371,31 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 @media (max-width:560px){.pfoot{flex-direction:column;gap:2px}}
 
 
-.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px}
-.sumbar .warnbtn u{white-space:nowrap}.sumbar b{font-size:18px;font-variant-numeric:tabular-nums}.sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}.sumbar .ok{color:var(--ok-ink);font-weight:700}.sumbar .warnbtn{margin-left:auto;min-height:36px;padding:4px 12px;border:1.5px solid var(--warn-bar);border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn-ink);font:inherit;font-weight:700}
+.sumbar{display:grid;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;box-shadow:var(--shadow-1)}
+.sumbar.has-iss{position:static}
+.sumbar .sstats{display:flex;flex-wrap:wrap;gap:8px 12px}
+.sumbar .sc{display:flex;align-items:baseline;gap:8px;padding:4px 12px;border-radius:var(--r-sm);background:var(--sunken);min-width:0}
+.sumbar .sl{font-size:13px;color:var(--muted)}
+.sumbar b{font-family:var(--f-no,inherit);font-size:18px;font-variant-numeric:tabular-nums}
+.sumbar .sc.bad,.sumbar .sc.bad b,.sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}
+.sumbar .sc.bad{background:var(--danger-soft)}
+.sumbar .sc.warn{background:var(--warn-soft);box-shadow:inset 0 0 0 1.5px var(--warn-bar)}.sumbar .sc.warn b,.sumbar .sc.warn .sl{color:var(--warn-ink)}
+.sumbar .sc.okc em{font-style:normal;font-weight:700;color:var(--ok-ink)}.sumbar .sc.dim b{font-size:14px;color:var(--muted)}
+.sumbar .slist{display:grid;gap:6px}
+.sumbar .si{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 14px;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-left:4px solid var(--danger);border-radius:var(--r-sm);background:var(--surface);color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.sumbar .si.todo{border-left-color:var(--warn-bar)}
+.sumbar .si:hover{background:var(--sunken)}.sumbar .si:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sumbar .sstep{font-weight:700;white-space:nowrap}
+.sumbar .sti{display:grid;font-weight:700}.sumbar .sti small{font-weight:400;font-size:13px;color:var(--muted)}
+.sumbar .sn{display:inline-flex;gap:14px;white-space:nowrap}.sumbar .sn span{display:inline-flex;align-items:baseline;gap:4px;color:var(--muted)}
+.sumbar .sgo{color:var(--accent-ink);font-weight:700;white-space:nowrap}
+@media (max-width:760px){.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
 .empty{display:grid;gap:8px;justify-items:start;padding:20px;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--surface)}
 .empty strong{font-family:var(--f-head);font-size:18px}.empty p{margin:0}
 </style>
 
 <div class="top">
-  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.14・2026-11-09</span></span>
+  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.15・2026-11-09</span></span>
   <nav class="toc" aria-label="目錄">
     <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#paper">座位表與標籤</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
   </nav>
@@ -680,7 +697,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   <section id="flow">
     <header><h2>引路與防錯（施工G）</h2><p>所有步驟頁共用：常駐摘要列、步驟「第N／6步」、上方「下一步」（永遠可按；前置沒過只用琥珀提示說明＋一鍵跳轉，D47、D58）、破壞性動作二次確認、空狀態、行內驗證。規則見 DESIGN.md 10.7。</p></header>
     <div class="card" style="display:grid;gap:14px">
-      <p class="small muted" style="margin:0">常駐摘要列（v2.12 補）：六步驟頁頂端、步驟內容上方，不可關，捲動時固定在上方。四項：考生／座位／空位（座位不足改「缺位」紅字）／待處理（真問題在前、未完成的步驟也算；點下去跳到第一個問題所在步驟）。下面四列是四種狀態。</p><div class="sumbar"><span>考生 <b>尚未匯入考試名單</b></span><span>座位 <b>90</b></span><span>空位 <b>—</b></span><button type="button" class="warnbtn">⚠ 待處理 <b>1</b>　還沒匯入考試名單　<u>去 ② 匯入</u></button></div><div class="sumbar"><span>考生 <b>86</b></span><span>座位 <b>90</b></span><span>空位 <b>4</b></span><span class="ok">待處理 <b>0</b>　✓ 沒有待處理的事</span></div><div class="sumbar"><span>考生 <b>95</b></span><span>座位 <b>90</b></span><span class="bad">缺位 <b>5</b></span><button type="button" class="warnbtn">⚠ 待處理 <b>1</b>　③ 座位比考生少 5 個　<u>去 ③ 加座位</u></button></div><div class="sumbar"><span>考生 <b>7</b></span><span>座位 <b>9</b></span><span>空位 <b>2</b></span><button type="button" class="warnbtn">⚠ 待處理 <b>1</b>　④ 有 1 項標示接近一半，要先選標「不考」或「加考」　<u>去 ④ 選標示</u></button></div>
+      <p class="small muted" style="margin:0">常駐摘要列（v2.12 補）：六步驟頁頂端、步驟內容上方，不可關，捲動時固定在上方。上方四格：考生／座位／空位（座位不足改「缺位」紅字）／待處理（件數）。有待處理時，下面逐項列出，每項一行：哪一步、哪個項目、需要／可用／缺少（有數字時）、細節小字、「前往處理」；點整列跳到該步驟。真問題在前、未完成的步驟在後。有待處理時摘要列不固定在上方（避免擋住內容）。下面四列是四種狀態。</p><div class="sumbar has-iss"><div class="sstats"><div class="sc dim"><span class="sl">考生</span><b>尚未匯入考試名單</b></div><div class="sc"><span class="sl">座位</span><b>90</b></div><div class="sc dim"><span class="sl">空位</span><b>—</b></div><div class="sc warn"><span class="sl">待處理</span><b>1</b></div></div><div class="slist"><button type="button" class="si"><span class="sstep">② 考試名單</span><span class="sti">考試名單尚未匯入</span><span class="sgo">去 ② 匯入 ›</span></button></div></div><div class="sumbar"><div class="sstats"><div class="sc"><span class="sl">考生</span><b>86</b></div><div class="sc"><span class="sl">座位</span><b>90</b></div><div class="sc"><span class="sl">空位</span><b>4</b></div><div class="sc okc"><span class="sl">待處理</span><b>0</b><em>✓ 沒有待處理的事</em></div></div></div><div class="sumbar has-iss"><div class="sstats"><div class="sc"><span class="sl">考生</span><b>95</b></div><div class="sc"><span class="sl">座位</span><b>90</b></div><div class="sc bad"><span class="sl">缺位</span><b>5</b></div><div class="sc warn"><span class="sl">待處理</span><b>2</b></div></div><div class="slist"><button type="button" class="si"><span class="sstep">③ 教室設定</span><span class="sti">理組教室座位不足<small>座位不能比考生少</small></span><span class="sn"><span>需要 <b>95</b></span><span>可用 <b>90</b></span><span class="bad">缺少 <b>5</b></span></span><span class="sgo">前往處理 ›</span></button><button type="button" class="si"><span class="sstep">③ 教室設定</span><span class="sti">預備教室座位不足<small>「社會」那一節：抽離考試 3＋抽離自習 29</small></span><span class="sn"><span>需要 <b>32</b></span><span>可用 <b>0</b></span><span class="bad">缺少 <b>32</b></span></span><span class="sgo">前往處理 ›</span></button></div></div><div class="sumbar has-iss"><div class="sstats"><div class="sc"><span class="sl">考生</span><b>7</b></div><div class="sc"><span class="sl">座位</span><b>9</b></div><div class="sc"><span class="sl">空位</span><b>2</b></div><div class="sc warn"><span class="sl">待處理</span><b>1</b></div></div><div class="slist"><button type="button" class="si"><span class="sstep">④ 標示與抽離規則</span><span class="sti">理組「數學甲」要選標哪一邊<small>考與不考接近一半</small></span><span class="sgo">前往處理 ›</span></button></div></div>
       <div class="alert a-warn"><span>⚠</span><div><b>下一步之前還有事沒做完：</b>④ 有 1 項標示接近一半，要先選標「不考」或「加考」（提示只說明，不停用下面的按鈕）</div><button class="btn">去 ④ 選標示</button></div>
       <div class="card" style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap"><div><h3>④ 標示與抽離規則</h3><p class="small muted">組別對照表</p></div><button class="btn btn-primary">下一步：⑤ 排座與預覽 →</button></div>
       <div class="empty"><strong>還沒有匯入考試名單</strong><p class="muted">按上方「匯入考試名單 Excel」，選大考中心提供的考生資料名單（.xlsx）。</p></div>
