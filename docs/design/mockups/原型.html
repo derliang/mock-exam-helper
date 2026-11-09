@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.17</title>
+<title>模擬考原型 稿 v2.18</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -721,17 +721,24 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .featrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
 .featrow .fi{display:grid;gap:4px;min-width:0}
 @media (max-width:560px){.featrow{grid-template-columns:1fr}}
-/* 節次與時長（共用設定第六個分頁，D92／D94）：一節一個框，框內每科一列；同節兩科以上框底淺藍 */
-.scday{font-weight:800;color:var(--text-2);font-size:15px;padding:6px 2px 0;border-bottom:1px solid var(--line)}
-.scgrp{border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:var(--r-md);background:var(--surface);padding:12px 14px;display:grid;gap:10px}
-.scgrp.multi{background:var(--accent-soft);border-color:var(--accent-line)}
-.schd{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
-.schd .tm{display:flex;align-items:center;gap:6px;margin-left:auto}
-.schd .tm .input{width:150px}
-.scrow{display:grid;grid-template-columns:minmax(0,1fr) 84px 110px auto;gap:8px;align-items:end}
-.scrow .field{gap:2px}.scrow .input{min-width:0}
-.scrow .lab{font-size:13px;color:var(--text-2);font-weight:700}
-@media (max-width:560px){.scrow{grid-template-columns:1fr 1fr}.scrow .field:first-child{grid-column:1/-1}.scrow .del{grid-column:1/-1;justify-self:start}.schd .tm{margin-left:0;width:100%}.schd .tm .input{width:auto;flex:1}}
+/* 節次與時長（共用設定第六個分頁，D92／D94）：像學校的考試時間表——一天一欄，科目由上往下排；可拖拉或用 ↑↓ 改順序 */
+.tt{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+@media (max-width:700px){.tt{grid-template-columns:1fr}}
+.ttc{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);display:grid;gap:0;overflow:hidden}
+.ttc>.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--sunken);border-bottom:1px solid var(--line);font-weight:800}
+.ttr{display:grid;grid-template-columns:auto 56px minmax(0,1fr) 78px auto;gap:6px 8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
+.ttr.same{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.ttr.dragging{opacity:.4}.ttr.over,.ttc>.end.over{outline:3px solid var(--accent);outline-offset:-3px}
+.ttr .sgrip{cursor:grab;user-select:none;font-size:20px;line-height:1;color:var(--text-3);padding:6px 4px;border-radius:6px;touch-action:none}
+.ttr .sgrip:hover{background:var(--sunken);color:var(--text)}
+.ttr .sn{font-weight:800;color:var(--accent);white-space:nowrap}
+.ttr .input{height:36px;min-height:36px;min-width:0}
+.ttr .dur{display:flex;align-items:center;gap:4px}.ttr .dur .input{width:60px;padding:0 6px;text-align:right}.ttr .dur span{font-size:13px;color:var(--text-2)}
+.ttr .ops{display:flex;gap:2px}.ttr .ops .btn{min-height:36px;min-width:36px;padding:0 8px}
+.ttr .sub{grid-column:2/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:13px;color:var(--text-2)}
+.ttr .sub label{display:flex;align-items:center;gap:6px}.ttr .sub .input{width:120px}
+.ttc>.end{padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media (max-width:480px){.ttr{grid-template-columns:auto 48px minmax(0,1fr) auto}.ttr .dur{grid-column:2/4}.ttr .ops{grid-column:4;grid-row:1}.ttr .sub{grid-column:1/-1}}
 /* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
 .plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .plbl{border:2px solid #222;border-radius:6px;background:#fff;color:#111;padding:10px 12px;display:grid;gap:6px;font-family:var(--font-body,inherit)}
@@ -758,7 +765,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.17・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.18・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -878,7 +885,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(e.round>=3)l.push(['數學A','組別','diff'],['數學B','組別','diff']);else l.push(['數學','全體','diff']);
     l.push(['自然','組別'],['社會','組別']);return l}
   function prevRound(e){var b=null;S.exams.forEach(function(x){if(x.type===e.type&&x.id!==e.id&&x.round<e.round&&(!b||x.round>b.round))b=x});return b}
-  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.17） */
+  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.18） */
   function FN(){return String(S.folder||'').split(/[\\/]/).filter(Boolean).pop()||''}
   function v1(){
     var e=S.cur,isJ=e.type==='會考',subs=subjectsOf(e),prev=prevRound(e);
@@ -1504,34 +1511,33 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>核心功能永遠開啟，不在這裡：</b>排座、標籤、座位表、抽離、下載與防呆提示。設定只存在這台電腦的設定檔，不上傳。</span><span></span></div></div>'}
 
   /* ---------- 節次與時長：共用設定第六個分頁（D92、D94；預設值依 docs/exam-schedule.md〈學校模擬考實際節次〉）---------- */
+  /* 像學校的「模擬考科目表」：一天一欄、科目由上往下；重點是科目順序（可拖拉或按 ↑↓ 改，也可拖到另一天）；節次編號依順序自動算，勾「與上一科同節」就同時進行 */
   var SCH_TYPES=[['g12','學測第 1、2 次'],['g34','學測第 3、4 次'],['ast','分科'],['bcct','會考']];
   var SCH_DEF={
-    g12:{rows:[['英文',1,100,1],['自然',2,110,1],['國綜',3,90,1],['英聽',4,50,1],['數學',5,100,2],['社會',6,110,2],['國寫',7,90,2]],
-      note:'一節一科，順序依學校科目表（與大考日程圖不同）。國文「整個一起標」：國綜、國寫是兩節，但標示與抽離當成一個。'},
-    g34:{rows:[['英文',1,100,1],['自然',2,110,1],['國綜',3,90,1],['數學B',4,100,1],['數學A',5,100,2],['社會',6,110,2],['國寫',7,90,2]],
+    g12:{days:[[['英文',100],['自然',110],['國綜',90],['英聽',50]],[['數學',100],['社會',110],['國寫',90]]],
+      note:'順序依學校科目表（與大考日程圖不同）；英聽一定排在第一天最後一節。國文「整個一起標」：國綜、國寫是兩節，但標示與抽離當成一個。'},
+    g34:{days:[[['英文',100],['自然',110],['國綜',90],['數學B',100]],[['數學A',100],['社會',110],['國寫',90]]],
       note:'沒有英聽，英聽的位置換成數學 B。國文「整個一起標」：國綜、國寫是兩節，但標示與抽離當成一個。'},
-    ast:{rows:[['物理',1,80,1],['化學',2,80,1],['數學甲',3,80,1],['生物',4,80,1],['歷史',5,80,2],['地理',6,80,2],['數學乙',7,80,2],['公民與社會',8,80,2]],
-      note:'兩天各 4 節、共 8 節，一節一科，順序固定、與正式考試相同，每節 80 分鐘。學校偶爾把兩天壓成一天、文理組同節考不同科（例如 114 下學期第 6 次），那是特例：把兩科改成同一個節次編號即可。'},
-    bcct:{rows:[['社會',1,70,1],['數學',2,80,1],['國文',3,70,1],['寫作測驗',4,50,1],['自然',5,70,2],['英語閱讀',6,60,2],['英語聽力',7,25,2]],
-      note:'順序與時長同正式會考，兩天共 7 節。會考不需要抽離，節次與時長只用在標籤與日程顯示。'}};
-  function schGet(t){S.sch=S.sch||{};if(!S.sch[t]){var d=SCH_DEF[t];S.sch[t]={rows:d.rows.map(function(r){return{n:r[0],sec:r[1],dur:r[2],day:r[3]}}),times:{}}}return S.sch[t]}
+    ast:{days:[[['物理',80],['化學',80],['數學甲',80],['生物',80]],[['歷史',80],['地理',80],['數學乙',80],['公民與社會',80]]],
+      note:'兩天各 4 節、共 8 節，順序與正式考試相同，每節 80 分鐘。學校偶爾把兩天壓成一天、文理組同節考不同科（例如 114 下學期第 6 次），那是特例：勾「與上一科同節」即可。'},
+    bcct:{days:[[['社會',70],['數學',80],['國文',70],['寫作測驗',50]],[['自然',70],['英語閱讀',60],['英語聽力',25]]],
+      note:'順序與時長同正式會考。會考不需要抽離，節次與時長只用在標籤與日程顯示。'}};
+  function schGet(t){S.sch=S.sch||{};if(!S.sch[t]){S.sch[t]={days:SCH_DEF[t].days.map(function(d){return d.map(function(r){return{n:r[0],dur:r[1],same:false,time:''}})})}}return S.sch[t]}
   function schedTab(){
-    var T=S.schT||'g12',d=SCH_DEF[T],D2=schGet(T),secs={};
-    D2.rows.forEach(function(r,i){var k=r.sec||0;(secs[k]=secs[k]||[]).push(i)});
-    var keys=Object.keys(secs).map(Number).sort(function(a,b){return a-b});
-    function row(i){var r=D2.rows[i],tag='';
-      if(r.n==='國綜'||r.n==='國寫')tag='<span class="badge b-acc">國文：整個一起標</span>';
-      if(r.n==='英聽'&&T==='g12')tag='<span class="pending">待確認：是否每次都排第一天最後一節</span>';
-      return '<div class="scrow"><div class="field"><span class="lab">科目</span><input class="input" data-scf="n" data-sci="'+i+'" value="'+esc(r.n)+'" aria-label="科目名稱"></div><div class="field"><span class="lab">節次</span><input class="input" type="number" min="1" data-scf="sec" data-sci="'+i+'" value="'+(r.sec||'')+'" aria-label="節次編號" placeholder="—"></div><div class="field"><span class="lab">時長（分鐘）</span><input class="input" type="number" min="1" data-scf="dur" data-sci="'+i+'" value="'+(r.dur||'')+'" aria-label="時長（分鐘）" placeholder="—"></div><button class="btn btn-sm btn-danger del" data-act="scdel" data-i="'+i+'" aria-label="刪除'+esc(r.n)+'">刪除</button>'+(tag?'<div style="grid-column:1/-1">'+tag+'</div>':'')+'</div>'}
-    var lastDay=0,blocks=keys.map(function(k){var ix=secs[k],multi=ix.length>1,dy=D2.rows[ix[0]].day,head='';
-      if(dy!==lastDay){head='<div class="scday">第 '+(dy===1?'一':'二')+' 天</div>';lastDay=dy}
-      return head+'<div class="scgrp'+(multi?' multi':'')+'"><div class="schd"><b>'+(k?'第 '+k+' 節':'還沒排節次')+'</b>'+(multi?'<span class="badge b-acc">'+ix.length+' 科同時進行</span>':'')+(k?'<label class="tm"><span class="small muted">開始時間（選填）</span><input class="input" type="time" data-sct="'+k+'" value="'+(D2.times[k]||'')+'" aria-label="第'+k+'節開始時間"></label>':'')+'</div>'+ix.map(row).join('')+(k?'<div class="row"><button class="btn btn-sm" data-act="scadd" data-sec="'+k+'">＋ 這一節再加一科</button></div>':'')+'</div>'}).join('');
+    var T=S.schT||'g12',d=SCH_DEF[T],D2=schGet(T),sec=0;
+    var cols=D2.days.map(function(day,di){
+      var rows=day.map(function(r,i){
+        if(!(r.same&&(di>0||i>0)))sec++;
+        var tag=(r.n==='國綜'||r.n==='國寫')?'<span class="badge b-acc">國文：整個一起標</span>':(r.n==='英聽'&&T==='g12'?'<span class="badge">英聽固定排第一天最後一節</span>':'');
+        return '<div class="ttr'+(r.same?' same':'')+'" data-sdrop="'+di+','+i+'"><span class="sgrip" draggable="true" data-sdrag="'+di+','+i+'" title="拖拉改順序" aria-hidden="true">⠿</span><span class="sn">第 '+sec+' 節</span><input class="input" data-scf="n" data-sd="'+di+'" data-sci="'+i+'" value="'+esc(r.n)+'" aria-label="科目名稱"><span class="dur"><input class="input" type="number" min="1" data-scf="dur" data-sd="'+di+'" data-sci="'+i+'" value="'+(r.dur||'')+'" aria-label="時長（分鐘）"><span>分</span></span>'+
+          '<span class="ops"><button class="btn btn-sm btn-ghost" data-act="scmv" data-d="'+di+'" data-i="'+i+'" data-dir="-1" aria-label="上移">↑</button><button class="btn btn-sm btn-ghost" data-act="scmv" data-d="'+di+'" data-i="'+i+'" data-dir="1" aria-label="下移">↓</button><button class="btn btn-sm btn-danger" data-act="scdel" data-d="'+di+'" data-i="'+i+'" aria-label="刪除'+esc(r.n)+'">×</button></span>'+
+          '<span class="sub"><label><input type="checkbox" data-scs data-sd="'+di+'" data-sci="'+i+'"'+(r.same?' checked':'')+(di===0&&i===0?' disabled':'')+'>與上一科同節</label><label>開始時間（選填）<input class="input" type="time" data-sct data-sd="'+di+'" data-sci="'+i+'" value="'+esc(r.time||'')+'"></label>'+tag+'</span></div>'}).join('');
+      return '<div class="ttc"><div class="hd"><span>第 '+(di===0?'一':'二')+' 天</span><span class="small muted">'+day.length+' 科</span></div>'+rows+'<div class="end" data-sdrop="'+di+',end"><button class="btn btn-sm" data-act="scadd" data-d="'+di+'">＋ 新增一科</button></div></div>'}).join('');
     var segT='<div class="seg" role="group" aria-label="考試類型">'+SCH_TYPES.map(function(x){return '<button type="button" data-act="sctype" data-v="'+x[0]+'" aria-pressed="'+(T===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
-    return '<div class="card stack"><div><h3>節次與時長</h3><p class="small muted">每種考試各一份，新增模擬考時自動帶入，可以改。時長比照大考；只看考試時間，不管發卷與休息；開始時間每次可能不同，所以選填，也不會印在標籤上，順序每次都一樣。</p></div>'+
+    return '<div class="card stack"><div><h3>節次與時長</h3><p class="small muted">像學校的模擬考科目表：一天一欄，科目由上往下。<b>最重要的是科目順序</b>：用左邊的 ⠿ 拖拉，或按 ↑↓，也可以拖到另一天；新增模擬考時自動帶入這份順序。時長比照大考，只看考試時間、不管發卷與休息；開始時間每次可能不同，所以選填，也不會印在標籤上。</p></div>'+
       '<div class="row" style="justify-content:space-between">'+segT+'<button class="btn" data-act="scrst">還原「'+(SCH_TYPES.filter(function(x){return x[0]===T})[0][1])+'」預設</button></div>'+
-      '<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>同編號＝同一節、同時進行。</b>'+d.note+'同一節各科的抽離人數會加總，再和預備教室容量比（預設一節一科，只有你自己把兩科改成同節時才會用到）。<br>對應：1 月＝學測、7 月＝分科、5 月＝國中會考。</span><span></span></div>'+
-      blocks+
-      '<div class="row"><button class="btn" data-act="scadd" data-sec="'+((keys.length?keys[keys.length-1]:0)+1)+'">＋ 新增一節</button><span class="small muted">節次編號改掉後，這科會自動移到那一節；刪掉一科後，其餘節次編號不會自動重排。</span></div></div>'}
+      '<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>節次編號依順序自動算；同節＝同時進行。</b>'+d.note+'同一節各科的抽離人數會加總，再和預備教室容量比（預設一節一科，只有勾「與上一科同節」才會用到）。對應：1 月＝學測、7 月＝分科、5 月＝國中會考。</span><span></span></div>'+
+      '<div class="tt">'+cols+'</div></div>'}
   /* ---------- 步驟③：預備教室排座方式（D94-4）與預備教室合併標籤範例（D94-5） ---------- */
   function pmodeCard(){
     var m=S.pmode||1;
@@ -1699,8 +1705,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='stab'){S.stab=g('v');render()}
     else if(a==='sctype'){S.schT=g('v');render()}
     else if(a==='scrst'){var tt=S.schT||'g12';if(S.sch)delete S.sch[tt];render();toast('已還原預設節次與時長')}
-    else if(a==='scdel'){var sd=schGet(S.schT||'g12');sd.rows.splice(+g('i'),1);render()}
-    else if(a==='scadd'){var sa=schGet(S.schT||'g12'),sk=+g('sec'),dd2=(sa.rows.filter(function(x){return x.sec===sk})[0]||sa.rows[sa.rows.length-1]||{day:1}).day;sa.rows.push({n:'新科目',sec:sk,dur:sa.rows.length?(sa.rows[sa.rows.length-1].dur||80):80,day:dd2});render()}
+    else if(a==='scdel'){var sd=schGet(S.schT||'g12');sd.days[+g('d')].splice(+g('i'),1);render()}
+    else if(a==='scadd'){var sa=schGet(S.schT||'g12'),dd=sa.days[+g('d')],lastd=dd.length?dd[dd.length-1].dur:80;dd.push({n:'新科目',dur:lastd||80,same:false,time:''});render()}
+    else if(a==='scmv'){var sm=schGet(S.schT||'g12'),di=+g('d'),ii=+g('i'),dir=+g('dir'),arr=sm.days[di],jj=ii+dir;if(jj>=0&&jj<arr.length){var tmp=arr[ii];arr[ii]=arr[jj];arr[jj]=tmp;render()}else if(jj<0&&di>0){sm.days[di-1].push(arr.splice(ii,1)[0]);render()}else if(jj>=arr.length&&di<sm.days.length-1){sm.days[di+1].unshift(arr.splice(ii,1)[0]);render()}}
     else if(a==='pmode'){S.pmode=+g('v');render()}
     else if(a==='rgrp'){S.rgrp=S.rgrp||{};var ra=S.rgrp[g('r')]||[],gi=+g('g'),ix=ra.indexOf(gi);if(ix>-1)ra.splice(ix,1);else ra.push(gi);S.rgrp[g('r')]=ra;render()}
     else if(a==='ccol'){pushUndo('班級色');var dd=D(),ci=+g('c'),kk=+g('k'),used=dd.cls.some(function(x,i2){return i2!==ci&&(x.col||i2+1)===kk});dd.cls[ci].col=kk;render();toast(used?'已改色；這個顏色另一個班也在用，建議換一個':'已改班級色，座位表與標籤同步更新')}
@@ -1727,7 +1734,12 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='ps'){S.ps=g('s');render()}
     else if(a==='expgo'){var fl=exportFiles(e);showModal('<div class="modal" role="dialog" aria-label="下載"><h3>下載 '+fl.length+' 個檔案？</h3><p class="muted small">會寫入「'+esc(FN())+'\\'+esc(e.name)+'\\下載\\」。原型只模擬，不會真的產生檔案。</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="egodo">下載</button></div></div>',function(ev2){if(ev2.target.id!=='egodo')return;S.expDone=fl;closeModal();render();toast('已下載 '+fl.length+' 個檔案（模擬）')})}
   });
-  $('#app').addEventListener('change',function(ev){var scf=ev.target.getAttribute&&ev.target.getAttribute('data-scf'),sct=ev.target.getAttribute&&ev.target.getAttribute('data-sct');if(scf||sct){var sc2=schGet(S.schT||'g12');if(sct){sc2.times[sct]=ev.target.value;return}var rw=sc2.rows[+ev.target.getAttribute('data-sci')];if(rw){var v=ev.target.value;if(scf==='n')rw.n=v;else rw[scf]=Math.max(0,parseInt(v,10)||0)}if(scf==='sec')render();return}var fk=ev.target.getAttribute&&ev.target.getAttribute('data-feat');if(fk){FEAT[fk]=ev.target.checked;render();return}var sk=ev.target.getAttribute&&ev.target.getAttribute('data-sw');if(sk){S.rsw=S.rsw||{};S.rsw[sk]=ev.target.checked;if(sk.charAt(0)==='p'){markStale();render();return}var stx=ev.target.parentNode.querySelector('.st');if(stx)stx.textContent=ev.target.checked?'已列入':'未列入';var rrw=ev.target.closest('.roomrow');if(rrw)rrw.classList.toggle('off',!ev.target.checked);return}if(ev.target.getAttribute&&ev.target.getAttribute('data-act')==='eck'){S.exp[ev.target.getAttribute('data-k')]=ev.target.checked;S.expDone=null;render()}});
+  $('#app').addEventListener('change',function(ev){var tg=ev.target,scf=tg.getAttribute&&tg.getAttribute('data-scf');if(scf||(tg.hasAttribute&&(tg.hasAttribute('data-scs')||tg.hasAttribute('data-sct')))){var sc2=schGet(S.schT||'g12'),rw=sc2.days[+tg.getAttribute('data-sd')][+tg.getAttribute('data-sci')];if(rw){if(tg.hasAttribute('data-scs')){rw.same=tg.checked;render();return}if(tg.hasAttribute('data-sct')){rw.time=tg.value;return}if(scf==='n')rw.n=tg.value;else rw.dur=Math.max(0,parseInt(tg.value,10)||0)}return}var fk=ev.target.getAttribute&&ev.target.getAttribute('data-feat');if(fk){FEAT[fk]=ev.target.checked;render();return}var sk=ev.target.getAttribute&&ev.target.getAttribute('data-sw');if(sk){S.rsw=S.rsw||{};S.rsw[sk]=ev.target.checked;if(sk.charAt(0)==='p'){markStale();render();return}var stx=ev.target.parentNode.querySelector('.st');if(stx)stx.textContent=ev.target.checked?'已列入':'未列入';var rrw=ev.target.closest('.roomrow');if(rrw)rrw.classList.toggle('off',!ev.target.checked);return}if(ev.target.getAttribute&&ev.target.getAttribute('data-act')==='eck'){S.exp[ev.target.getAttribute('data-k')]=ev.target.checked;S.expDone=null;render()}});
+  (function(){var ap=$('#app');function clr(){[].forEach.call(ap.querySelectorAll('.over,.dragging'),function(x){x.classList.remove('over');x.classList.remove('dragging')})}
+  ap.addEventListener('dragstart',function(ev){var t=ev.target.closest&&ev.target.closest('[data-sdrag]');if(!t)return;S.sdrag=t.getAttribute('data-sdrag');try{ev.dataTransfer.setData('text/plain',S.sdrag);ev.dataTransfer.effectAllowed='move'}catch(x){}var r=t.closest('.ttr');if(r)r.classList.add('dragging')});
+  ap.addEventListener('dragover',function(ev){var t=S.sdrag&&ev.target.closest&&ev.target.closest('[data-sdrop]');if(!t)return;ev.preventDefault();[].forEach.call(ap.querySelectorAll('.over'),function(x){x.classList.remove('over')});t.classList.add('over')});
+  ap.addEventListener('drop',function(ev){var t=S.sdrag&&ev.target.closest&&ev.target.closest('[data-sdrop]');if(!t)return;ev.preventDefault();var a=S.sdrag.split(','),b=t.getAttribute('data-sdrop').split(','),sm=schGet(S.schT||'g12'),sd=+a[0],si=+a[1],dd=+b[0],item=sm.days[sd].splice(si,1)[0];var di=b[1]==='end'?sm.days[dd].length:+b[1];if(sd===dd&&si<di)di--;sm.days[dd].splice(di,0,item);S.sdrag=null;render()});
+  ap.addEventListener('dragend',function(){S.sdrag=null;clr()})})();
   $('#app').addEventListener('input',function(ev){var t=ev.target,rn=t.getAttribute&&t.getAttribute('data-rn');if(rn){var dd=D(),rr=rn.charAt(0)==='p'?dd.prep[+rn.slice(1)]:dd.rooms[+rn.slice(1)];if(rr){rr.name=t.value;markStale()}return}
     if(t.getAttribute&&t.getAttribute('data-sk')&&S.school){S.school[t.getAttribute('data-sk')]=t.value;return}
     if(t.id==='fq'){S.fq=t.value;$('#fres').innerHTML=findHTML();return}
