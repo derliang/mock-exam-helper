@@ -2,7 +2,7 @@
 <html lang="zh-Hant">
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>模擬考小幫手 拉皮方案稿 稿 v2.15</title>
+<title>模擬考小幫手 拉皮方案稿 稿 v2.21</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
 <style>
@@ -171,8 +171,8 @@ ul.rules li::marker{color:var(--text-3)}
 
 /* 步驟導覽：目前位置加左側色條與立體環，已完成／過期用細環 */
 .step{transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
-.step.cur{box-shadow:inset 3px 0 0 var(--accent),var(--shadow-1)}
-.step.cur .no{box-shadow:0 0 0 3px var(--accent-line)}
+.step.cur{box-shadow:inset 3px 0 0 var(--text),var(--shadow-1)}
+.step.cur .no{box-shadow:0 0 0 3px var(--line-2)}
 .step.done .no{box-shadow:inset 0 0 0 1px var(--ok-bar)}
 .step.stale .no{box-shadow:inset 0 0 0 1px var(--warn-bar)}
 .step:not(.cur):hover .no{border-color:var(--accent);color:var(--accent-ink)}
@@ -216,7 +216,7 @@ ul.rules li::marker{color:var(--text-3)}
 
 <div class="wrap">
 <header class="sec">
-  <span class="eyebrow">拉皮方案稿・待你定案・稿 v2.15</span>
+  <span class="eyebrow">拉皮方案稿・待你定案・稿 v2.21</span>
   <h1>模擬考小幫手 整體拉皮</h1>
   <p class="lead">依你的五點要求，先把「說話方式」定下來：字級、區塊、可按與不可按的長相，再把教室開關與 Word／PDF／Excel 格式鈕畫出來，最後用步驟③ 比較兩種版型。定案後才會改 DESIGN.md 並派施工者逐頁改。</p>
 </header>
