@@ -7,7 +7,7 @@ import { describe, expect, it } from 'vitest';
 import { buildEntries, scanExamSheet } from './smartScan';
 import { AST_SUBJECTS } from '../ui/subjects';
 import { scanOptionsFor } from '../ui/pages/ImportWizard';
-import { entryTracks, seatExam, suggestMarks, validateSeating } from '../core';
+import { entryTracks, preferMarkAbsent, seatExam, suggestMarks, validateSeating } from '../core';
 import type { ClassInfo, Classroom, ExamConfig, ExamEntry } from '../data';
 
 const exam = { kind: 'ast', subjects: AST_SUBJECTS } as ExamConfig;
@@ -103,5 +103,20 @@ describe('分科：排座、驗證、標示以考生自己的文理組為準', (
     expect(s.find((x) => x.track === 'liberal' && x.subjectId === 'history')).toMatchObject({ total: 1, taking: 1 });
     expect(entryTracks(entries)?.get('0103')).toBe('liberal');
     expect(entryTracks([{ classNo: 1, seatNo: 1, name: 'x', subjectIds: [] }])).toBeUndefined();
+  });
+});
+
+describe('分科：標示一律標「不考」的人（含多數），不問接近一半', () => {
+  const mk = (taking: number, total: number) => suggestMarks(
+    Array.from({ length: total }, (_, i): ExamEntry => ({ classNo: 4, seatNo: i + 1, name: `生${i}`, subjectIds: i < taking ? ['math-yi'] : ['history'], track: 'liberal' })),
+    [{ no: 4, name: 'D', division: 'senior', track: 'liberal', colorIndex: 1 }], AST_SUBJECTS,
+  ).find((x) => x.subjectId === 'math-yi')!;
+  it('數乙 16 人考、25 人不考（真實第 7 次）：標不考，不再要使用者選', () => {
+    expect(mk(16, 41)).toMatchObject({ suggested: 'mark-extra' }); // 學測的標少數會標「加考」
+    const r = preferMarkAbsent([mk(16, 41)])[0]!;
+    expect(r).toMatchObject({ suggested: 'mark-absent', needsDecision: false });
+  });
+  it('全考或全不考的科仍不標', () => {
+    expect(preferMarkAbsent([mk(0, 5), mk(5, 5)]).map((x) => x.suggested)).toEqual(['none', 'none']);
   });
 });
