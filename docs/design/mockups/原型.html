@@ -669,6 +669,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .btn-xls:hover:not(:disabled){background:var(--fmt-xls-soft);filter:brightness(.97)}
 .stepprog{font-size:13px;font-weight:700;color:var(--text-2);padding:4px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
 @media (max-width:560px){.seg.cmpseg{display:flex;flex-direction:column;width:100%}.seg.cmpseg button{text-align:left;border-top:1px solid var(--line-2)}.seg.cmpseg button:first-child{border-top:0}}
+.stats.side-stats{grid-template-columns:1fr}.stats.side-stats strong{white-space:nowrap}
+/* 分段鈕寬度依內容，不撐滿整列（TODO-04）；班級配色卡內的 .cp .seg 是兩等分切換、本身在窄卡內，維持撐滿 */
+.seg{width:max-content;max-width:100%}
+.cp .seg{width:100%}
+/* 導覽列：品牌＋切換一行，導覽項獨立一行，1280／820／375 都完整可達（窄螢幕導覽列可橫向捲） */
+.pbar{flex-wrap:wrap;row-gap:4px}
+.pbar .nav{order:3;flex:1 1 100%}
+.ws .side{top:104px}
+@media (min-width:561px) and (max-width:1000px){.pbar .nav{flex-wrap:wrap;overflow:visible}}
+@media (min-width:761px) and (max-width:1000px){.ws .side{top:140px}}
 </style>
 
 <div class="pbar">
@@ -816,7 +826,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="card stack"><div><h3>沿用上次的設定</h3><p class="small muted">新增時自動帶入，不用手動複製（D34）</p></div>'+carry+'</div>'}
   function v1side(){
     var e=S.cur,subs=subjectsOf(e);
-    return '<div class="card stack"><div class="lab">本次摘要</div><div class="stats" style="grid-template-columns:1fr 1fr"><div><small>考科</small><strong>'+subs.length+'</strong></div><div><small>學期</small><strong>'+(e.term||'上學期').charAt(0)+'學期</strong></div></div>'+
+    return '<div class="card stack"><div class="lab">本次摘要</div><div class="stats side-stats"><div><small>考科</small><strong>'+subs.length+'</strong></div><div><small>學期</small><strong>'+(e.term||'上學期').charAt(0)+'學期</strong></div></div>'+
       '<p class="small muted">'+typeLabel(e.type)+'・'+e.year+' 學年・'+e.level+'</p></div>'+
       '<div class="card stack"><div class="lab">這一步會影響</div><p class="small muted">② 考試名單比對的科目欄<br>④ 組別對照表的科目<br>⑥ 下載檔案的標題與科目</p>'+(e.type==='學測'&&mathSplit(e)!==(e.round0>=3)?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>次別改了，④ 已標為過期。</span><span></span></div>':'')+'</div>'}
 
