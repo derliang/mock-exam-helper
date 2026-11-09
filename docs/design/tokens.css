@@ -23,9 +23,13 @@
   --c12-bg:#F8D3DC; --c12-line:#E08AA0; --c12-ink:#7A1B38;
   --fmt-word:#2A6AC8; --fmt-pdf:#B8423A; --fmt-xls:#1F7A47;
   --fmt-word-soft:#E6EEFB; --fmt-pdf-soft:#FBEAE8; --fmt-xls-soft:#E3F2E8;
-  --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
-  --shadow-2:0 4px 14px rgba(34,32,27,.10);
-  --shadow-3:0 16px 40px rgba(34,32,27,.22);
+  --shadow-1:0 1px 2px rgba(34,32,27,.07),0 2px 6px -2px rgba(34,32,27,.06);
+  --shadow-2:0 2px 4px rgba(34,32,27,.06),0 10px 24px -8px rgba(34,32,27,.16);
+  --shadow-3:0 4px 8px rgba(34,32,27,.08),0 24px 48px -12px rgba(34,32,27,.30);
+  --shadow-accent:0 1px 2px rgba(39,70,144,.35),0 5px 12px -5px rgba(39,70,144,.50);
+  --shadow-inset:inset 0 1px 2px rgba(34,32,27,.08);
+  --shadow-bar:0 8px 14px -12px rgba(34,32,27,.40);
+  --ease:cubic-bezier(.2,.7,.2,1); --dur:.16s;
   --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
   --f-ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --f-head:"Noto Serif TC","Noto Sans TC","PMingLiU",serif;
@@ -55,7 +59,8 @@
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
   --fmt-word:#5B93E6; --fmt-pdf:#E0766E; --fmt-xls:#4DB57A;
   --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
-  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
+  --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#13120E; --surface:#1C1A15; --sunken:#17150F;
@@ -81,6 +86,7 @@
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
   --fmt-word:#5B93E6; --fmt-pdf:#E0766E; --fmt-xls:#4DB57A;
   --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
-  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
+  --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}
 

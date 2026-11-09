@@ -34,9 +34,13 @@
   --c10-bg:#EBDCCB; --c10-line:#C09A72; --c10-ink:#5C3A17;
   --c11-bg:#DFE3E8; --c11-line:#9AA5B1; --c11-ink:#2F3B48;
   --c12-bg:#F8D3DC; --c12-line:#E08AA0; --c12-ink:#7A1B38;
-  --shadow-1:0 1px 2px rgba(34,32,27,.08),0 1px 1px rgba(34,32,27,.04);
-  --shadow-2:0 4px 14px rgba(34,32,27,.10);
-  --shadow-3:0 16px 40px rgba(34,32,27,.22);
+  --shadow-1:0 1px 2px rgba(34,32,27,.07),0 2px 6px -2px rgba(34,32,27,.06);
+  --shadow-2:0 2px 4px rgba(34,32,27,.06),0 10px 24px -8px rgba(34,32,27,.16);
+  --shadow-3:0 4px 8px rgba(34,32,27,.08),0 24px 48px -12px rgba(34,32,27,.30);
+  --shadow-accent:0 1px 2px rgba(39,70,144,.35),0 5px 12px -5px rgba(39,70,144,.50);
+  --shadow-inset:inset 0 1px 2px rgba(34,32,27,.08);
+  --shadow-bar:0 8px 14px -12px rgba(34,32,27,.40);
+  --ease:cubic-bezier(.2,.7,.2,1); --dur:.16s;
   --r-sm:8px; --r-md:12px; --r-lg:16px; --r-xl:24px;
   --f-ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
   --f-head:"Noto Serif TC","Noto Sans TC","PMingLiU",serif;
@@ -66,7 +70,8 @@
   --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
   --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
-  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
+  --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}}
 :root[data-theme="dark"]{
   --bg:#13120E; --surface:#1C1A15; --sunken:#17150F;
@@ -92,7 +97,8 @@
   --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
   --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
   --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
-  --shadow-1:0 1px 2px rgba(0,0,0,.5); --shadow-2:0 4px 14px rgba(0,0,0,.5); --shadow-3:0 16px 40px rgba(0,0,0,.7);
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
+  --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}
 
 *{box-sizing:border-box}
@@ -435,8 +441,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .modal{max-height:calc(100vh - 32px);overflow:auto}
 .modal .t{min-width:0}
 /* UI-03：拖拉資料夾 */
-.dropzone{display:grid;gap:4px;justify-items:center;text-align:center;padding:22px 16px;border:2px dashed var(--accent-line);border-radius:var(--r-lg);background:var(--accent-soft);color:var(--accent-ink);cursor:pointer}
-.dropzone strong{font-size:14px}
+.dropzone{display:grid;gap:8px;justify-items:center;align-content:center;text-align:center;min-height:clamp(200px,34vh,380px);padding:28px 20px;border:2px dashed var(--accent-line);border-radius:var(--r-lg);background:var(--accent-soft);color:var(--accent-ink);cursor:pointer}
+.dropzone strong{font-size:18px}
 .dropzone:hover,.dropzone.over{border-color:var(--accent);background:var(--surface)}
 .dropzone:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 /* UI-04：表單欄位對齊（每格都有提示行，高度一致）*/
@@ -477,7 +483,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .lprev-cell{display:grid;border-top:1px solid var(--cut);border-left:1px solid var(--cut)}
 .lprev-cell .lcell{height:100%}
 .lprev figcaption{font-size:12px;color:var(--text-2);margin-top:6px;line-height:1.4}
-.lcell{position:relative;display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:center;border-right:1px solid var(--cut);border-bottom:1px solid var(--cut);padding:1.2cqw .4cqw 1.4cqw;row-gap:.9cqw;text-align:center;font-family:var(--f-no);overflow:hidden;min-width:0;color:var(--text);line-height:1.15}
+.lcell{position:relative;display:grid;grid-template-rows:1fr auto auto;justify-items:center;align-items:center;border-right:1px solid var(--cut);border-bottom:1px solid var(--cut);padding:1.2cqw .4cqw 1.4cqw;row-gap:.9cqw;text-align:center;font-family:var(--f-no);overflow:hidden;min-width:0;color:#22201B;line-height:1.15}
 .lcell .no{font-size:4.8cqw;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;padding-top:1cqw;line-height:1.1;align-self:end}
 .lcell .nm{font-size:2.5cqw;font-weight:700;white-space:nowrap;line-height:1.2}
 .lcell .tag-c{color:var(--cx);margin-right:1cqw;padding-right:1cqw;border-right:.3cqw solid var(--cx)}
@@ -486,8 +492,10 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .lcell .mks:has(.mk:nth-child(2)) .mk{font-size:1.5cqw;line-height:2cqw;padding:0 .5cqw;border-width:.3cqw}
 .lcell .mks:has(.mk:nth-child(3)) .mk{font-size:1.35cqw;line-height:1.7cqw;padding:0 .4cqw}
 .lcell .mk{font-size:1.9cqw;font-weight:700;padding:0 .7cqw;line-height:2.4cqw;border-radius:3px;white-space:nowrap}
-.lcell.mk-x .mk{background:var(--att-fill);color:var(--att-on);border:.4cqw solid var(--att-fill)}
-.lcell.mk-add .mk{background:var(--surface);color:var(--text);border:.4cqw solid var(--text)}
+.lcell.mk-x .mk{background:#22201B;color:#fff;border:.4cqw solid #22201B}
+.lcell.mk-add .mk{background:#fff;color:#22201B;border:.4cqw solid #22201B}
+/* 標籤白底；特殊情形（不考、加考、抽離）一律淡黃底＋深色內框＋底部小標；班級靠「班級｜姓名」小字分辨，不用班級色（使用者定案，DESIGN 第六章；座位表仍用班級色）*/
+.lcell.sp{box-shadow:inset 0 0 0 .5cqw #22201B}
 .lcell.blank{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,var(--line-2) 5px 10px)}
 /* UI-23：抽離座位表改柔和單色（深淺色都用主色淡底），班級字與座標照印，黑白列印仍分得出 */
 .chart.pull{--cw:104px;--ch:112px}
@@ -496,6 +504,133 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .chart.pull .cell:not(.empty-seat) .no{font-size:25px}
 .chart.pull .cell:not(.empty-seat) .meta{font-size:13px;font-weight:700}
 .chart.pull .cell .mk{font-size:12px}
+/* ===== 第二輪拉皮（D90，2026-11-09）：只改外觀——層次、主次、回饋。不動結構、欄數、內容、字級（仍四級）===== */
+/* 層次：頁面底 < 卡片（shadow-1）< 懸停／展開（shadow-2）< 對話框、提示（shadow-3）。主要動作才用 shadow-accent */
+.btn,.icon-btn{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.btn:hover,.icon-btn:hover{box-shadow:var(--shadow-2)}
+.btn:active,.icon-btn:active{transform:translateY(1px);box-shadow:none}
+.btn-primary{box-shadow:var(--shadow-accent)}
+.btn-primary:hover{box-shadow:var(--shadow-accent),0 8px 16px -8px rgba(39,70,144,.45)}
+.btn-primary:active{filter:brightness(.94);box-shadow:none}
+.btn-ghost,.btn-ghost:hover,.btn[disabled],.btn[disabled]:hover{box-shadow:none}
+.btn[disabled]:active{transform:none}
+.btn-danger:hover{box-shadow:var(--shadow-1)}
+
+/* 輸入：凹陷底＋聚焦轉成表面色 */
+.input{box-shadow:var(--shadow-inset);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.input:focus{background:var(--surface);border-color:var(--accent)}
+
+/* 分段鈕、開關、格式鈕 */
+.seg{box-shadow:var(--shadow-inset)}
+.seg button{transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+.seg button:hover:not([aria-pressed="true"]):not(:disabled){background:var(--line);color:var(--text)}
+.seg button[aria-pressed="true"]{box-shadow:inset 0 -2px 0 rgba(0,0,0,.22)}
+.seg.seg-soft button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.trk{box-shadow:inset 0 1px 2px rgba(0,0,0,.18)}
+.trk::after{box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform var(--dur) var(--ease)}
+.sw:hover input:not(:checked)+.trk{background:var(--text-3)}
+.sw:hover input:checked+.trk{filter:brightness(1.12)}
+.fmt span{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.fmt:hover span{box-shadow:var(--shadow-2)}
+.fmt.w input:checked+span{box-shadow:0 0 0 1px var(--fmt-word),var(--shadow-1)}
+.fmt.p input:checked+span{box-shadow:0 0 0 1px var(--fmt-pdf),var(--shadow-1)}
+.fmt.x input:checked+span{box-shadow:0 0 0 1px var(--fmt-xls),var(--shadow-1)}
+
+/* 步驟導覽：目前位置加左側色條與立體環，已完成／過期用細環 */
+.step{transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.step.cur{box-shadow:inset 3px 0 0 var(--accent),var(--shadow-1)}
+.step.cur .no{box-shadow:0 0 0 3px var(--accent-line)}
+.step.done .no{box-shadow:inset 0 0 0 1px var(--ok-bar)}
+.step.stale .no{box-shadow:inset 0 0 0 1px var(--warn-bar)}
+.step:not(.cur):hover .no{border-color:var(--accent);color:var(--accent-ink)}
+
+/* 統計列：每格頂端一小段色條，異常格用警示色；整體浮起一層 */
+.stats{box-shadow:var(--shadow-1)}
+.stats>div{position:relative;padding-top:13px}
+.stats>div::before{content:"";position:absolute;left:14px;top:0;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--accent-line)}
+.stats .bad::before{background:var(--danger)}
+
+/* 提示條：左側 4px 色條表達語氣，不再只靠底色 */
+.alert{box-shadow:inset 4px 0 0 var(--bar,var(--line-2));padding-left:18px}
+.a-info{--bar:var(--accent)} .a-warn{--bar:var(--warn-bar)} .a-err{--bar:var(--danger)} .a-ok{--bar:var(--ok-bar)}
+
+/* 表格：表頭加粗底線、列懸停有過渡 */
+.t th{border-bottom:2px solid var(--line-2)}
+.t tbody tr{transition:background var(--dur) var(--ease)}
+
+/* 可點的卡片：懸停浮起、選中有外環 */
+.exam,.tcard,.roomrow{transition:box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur) var(--ease),background var(--dur) var(--ease)}
+.exam:hover{box-shadow:var(--shadow-2);border-color:var(--line-2)}
+.tcard:hover:not(:disabled){box-shadow:var(--shadow-2);transform:translateY(-1px)}
+.tcard[aria-pressed="true"]{box-shadow:0 0 0 1px var(--accent),var(--shadow-2)}
+.roomrow:hover{border-color:var(--line-2);box-shadow:var(--shadow-1)}
+.roomrow.on{box-shadow:inset 3px 0 0 var(--accent)}
+.fakepick button{transition:background var(--dur) var(--ease)}
+.dropzone{transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.dropzone:hover,.dropzone.over{box-shadow:var(--shadow-2)}
+
+/* 頁首列與對話框 */
+.pbar{box-shadow:var(--shadow-bar)}
+.pbar .nav button{transition:background var(--dur) var(--ease)}
+.pbar .nav button[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--accent)}
+.mfade{backdrop-filter:blur(2px)}
+.utabs button{transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+/* 層次補強：外框底改用凹陷色，卡片（surface）才浮得起來；表格隔列淡底方便橫向對讀 */
+.wrap{background:var(--sunken);border-color:var(--line)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap){background:rgba(111,104,88,.06)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap):hover{background:var(--accent-soft)}
+/* ===== 步驟⑥ 預覽：真實匯出的紙面樣式（同 設計系統.html 座位表與標籤、src/export/htmlRender.ts；紙面永遠淺色，單位 mm）===== */
+.pp-stage{display:flex;justify-content:center;padding:14px;background:var(--sunken);border-radius:var(--r-md);overflow:auto}
+.pp-fit{position:relative;flex:none}
+/* 紙面：永遠淺色，單位 mm（1mm＝3.7795px） */
+.pp{--ink:#22201B;--navy:#1F3A5F;--gray:#6B6657;--cut:#8E8670;--red:#C0262D;
+  --c1:#FBE7C6;--c1i:#6B4300;--c2:#D8EFD3;--c2i:#1F5A1A;--c3:#D6E6F8;--c3i:#1A4478;
+  position:absolute;left:0;top:0;transform-origin:0 0;background:#fff;color:var(--ink);box-shadow:0 2px 12px rgba(0,0,0,.18);
+  font-family:'Noto Sans TC','Microsoft JhengHei',sans-serif;overflow:hidden}
+.pp,.pp *{box-sizing:border-box}
+.pp-gray{filter:grayscale(1)}
+.pp .pp-hd{display:flex;justify-content:space-between;align-items:flex-end;border-bottom:.8mm solid var(--navy);padding-bottom:3mm}
+.pp .pp-h1{color:var(--navy);font-weight:700;font-size:15pt;letter-spacing:.04em}
+.pp .pp-h2{font-family:'Noto Serif TC','PMingLiU',serif;font-weight:700;font-size:28pt;line-height:1.1;margin-top:1mm}
+.pp .pp-room{display:block;background:var(--navy);color:#fff;border-radius:1.2mm;padding:1.6mm 6mm;font-weight:700;font-size:16pt}
+.pp .pp-chips{display:flex;gap:2mm;flex-wrap:wrap;margin:3.5mm 0 0}
+.pp .pp-chip{border:.3mm solid var(--navy);color:var(--navy);border-radius:5mm;padding:.6mm 3.5mm;font-size:12pt;font-weight:700}
+.pp .pp-chip.s{background:var(--navy);color:#fff}
+.pp .pp-grid{display:grid;border-top:.35mm solid var(--cut);border-left:.35mm solid var(--cut);width:max-content}
+.pp.pp-seat .pp-grid{border:.7mm solid var(--ink)}
+.pp .pp-c{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4mm;border-right:.35mm solid var(--cut);border-bottom:.35mm solid var(--cut);text-align:center}
+.pp.pp-seat .pp-c{border-right-width:.3mm;border-bottom-width:.3mm}
+.pp .pp-co{position:absolute;right:1.1mm;top:.8mm;font-style:normal;font-weight:700;color:#4A463A;font-size:6.5pt;line-height:1;font-variant-numeric:tabular-nums}
+.pp .pp-no{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;line-height:1}
+.pp .pp-nm{font-weight:500;line-height:1.15;white-space:nowrap}
+.pp .pp-nm em{font-style:normal;font-weight:700;margin-right:1.2mm;padding-right:1.2mm;border-right:.3mm solid currentColor}
+.pp .pp-mk{display:block;font-weight:700;line-height:1.25;padding:0 1.4mm;border-radius:.6mm;white-space:nowrap}
+.pp .pp-mk.x{background:var(--ink);color:#fff;border:.3mm solid var(--ink)}
+.pp .pp-mk.add{background:#fff;color:var(--ink);border:.45mm double var(--ink)}
+.pp .pp-c.mk{box-shadow:inset 0 0 0 .7mm var(--ink)}
+.pp .pp-e{background:repeating-linear-gradient(135deg,#F1EDE0 0 1.2mm,#E2DCC8 1.2mm 2.4mm)}
+/* 格內分三區（編號區／姓名／標示區固定高），有沒有標示位置都一樣，三區之間有留白，不擠在中間 */
+.pp.pp-lab .pp-c{display:grid;grid-template-rows:1fr auto 9mm;justify-items:center;align-items:center;gap:0;padding:5mm 1mm .8mm}
+.pp.pp-lab .pp-no{align-self:end;margin-bottom:2.6mm;font-size:31pt}.pp.pp-lab .pp-nm{font-size:15pt}.pp.pp-lab .pp-mk{font-size:12pt}.pp.pp-lab .pp-co{font-size:9pt}
+.pp.pp-lab.b4 .pp-no{font-size:33pt}
+.pp.pp-seat .pp-c{display:grid;grid-template-rows:1fr auto 5.2mm;justify-items:center;align-items:center;gap:0;padding:4.5mm .5mm .8mm}
+.pp.pp-seat .pp-no{font-size:19pt}.pp.pp-seat .pp-nm{font-size:8.5pt}.pp.pp-seat .pp-mk{font-size:7.5pt}
+.pp .pp-note{margin-top:8mm;font-size:20pt;line-height:1.75;border:.3mm solid var(--cut);border-left:2.4mm solid var(--navy);border-radius:1.5mm;padding:5mm 9mm;background:#FBF8EE;width:max-content;max-width:100%}
+.pp .pp-note h4{margin:0 0 2mm;color:var(--navy);font-size:22pt}
+.pp .pp-note b{font-weight:700}
+.pp.b4 .pp-note{margin-top:5mm;font-size:13pt;padding:3mm 6mm;border-left-width:1.8mm}.pp.b4 .pp-note h4{font-size:14pt;margin-bottom:1mm}
+.pp .pp-foot{position:absolute;left:0;right:0;bottom:6mm;text-align:center;font-size:9.5pt;color:var(--gray)}
+.pp .pp-bottom{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;margin-top:3mm}
+.pp .pp-bottom .l{font-size:9pt}
+.pp .pp-pod{border:.5mm solid var(--ink);padding:1.2mm 12mm;font-weight:700;font-size:13pt;letter-spacing:.6em;padding-left:calc(12mm + .6em)}
+.pp .pp-ax{display:grid;font-size:7pt;font-weight:700;color:var(--gray);text-align:center;margin-top:.8mm}
+.pp .pp-wrapg{display:grid;grid-template-columns:5mm auto;justify-content:center;gap:0 1.5mm}
+.pp .pp-ay{display:grid;font-size:7pt;font-weight:700;color:var(--gray);align-items:center;justify-items:end}
+.pp .pp-st{width:100%;border-collapse:collapse;font-size:13pt;margin-top:5mm}
+.pp .pp-st th,.pp .pp-st td{border:.3mm solid var(--cut);padding:.8mm 2mm;text-align:center}
+.pp .pp-st th{background:#F3EEDD;font-weight:700}
+.pp .pp-st td:first-child{text-align:left}
+.pp .pp-st td.t{font-weight:700}
 </style>
 
 <div class="pbar">
@@ -567,7 +702,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="card stack"><h2 style="font-size:26px">第一次使用：選一個放資料的資料夾</h2>'+
       '<p class="muted">學生名單與座位結果只存在你的電腦，本網站不會把它們上傳到網路。請選一個你找得到的資料夾；若這個資料夾由雲端硬碟同步，同步軟體仍可能把檔案上傳。下次開啟時會先嘗試沿用這個資料夾，瀏覽器可能要你重新授權。</p>'+
       '<div class="dropzone" id="dz" tabindex="0" role="button" data-act="pick" aria-label="把資料夾拖到這裡，或按一下選擇資料夾"><strong>把資料夾拖到這裡</strong><span class="small">放開後會請你確認授權。按「選擇資料夾」出現問題時（例如視窗打不開），用拖拉最穩；按一下這個區塊也能選擇。</span></div>'+
-      '<div class="row"><span class="small muted">或者</span><button class="btn btn-primary btn-lg" data-act="pick">選擇資料夾</button><span class="small muted">需要 Chrome 瀏覽器</span></div></div>'+
+      '<div class="row"><span class="small muted">或者</span><button class="btn btn-primary btn-lg" data-act="pick">選擇資料夾</button><button class="btn btn-lg" data-act="pick">繼續使用上次的資料夾</button><span class="small muted">需要 Chrome 瀏覽器</span></div></div>'+
       '<div class="alert a-info"><span class="ico" data-i="i"></span><span>每次模擬考都會在這個資料夾裡自己放一個資料夾，不同次的資料不會互相蓋掉。</span><span></span></div>'+
       '<p class="small muted">原型說明：實際的資料夾選擇視窗由瀏覽器提供，這裡只能模擬；拖拉可以真的拖一個資料夾到框裡試試，但不會讀取任何檔案。</p></div>'}
   function vList(){
@@ -850,9 +985,56 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="tpldo">下載範本</button></div></div>',
       function(ev){if(ev.target.id==='tpldo'){closeModal();toast('已下載「'+file+'」（模擬）')}})}
   function lsheetHTML(room,seq,paper){
-    var A3=paper==='A3',N=48,w=A3?297:250,h=A3?420:353,cells='';
-    for(var i=0;i<N;i++){var q=seq[i];cells+=q?labelHTML(q[0],q[1]):'<div class="lcell blank" aria-label="這一格沒有標籤"></div>'}
-    return '<div class="lsheet-wrap"><div class="lsheet-box" style="width:'+(A3?100:84.2)+'%"><div class="lsheet" role="img" aria-label="'+paper+' 標籤紙預覽">'+cells+'</div></div><p class="small muted lsheet-cap">'+paper+'（'+w+'×'+h+' mm）・6 欄 × 8 列 ＝ 48 格・每格 '+(w/6).toFixed(1)+'×'+(h/8).toFixed(1)+' mm（固定，不隨人數變）・'+esc(room.name)+' '+seq.length+' 張，一張紙為限'+(seq.length>N?'；<b>超過 48 格，請減少教室座位</b>':'')+'</p></div>'}
+    /* 與真實下載檔同一版面：表頭（考試名稱＋標籤＋教室章）、格子、注意事項、頁尾（htmlRender.ts labelHtml）。
+       標籤白底；有標示（不考、加考、抽離）整格淡黃 #FFE08A＋黑內框，同類標示合併成一個小標（X 數B、社會）。
+       示範教室是 9 排×5 深位，超出紙面 6 排；預覽把座位依序由左下往上排進 6 排×8 深位（真實下載要求教室在紙面格數內）。 */
+    var A3=paper==='A3',cols=A3?7:6,rows=A3?7:8,PW=A3?297:250,PH=A3?420:353,margin=10;
+    var cw=A3?35:+((PW-2*margin)/cols).toFixed(2),ch=A3?35:33.6,padX=Math.max(margin,+((PW-cols*cw)/2).toFixed(2));
+    var e=S.cur,cells=[];
+    for(var i=0;i<cols*rows;i++)cells.push(null);
+    seq.forEach(function(q,i){var c=Math.floor(i/rows),r=i%rows;if(c<cols)cells[(rows-1-r)*cols+c]=q});
+    var g='';
+    cells.forEach(function(q){
+      if(!q){g+='<div class="pp-c pp-e" style="width:'+cw+'mm;height:'+ch+'mm"></div>';return}
+      var s=q[0],mk=marksOf(e,s),o=ovrOf(s),m={};
+      if(o)(m[o.kind==='考試'?'add':'x']=m[o.kind==='考試'?'add':'x']||{h:o.kind==='考試'?'＋':'X',s:[]}).s.push('→'+o.place);
+      else mk.forEach(function(t){var k=t.charAt(0)==='X'?'x':'add';(m[k]=m[k]||{h:t.charAt(0)==='X'?'X ':'＋',s:[]}).s.push(t.slice(1))});
+      var has=Object.keys(m).length,mks=Object.keys(m).map(function(k){return '<span class="pp-mk '+k+'">'+m[k].h+m[k].s.join('、')+'</span>'}).join('');
+      g+='<div class="pp-c'+(has?' mk':'')+'" style="width:'+cw+'mm;height:'+ch+'mm;background:'+(has?'#FFE08A':'#fff')+'"><i class="pp-co">'+q[1]+'</i><b class="pp-no">'+s.id+'</b><span class="pp-nm"><em>'+CNAME[s.c]+'</em><span>'+esc(s.name)+'</span></span>'+mks+'</div>'});
+    var first=seq[0]?seq[0][0].id:'';
+    var note='<div class="pp-note"><h4>注意事項：</h4><div>*<b>'+first+'</b>開始為第一排第一個位置以此類推。</div><div>*請貼於桌面<b>右上角</b>。</div><div>*請使用<b>透明膠帶</b>黏貼。</div></div>';
+    var title='【'+e.year+'學年第'+CN[e.round]+'次'+e.type+'模擬考】';
+    var page='<div class="pp pp-lab '+(A3?'a3':'b4')+'" style="width:'+PW+'mm;height:'+PH+'mm;padding:'+margin+'mm '+padX+'mm">'+
+      '<div class="pp-hd" style="margin-bottom:3mm"><div><div class="pp-h1">'+title+'　標籤</div></div><span class="pp-room" style="font-size:12pt;padding:1mm 4mm">'+esc(room.name)+'</span></div>'+
+      '<div class="pp-grid" style="grid-template-columns:repeat('+cols+','+cw+'mm)">'+g+'</div>'+note+
+      '<div class="pp-foot">產生時間：2026-11-08 07:30（台北）　資料版本碼：DMJ0-A3J0</div></div>';
+    return '<div class="pp-stage"><div class="pp-fit" data-w="'+PW+'" data-h="'+PH+'">'+page+'</div></div><p class="small muted lsheet-cap">'+paper+'（'+PW+'×'+PH+' mm）・'+cols+' 排 × '+rows+' 深位 ＝ '+(cols*rows)+' 格・每格 '+cw+'×'+ch+' mm（固定，不隨人數變）・'+esc(room.name)+' '+seq.length+' 張，一張紙為限'+(seq.length>cols*rows?'；<b>超過格數，請減少教室座位</b>':'')+'</p>'}
+  /* 座位表預覽：與真實下載檔同一版面（A4 直式：表頭、人數小標、格子、座標軸、講臺、統計表、頁尾；同 設計系統.html「① 座位表」）。班級色只在座位表用，紙面永遠淺色 */
+  var PBG=['#FBE7C6','#D8EFD3','#D6E6F8','#E7DCF5','#F6D6EC','#F9D5CA','#CDEDE9','#E6EDBD','#DADCF7','#EBDCCB','#DFE3E8','#F8D3DC'],PIK=['#6B4300','#1F5A1A','#1A4478','#4A2E80','#7A1C5E','#7A2A12','#0F5A52','#4C5A0A','#2F3490','#5C3A17','#2F3B48','#7A1B38'];
+  function seatPaperHTML(room,map,e,seq){
+    var cols=room.cols,rows=room.rows,cw=Math.min(24.79,+((210-30-6.5)/cols).toFixed(2)),ch=Math.min(22.57,+((297-24-95)/rows).toFixed(2)),cnt={};
+    var g='<div class="pp-grid" style="grid-template-columns:repeat('+cols+','+cw+'mm)">';
+    for(var r=rows;r>=1;r--)for(var c=1;c<=cols;c++){
+      var s=map[c+','+r];
+      if(!s){g+='<div class="pp-c pp-e" style="width:'+cw+'mm;height:'+ch+'mm"></div>';continue}
+      var mk=marksOf(e,s),o=ovrOf(s),m={},n=cc(s.c);
+      if(o)(m[o.kind==='考試'?'add':'x']=m[o.kind==='考試'?'add':'x']||{h:o.kind==='考試'?'＋':'X',s:[]}).s.push('→'+o.place);
+      else mk.forEach(function(t){var k=t.charAt(0)==='X'?'x':'add';(m[k]=m[k]||{h:t.charAt(0)==='X'?'X ':'＋',s:[]}).s.push(t.slice(1));cnt[t]=(cnt[t]||0)+1});
+      var has=Object.keys(m).length,mks=Object.keys(m).map(function(k){return '<span class="pp-mk '+k+'">'+m[k].h+m[k].s.join('、')+'</span>'}).join('');
+      g+='<div class="pp-c'+(has?' mk':'')+'" style="width:'+cw+'mm;height:'+ch+'mm;background:'+PBG[n-1]+'"><i class="pp-co">'+c+'-'+r+'</i><b class="pp-no">'+s.id+'</b><span class="pp-nm" style="color:'+PIK[n-1]+'"><em>'+CNAME[s.c]+'</em><span style="color:#22201B">'+esc(s.name)+'</span></span>'+mks+'</div>'}
+    g+='</div>';
+    var ay='<div class="pp-ay" style="grid-template-rows:repeat('+rows+','+ch+'mm)">';for(var d=rows;d>=1;d--)ay+='<span>'+d+'</span>';ay+='</div>';
+    var ax='<div class="pp-ax" style="grid-template-columns:repeat('+cols+','+cw+'mm)">';for(var c2=1;c2<=cols;c2++)ax+='<span>第'+c2+'排</span>';ax+='</div>';
+    var chips='<span class="pp-chip s">共 '+seq.length+' 人</span>'+Object.keys(cnt).map(function(t){return '<span class="pp-chip">'+(t.charAt(0)==='X'?'不考':'加考')+t.slice(1)+' '+cnt[t]+' 人</span>'}).join('');
+    var page='<div class="pp pp-seat" style="width:210mm;height:297mm;padding:12mm 15mm">'+
+      '<div class="pp-hd"><div><div class="pp-h1">【'+e.year+'學年第'+CN[e.round]+'次'+e.type+'模擬考】</div><div class="pp-h2">座位表</div></div><span class="pp-room">'+esc(room.name)+'</span></div>'+
+      '<div class="pp-chips">'+chips+'</div>'+
+      '<div class="pp-wrapg" style="margin-top:4mm">'+ay+'<div>'+g+ax+'</div></div>'+
+      '<div class="pp-bottom"><span class="l">共 '+seq.length+' 人</span><span class="pp-pod">講臺</span><span></span></div>'+
+      '<table class="pp-st">'+statTable(room,map,e)+'</table>'+
+      '<div class="pp-foot">產生時間：2026-11-08 07:30（台北）　資料版本碼：DMJ0-A3J0</div></div>';
+    return '<div class="pp-stage"><div class="pp-fit" data-w="210" data-h="297">'+page+'</div></div>'}
+  function fitPapers(){document.querySelectorAll('.pp-fit').forEach(function(f){var W=+f.dataset.w*3.7795,H=+f.dataset.h*3.7795,avail=Math.min(f.parentNode.clientWidth-28,720),sc=Math.max(.2,avail/W);f.style.width=(W*sc)+'px';f.style.height=(H*sc)+'px';if(f.firstChild)f.firstChild.style.transform='scale('+sc+')'})}
   function fitCharts(){document.querySelectorAll('.chart').forEach(function(ch){ch.style.zoom='';var wrap=ch.querySelector('.chart-wrap');if(!wrap)return;var host=ch.parentElement,avail=host.clientWidth,w=wrap.offsetWidth;if(avail>0&&w>avail)ch.style.zoom=String(Math.max(0.4,(avail-2)/w))})}
   /* ---------- 步驟共用 ---------- */
   function stepView(){
@@ -1018,7 +1200,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var e=S.cur;if(e.type==='會考')return '<div class="card stack"><div class="lab">說明</div><p class="small muted">會考沒有選考，這一步顯示「不需要」。</p></div>';
     var n=0;groups(e).forEach(function(g){subjList(e).forEach(function(s){if(rule(e,g[0],s).need)n++})});
     return '<div class="card stack"><div class="lab">待處理</div>'+(n?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>有 '+n+' 項接近一半的科目要選。</span><span></span></div>':'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span>沒有要選的項目。</span><span></span></div>')+'</div>'+
-      '<div class="card stack"><div class="lab">範例標示</div><div class="lprev">'+['B4','A3'].map(function(p){var a=p==='A3',st=sortStu(D().stu).filter(function(s){return marksOf(e,s).length})[0],W=a?297:250,H=a?420:353;return '<figure><div class="lprev-box" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px"><div class="lsheet-one" style="width:'+(W*2.4).toFixed(1)+'px;height:'+(H*2.4).toFixed(1)+'px"><div class="lprev-cell" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px">'+(st?labelHTML(st,'1-1'):'')+'</div></div></div><figcaption><b>'+p+'</b>（'+(a?'大標籤':'小標籤')+'）<br>'+(W/6).toFixed(1)+'×'+(H/8).toFixed(1)+' mm</figcaption></figure>'}).join('')+'</div><p class="small muted">標籤上的樣子（用文字加粗框）。兩張依實際尺寸等比例並排：A3 的格子比 B4 大約寬 19%、高 19%。座位表上的樣子相同，只是不分紙張。</p></div>'}
+      '<div class="card stack"><div class="lab">範例標示</div><div class="lprev">'+['B4','A3'].map(function(p){var a=p==='A3',st=sortStu(D().stu).filter(function(s){return marksOf(e,s).length})[0],W=a?297:250,H=a?420:353;return '<figure><div class="lprev-box" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px"><div class="lsheet-one" style="width:'+(W*2.4).toFixed(1)+'px;height:'+(H*2.4).toFixed(1)+'px"><div class="lprev-cell" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px">'+(st?labelHTML(st,'1-1'):'')+'</div></div></div><figcaption><b>'+p+'</b>（'+(a?'大標籤':'小標籤')+'）<br>'+(W/6).toFixed(1)+'×'+(H/8).toFixed(1)+' mm</figcaption></figure>'}).join('')+'</div><p class="small muted">標籤上的樣子（用文字加粗框）。兩張依實際尺寸等比例並排：A3 的格子比 B4 大約寬 19%、高 19%。座位表另外使用班級底色，其餘相同，只是不分紙張。</p></div>'}
   /* ---------- 工作區外框 ---------- */
   function vWs(){
     var e=S.cur,view=stepView(),s=STEPS[S.step-1],wide=view.side==='';
@@ -1078,7 +1260,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var mk=marksOf(S.cur,s),o=ovrOf(s),cls='lcell',mks='',n=cc(s.c);
     if(o){cls+=o.kind==='考試'?' mk-add':' mk-x';mks='<span class="mks"><span class="mk">→'+esc(o.place)+'</span></span>'}
     else if(mk.length){cls+=mk.some(function(m){return m.charAt(0)==='X'})?' mk-x':' mk-add';mks='<span class="mks">'+mk.map(function(m){return '<span class="mk">'+m+'</span>'}).join('')+'</span>'}
-    return '<div class="'+cls+'" style="background:var(--c'+n+'-bg);--cx:var(--c'+n+'-ink)"><span class="co">'+co+'</span><span class="no">'+s.id+'</span><span class="nm"'+(s.name.length>4?' style="font-size:'+(s.name.length>5?1.7:2)+'cqw"':'')+'><span class="tag-c">'+CNAME[s.c]+'</span>'+esc(s.name)+'</span>'+mks+'</div>'}
+    var sp=!!(o||mk.length);if(sp)cls+=' sp';
+    return '<div class="'+cls+'" style="background:'+(sp?'#FFE08A':'#fff')+';--cx:#22201B"><span class="co">'+co+'</span><span class="no">'+s.id+'</span><span class="nm"'+(s.name.length>4?' style="font-size:'+(s.name.length>5?1.7:2)+'cqw"':'')+'><span class="tag-c">'+CNAME[s.c]+'</span>'+esc(s.name)+'</span>'+mks+'</div>'}
   function exportFiles(e){
     var x=S.exp,ext=x.fmt==='Word'?'docx':'pdf',d=D(),f=[],n=d.rooms.length;
     if(x.seat)f.push({n:'座位表.'+ext,p:n+' 頁（每間班級教室一頁）'});
@@ -1104,17 +1287,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     function ck(k,t,sub){return '<label class="check" style="align-items:flex-start"><input type="checkbox" data-act="eck" data-k="'+k+'"'+(x[k]?' checked':'')+'><span><b>'+t+'</b><br><span class="small muted">'+sub+'</span></span></label>'}
     var ri=Math.min(S.sr||0,d.rooms.length-1),room=d.rooms[ri],map=e.seat.byRoom[ri]||{},pv=S.pv||'label';
     var seq=[];for(var c=1;c<=room.cols;c++)for(var r=1;r<=room.rows;r++){var s=map[c+','+r];if(s)seq.push([s,c+'-'+r])}
-    var prevH=pv==='rcv'?rcvHTML(e)+vcodeHTML():pv==='label'?lsheetHTML(room,seq,x.paper)+
-      '<div class="card" style="background:var(--sunken)"><b>注意事項（程式依座位表算出）</b><br>從 '+(seq[0]?seq[0][0].id:'')+' 開始為第 1 排第 1 個位置，以此類推。<br>請貼於桌面右上角。<br>請使用透明膠帶黏貼。</div>'+vcodeHTML():
-      '<div class="scroll">'+chartHTML(room,map,'【'+e.year+'學年第'+CN[e.round]+'次'+e.type+'模擬考】座位表',e.level+'　'+room.name+'　考生 '+seq.length+' 人',{ri:ri})+'</div><div class="lab" style="margin-top:8px">這間教室的統計（D40）</div><div class="scroll"><table class="t compact">'+statTable(room,map,e)+'</table></div>'+vcodeHTML();
+    var prevH=pv==='rcv'?rcvHTML(e)+vcodeHTML():pv==='label'?lsheetHTML(room,seq,x.paper)+vcodeHTML():
+      seatPaperHTML(room,map,e,seq)+vcodeHTML();
     var ready=ok&&files.length>0;
     var banner=stale?'<div class="stale-banner"><span class="badge b-warn">過期</span>排座結果過期，下載已停用。<button class="btn btn-sm btn-primary" data-act="reseat">重新排座</button></div>':(ok?'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span><b>驗證通過：</b>'+checks.length+' 項檢查全部符合，可以下載。</span><span></span></div>':'<div class="alert a-err"><span class="ico" data-i="×"></span><span><b>驗證沒有通過，不能下載。</b>回 ⑤ 查看原因。</span><span></span></div>');
     var result=S.expDone?'<div class="card stack"><div class="alert a-ok"><span class="ico" data-i="✓"></span><span><b>已下載 '+S.expDone.length+' 個檔案</b>，放在「'+(S.folder||'')+'\\'+esc(e.name)+'\\下載\\」（模擬，沒有真的寫檔）。</span><span></span></div><div class="scroll"><table class="t compact"><thead><tr><th>檔案</th><th>內容</th></tr></thead><tbody>'+S.expDone.map(function(f){return '<tr><td><b>'+esc(f.n)+'</b></td><td class="muted">'+esc(f.p)+'</td></tr>'}).join('')+'</tbody></table></div>'+(x.fmt==='Word'?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>Word 檔下載後若手動編輯，就不再受驗證器保護（D29）。</span><span></span></div>':'')+'</div>':'';
     return banner+
       '<div class="card stack"><div><h3>下載內容</h3><p class="small muted">每一類合併成<b>一個多頁檔案</b>，不是一個座位表或一個標籤一個檔。Word 方便你編輯，PDF 方便直接列印、避免格式跑掉（D29）。</p></div>'+
       '<div class="row"><div class="field"><span class="label">格式</span><div class="fmts" role="radiogroup" aria-label="格式"><label class="fmt w"><input type="radio" name="efmt" data-act="efmt" data-v="Word"'+(x.fmt==='Word'?' checked':'')+'><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-w" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M6.5 11l2 7 2.2-5.5L12.9 18l2-7" fill="none" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Word</span></label><label class="fmt p"><input type="radio" name="efmt" data-act="efmt" data-v="PDF"'+(x.fmt==='PDF'?' checked':'')+'><span><svg viewBox="0 0 26 26" aria-hidden="true"><path class="ic-bg-p" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><text x="12.5" y="19" text-anchor="middle" font-size="7.5" font-weight="700" fill="#fff" font-family="Noto Sans TC,sans-serif">PDF</text></svg>PDF</span></label></div></div></div>'+
-      '<div class="stack">'+ck('seat','座位表（A4）','合併成一個檔案，'+d.rooms.length+' 間班級教室各一頁；每頁附該教室的考生統計')+ck('rcv','領卷清單（A4）','每間教室每科要發的試卷與答案卡份數，含抽離與備用（D66）')+ck('label','標籤','合併成一個檔案，每間班級教室一張紙；標籤格大小固定，每個班級一種底色')+
-      '<div class="field" style="margin-left:30px"><span class="label">標籤紙張（只有標籤可選；座位表與名單固定 A4）</span><div class="seg fmtseg" role="group" aria-label="標籤紙張"><button type="button" data-act="epaper" data-v="B4" aria-pressed="'+(x.paper==='B4')+'">B4（一般）</button><button type="button" data-act="epaper" data-v="A3" aria-pressed="'+(x.paper==='A3')+'">A3（大尺寸）</button></div><span class="hint">兩種紙張的標籤格大小各自固定，一張紙 48 格，不隨班級人數變。</span></div>'+(isJ?'':ck('pull','抽離自習名單（A4）','合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤（D7）')+ck('prepSeat','預備教室的座位表（A4）與標籤（'+x.paper+'）','抽離考試，每節科目各自排；座位表、標籤各合併成一個檔案'))+'</div>'+
+      '<div class="stack">'+ck('seat','座位表（A4）','合併成一個檔案，'+d.rooms.length+' 間班級教室各一頁；每頁附該教室的考生統計')+ck('rcv','領卷清單（A4）','每間教室每科要發的試卷與答案卡份數，含抽離與備用（D66）')+ck('label','標籤','合併成一個檔案，每間班級教室一張紙；標籤格大小固定，白底；不考、加考、抽離的標籤用淡黃底')+
+      '<div class="field" style="margin-left:30px"><span class="label">標籤紙張（只有標籤可選；座位表與名單固定 A4）</span><div class="seg fmtseg" role="group" aria-label="標籤紙張"><button type="button" data-act="epaper" data-v="B4" aria-pressed="'+(x.paper==='B4')+'">B4（一般）</button><button type="button" data-act="epaper" data-v="A3" aria-pressed="'+(x.paper==='A3')+'">A3（大尺寸）</button></div><span class="hint">兩種紙張的標籤格大小各自固定，B4 一張紙 6×8 格、A3 一張紙 7×7 格，不隨班級人數變。</span></div>'+(isJ?'':ck('pull','抽離自習名單（A4）','合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤（D7）')+ck('prepSeat','預備教室的座位表（A4）與標籤（'+x.paper+'）','抽離考試，每節科目各自排；座位表、標籤各合併成一個檔案'))+'</div>'+
       '<div class="row" style="justify-content:space-between"><span class="muted">將產生 <b class="num">'+files.length+'</b> 個檔案</span><button class="btn btn-primary btn-lg" data-act="expgo"'+(ready?'':' disabled')+'>'+(stale?'排座過期，先重新排座':'下載 '+x.fmt)+'</button></div>'+
       '<p class="small muted">要列印時，請開啟下載的 Word 或 PDF 再列印，本程式不直接列印（D69）。Word 內嵌字型讓每台電腦開檔都不跑版，施工前會先驗證可行性（D44）。</p></div>'+result+
       '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>預覽</h3><p class="small muted">'+room.name+'</p></div><div class="row"><div class="seg" role="group" aria-label="預覽類型"><button type="button" data-act="pv" data-v="label" aria-pressed="'+(pv==='label')+'">標籤</button><button type="button" data-act="pv" data-v="seat" aria-pressed="'+(pv==='seat')+'">座位表</button><button type="button" data-act="pv" data-v="rcv" aria-pressed="'+(pv==='rcv')+'">領卷清單</button></div></div></div>'+
@@ -1257,12 +1439,12 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   document.addEventListener('dragleave',function(ev){var z=ev.target.closest&&ev.target.closest('#dz');if(z)z.classList.remove('over')});
   document.addEventListener('drop',function(ev){var z=ev.target.closest&&ev.target.closest('#dz');if(!z)return;ev.preventDefault();S.folder='D:\\模擬考資料';toast('已授權拖入的資料夾（模擬）');go('list')});
   document.addEventListener('keydown',function(ev){if((ev.ctrlKey||ev.metaKey)&&ev.key==='z'&&!/^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement||{}).tagName||'')&&S.screen!=='init'){ev.preventDefault();undo()}});
-  window.addEventListener('resize',fitCharts);
+  window.addEventListener('resize',function(){fitCharts();fitPapers()});
   var lastKey='';
   function render(){
     CACHE={};
     var v=S.screen==='init'?vInit():S.screen==='list'?vList():S.screen==='new'?vNew():S.screen==='settings'?vSettings():['special','cmp','ovr','prep','find'].indexOf(S.screen)>-1?vSpecial():vWs();
-    $('#app').innerHTML=v;nav();fitCharts();
+    $('#app').innerHTML=v;nav();fitCharts();fitPapers();
     var key=S.screen+'|'+S.step+'|'+(S.cur?S.cur.id:'');if(key!==lastKey)window.scrollTo(0,0);lastKey=key}
   function go(s){S.screen=s;render()}
 
