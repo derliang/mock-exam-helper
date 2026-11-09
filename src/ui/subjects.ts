@@ -15,6 +15,12 @@ export const AST_SUBJECTS: Subject[] = [
   s('biology', '生物'), s('history', '歷史'), s('geography', '地理'), s('civics', '公民與社會'),
 ];
 
+/** 分科預設選考（使用者 2026-11-09 裁示）：理組＝自然科＋數甲；文組＝社會科＋數乙；皆可加考，國英不加考 */
+export const AST_DEFAULT_BY_TRACK: Record<'science' | 'liberal', string[]> = {
+  science: ['math-jia', 'physics', 'chemistry', 'biology'],
+  liberal: ['math-yi', 'history', 'geography', 'civics'],
+};
+
 /** 學測：第 1、2 次數學單一科且有英聽；第 3、4 次數學分 A、B，無英聽（D36/D52） */
 export function defaultSubjects(kind: ExamKind, round = 1): Subject[] {
   if (kind === 'bcct') return BCCT_SUBJECTS.map((x) => ({ ...x }));

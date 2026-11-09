@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'preact/hooks';
-import type { ExamConfig, ExamEntry } from '../../data';
+import type { ExamConfig, ExamEntry, Track } from '../../data';
+import { AST_DEFAULT_BY_TRACK } from '../subjects';
 import {
   buildEntries, diffEntries, GROUP_TABLES, IGNORE, prefillMapping, rememberMapping, scanExamSheet,
   type ExamScan, type ReviewItem, type RowDecision, type SavedMarkMap, type ScanOptions, type Sheet,
@@ -10,10 +11,14 @@ import { FIELD_LABEL, SUBJECT_ID_MAP } from '../step2';
 const KIND_TEXT: Record<ReviewItem['kind'], string> = { 'bad-id': '班級或座號看不懂', 'no-name': '沒有姓名', dup: '班級座號重複', 'bad-group': '組別代碼不在對照表' };
 
 /** 本次考試的掃描設定：組別表換成考科表的 id；會考沒有組別欄，用固定科目 */
-export function scanOptionsFor(exam: ExamConfig, classNames: readonly string[]): ScanOptions {
+export function scanOptionsFor(exam: ExamConfig, classNames: readonly string[], trackOf?: (classNo: number) => Track | undefined): ScanOptions {
   const ids = new Set(exam.subjects.map((s) => s.id));
   const bcct = exam.kind === 'bcct';
-  if (exam.kind === 'ast') return { subjects: exam.subjects, classNames, groupAsSubjects: true };
+  if (exam.kind === 'ast') {
+    const ids = new Set(exam.subjects.map((s) => s.id));
+    const defaultByClass = (n: number): string[] => { const t = trackOf?.(n); return t ? AST_DEFAULT_BY_TRACK[t].filter((x) => ids.has(x)) : []; };
+    return { subjects: exam.subjects, classNames, groupAsSubjects: true, defaultByClass };
+  }
   const table = GROUP_TABLES[(exam.round ?? 1) >= 3 ? 'second' : 'first'];
   const groupTable = Object.fromEntries(Object.entries(table).map(([k, v]) => [k, v.map((x) => SUBJECT_ID_MAP[x] ?? x).filter((x) => ids.has(x))]));
   return { subjects: exam.subjects, classNames, ...(bcct ? { defaultSubjectIds: exam.subjects.map((s) => s.id) } : { groupTable }) };
@@ -27,10 +32,10 @@ const best = (scans: ExamScan[]): number => scans.reduce((b, s, i) => (s.rows.le
  * 每一步的「為什麼不能繼續」都寫在確認鈕旁邊。
  */
 export function ImportWizard(p: {
-  sheets: readonly Sheet[]; exam: ExamConfig; classNames: readonly string[]; previous?: readonly ExamEntry[];
+  sheets: readonly Sheet[]; exam: ExamConfig; classNames: readonly string[]; trackOf?: (classNo: number) => Track | undefined; previous?: readonly ExamEntry[];
   saved: SavedMarkMap; onCancel: () => void; onDone: (entries: ExamEntry[], saved: SavedMarkMap) => void;
 }) {
-  const opts = useMemo(() => scanOptionsFor(p.exam, p.classNames), [p.exam, p.classNames]);
+  const opts = useMemo(() => scanOptionsFor(p.exam, p.classNames, p.trackOf), [p.exam, p.classNames, p.trackOf]);
   const scans = useMemo(() => p.sheets.map((s) => scanExamSheet(s.rows, opts)), [p.sheets, opts]);
   const [sheetIx, setSheetIx] = useState(() => best(scans));
   const scan = scans[sheetIx] as ExamScan;

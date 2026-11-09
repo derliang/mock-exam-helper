@@ -160,7 +160,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           )}
         </div>
         {sheets && (
-          <ImportWizard sheets={sheets} exam={exam} classNames={classNames} previous={entries ?? undefined} saved={doc.settings.markMap ?? {}}
+          <ImportWizard sheets={sheets} exam={exam} classNames={classNames} trackOf={(n) => doc.settings.classes.find((c) => c.division === exam.division && c.no === n)?.track} previous={entries ?? undefined} saved={doc.settings.markMap ?? {}}
             onCancel={() => setSheets(null)} onDone={adopt} />
         )}
       </div>
