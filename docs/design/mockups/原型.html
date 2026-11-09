@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.16</title>
+<title>模擬考原型 稿 v2.17</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -721,6 +721,30 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .featrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
 .featrow .fi{display:grid;gap:4px;min-width:0}
 @media (max-width:560px){.featrow{grid-template-columns:1fr}}
+/* 節次與時長（共用設定第六個分頁，D92／D94）：一節一個框，框內每科一列；同節兩科以上框底淺藍 */
+.scday{font-weight:800;color:var(--text-2);font-size:15px;padding:6px 2px 0;border-bottom:1px solid var(--line)}
+.scgrp{border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:var(--r-md);background:var(--surface);padding:12px 14px;display:grid;gap:10px}
+.scgrp.multi{background:var(--accent-soft);border-color:var(--accent-line)}
+.schd{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.schd .tm{display:flex;align-items:center;gap:6px;margin-left:auto}
+.schd .tm .input{width:150px}
+.scrow{display:grid;grid-template-columns:minmax(0,1fr) 84px 110px auto;gap:8px;align-items:end}
+.scrow .field{gap:2px}.scrow .input{min-width:0}
+.scrow .lab{font-size:13px;color:var(--text-2);font-weight:700}
+@media (max-width:560px){.scrow{grid-template-columns:1fr 1fr}.scrow .field:first-child{grid-column:1/-1}.scrow .del{grid-column:1/-1;justify-self:start}.schd .tm{margin-left:0;width:100%}.schd .tm .input{width:auto;flex:1}}
+/* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
+.plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.plbl{border:2px solid #222;border-radius:6px;background:#fff;color:#111;padding:10px 12px;display:grid;gap:6px;font-family:var(--font-body,inherit)}
+.plbl .ph{font-weight:800;font-size:15px;border-bottom:1.5px solid #222;padding-bottom:4px;display:flex;justify-content:space-between;gap:8px}
+.plbl .pl{font-size:20px;font-weight:800;line-height:1.25;display:flex;gap:10px;align-items:baseline}
+.plbl .pl small{font-size:14px;font-weight:700;min-width:72px}
+.plbl.sp{background:#FFE08A}
+.pmode{display:grid;gap:8px}
+.pmode .opt{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.pmode .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.rgrp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.rgrp button{font:inherit;font-weight:700;min-height:36px;padding:0 12px;border-radius:99px;border:1px solid var(--line-2);background:var(--surface);color:var(--text-2);cursor:pointer}
+.rgrp button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent,#fff)}
 .qlist{list-style:none;margin:0;padding:0;display:grid;gap:6px}
 .qc{display:grid;grid-template-columns:26px 1fr;gap:8px;align-items:start}
 .qc .qi{width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;border:1.5px solid var(--line-2);color:var(--text-3)}
@@ -734,7 +758,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.16・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.17・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -854,7 +878,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(e.round>=3)l.push(['數學A','組別','diff'],['數學B','組別','diff']);else l.push(['數學','全體','diff']);
     l.push(['自然','組別'],['社會','組別']);return l}
   function prevRound(e){var b=null;S.exams.forEach(function(x){if(x.type===e.type&&x.id!==e.id&&x.round<e.round&&(!b||x.round>b.round))b=x});return b}
-  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.16） */
+  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.17） */
   function FN(){return String(S.folder||'').split(/[\\/]/).filter(Boolean).pop()||''}
   function v1(){
     var e=S.cur,isJ=e.type==='會考',subs=subjectsOf(e),prev=prevRound(e);
@@ -1208,7 +1232,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(e.type==='分科'){var smp=sortStu(d.stu).filter(function(x){return x.listed}).slice(0,3).concat(sortStu(d.stu).filter(function(x){return !x.listed}).slice(0,3)).sort(function(a,b){return sKey(a)-sKey(b)});
       ast='<div class="card stack"><div><h3>匯入預覽：組別／考科</h3><p class="small muted">名單裡「組別／考科」欄寫的科目，直接當這個人的選考科目（可用「.」「、」或空白分隔）；沒明列科目的人，理組預設數學甲＋物理、化學、生物，文組預設數學乙＋歷史、地理、公民與社會，之後都可以加考。<b>預設只在匯入時套用</b>，畫面上暫時不能改預設。</p></div>'+
         '<div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>名單上的「組別／考科」</th><th>解析出的選考科目</th></tr></thead><tbody>'+smp.map(function(x){return '<tr><td>'+chip(x.c)+'</td><td class="n">'+x.no+'</td><td>'+esc(x.name)+'</td><td>'+(x.listed?astText(x):'<span class="muted">（空白）</span>')+'</td><td>'+(x.listed?'<span class="badge b-acc">依名單</span> ':'<span class="badge">預設'+(d.cls[x.c].grp==='sci'?'理組':'文組')+'</span> ')+x.sel.map(sh).join('、')+'</td></tr>'}).join('')+'</tbody></table></div>'+
-        '<p class="small muted">標少數與抽離沿用學測：不考→抽離自習，加考→抽離考試（④）。<span class="pending">待使用者確認：組別代碼表（若實際名單用代碼）</span></p></div>'}
+        '<p class="small muted">標示依教室自動決定（④）：同一間教室有人考、有人不考才標「不考」的人；不考→抽離自習，加考→抽離考試。名單的「組別」格若是大考中心代碼（1 醫學類、2 理工類、3 農學類、9 社會乙組、4 社會組），依代碼換成考科；不在代碼表的代碼（例：5）進待確認、不猜。</p></div>'}
     return st+'<div class="card stack"><div><h3>本次考試名單</h3><p class="small muted">匯入大考中心格式的考試名單，只管「這次誰參加、考什麼科」。</p></div><div class="row"><span class="badge">考試名單.xlsx（模擬檔）</span><span class="muted small">'+(e.cmpPending?'尚未匯入':'已匯入 '+(d.stu.length+(part?0:0))+' 筆')+'</span></div></div>'+mode+ast+v2side()+snap+quickPanel(e)}
   function v2side(){
     var e=S.cur,d=D(),per=d.cls.map(function(c,i){return d.stu.filter(function(s){return s.c===i}).length});
@@ -1314,9 +1338,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(isJ){prepNote='<div class="alert a-info"><span class="ico" data-i="i"></span><span>會考沒有抽離，不需要預備教室。</span><span></span></div>'}
     else{var pBad=ps.n>0,pNone=ps.need===0;
       cells+='<div class="chk'+(pBad?' bad':'')+'"><small>預備教室座位</small><strong>'+ps.avail+'</strong><span class="sub">需要 '+ps.need+'・已列入 '+ps.on+'／'+ps.total+' 間</span><span class="badge '+(pBad?'b-err':'b-ok')+'">'+(pBad?'不足 '+ps.n:(pNone?'不需要':'夠用'))+'</span></div>';
-      notes+=(pBad?'<p class="small errnote"><b>預備教室座位不足：</b>'+(ps.on===0?'還沒有把任何預備教室「列為預備」。':'')+'最多的一節「'+ps.who+'」要 '+ps.need+' 個座位（抽離考試 '+ps.ex+' 人要排座位、抽離自習 '+ps.st+' 人不用排座位但座位要夠），已列為預備的教室只有 '+ps.avail+' 個，還缺 '+ps.n+' 個。請打開預備教室的「列為預備」或增加座位。</p>':(pNone?'<p class="small muted">目前沒有抽離考試或抽離自習，不需要預備教室。</p>':'<p class="small muted">預備教室容量夠用：最多的一節「'+ps.who+'」要 '+ps.need+' 個（抽離考試 '+ps.ex+'、抽離自習 '+ps.st+'），已列為預備的教室有 '+ps.avail+' 個座位。</p>'))}
+      notes+=(pBad?'<p class="small errnote"><b>預備教室座位不足：</b>'+(ps.on===0?'還沒有把任何預備教室「列為預備」。':'')+'最多的一節「'+ps.who+'」要 '+ps.need+' 個座位（抽離考試 '+ps.ex+' 人要排座位、抽離自習 '+ps.st+' 人不用排座位但座位要夠），已列為預備的教室只有 '+ps.avail+' 個，還缺 '+ps.n+' 個。請打開預備教室的「列為預備」或增加座位。</p>':(pNone?'<p class="small muted">目前沒有抽離考試或抽離自習，不需要預備教室。</p>':'<p class="small muted">預備教室容量夠用（同一節各科的抽離人數加總再比容量）：最多的一節「'+ps.who+'」要 '+ps.need+' 個（抽離考試 '+ps.ex+'、抽離自習 '+ps.st+'），已列為預備的教室有 '+ps.avail+' 個座位。</p>'))}
     return '<div class="card stack"><div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。'+(isJ?'':'高中部理組、文組各自計算，預備教室不納入。')+'</p></div><div class="stats chkgrid">'+cells+'</div><div class="stack" style="gap:6px">'+notes+'</div>'+prepNote+'</div>'+
-      '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組。')+(e.type==='分科'?'<span class="pending">待使用者確認：分科教室是否仍分文理組</span>':'')+'</p></div>'+cls+'</div>'+
+      '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組。')+(e.type==='分科'?'分科的文理組跟考生走（每位考生自己的組別），不跟班級；下方「教室專用組別群」決定誰坐哪一間。':'')+'</p></div>'+cls+'</div>'+(e.type==='分科'?astRoomCard(d):'')+(isJ?'':pmodeCard()+prepLblCard())+
       '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">每間教室一列，名稱可改；點教室那一列或「編輯座位表」就在下方展開座位表，可以收合。教室從設定頁的教室清單帶入，沿用上次的選擇。'+capLine()+'</p></div><div class="row"><button class="btn" data-act="tosettings" data-v="rooms">到設定頁看教室清單</button>'+(isJ?'':'<button class="btn" data-act="padd">新增預備教室</button>')+'</div></div>'+
       '<div class="roomlist">'+rooms+preps+'</div></div>'}
   function v3side(){
@@ -1340,11 +1364,11 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         warn+='<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>'+g[1]+'「'+sub+'」：</b>考 '+r.y+' 人、不考 '+r.n+' 人，接近一半。請選要標哪一邊，選完會鎖定，不由程式替你決定。'+(r.locked?'<br>已鎖定：標「'+(lockedSide==='X'?'X':'＋')+sh(sub)+'」。':'')+'</span><span></span></div>'+
           '<div class="row" style="margin-top:-4px"><div class="seg" role="group" aria-label="'+g[1]+sub+'要標哪一邊"><button type="button" data-act="lock" data-g="'+g[0]+'" data-sub="'+sub+'" data-side="X" aria-pressed="'+(lockedSide==='X')+'">標「X'+sh(sub)+'」不考的 '+r.n+' 人</button><button type="button" data-act="lock" data-g="'+g[0]+'" data-sub="'+sub+'" data-side="＋" aria-pressed="'+(lockedSide==='＋')+'">標「＋'+sh(sub)+'」考的 '+r.y+' 人</button></div>'+(r.locked?'<button class="btn btn-sm btn-ghost" data-act="unlock" data-g="'+g[0]+'" data-sub="'+sub+'">解除鎖定</button>':'')+'</div>'}})});
     var pulls='<div class="scroll"><table class="t compact"><thead><tr><th>科目</th><th>抽離考試</th><th>抽離自習</th></tr></thead><tbody>'+subs.map(function(sub){var p=pull(e,sub);return '<tr><td><b>'+sub+'</b></td><td class="n">'+p.ex.length+' 人</td><td class="n">'+p.st.length+' 人</td></tr>'}).join('')+'</tbody></table></div>';
-    return '<div class="card stack"><div><h3>'+(e.type==='分科'?'各科選考人數':'組別對照表')+'</h3><p class="small muted">'+(e.type==='分科'?'分科每科各自選考，依考試名單的考科文字統計；沒有組別代碼對照表。<span class="pending">待使用者確認：組別代碼表、各科抽離教室分配</span>':'組別代碼對應考科；第 '+(e.round>=3?'3、4':'1、2')+' 次的對照（跟 ① 的次別連動）。')+'</p></div>'+map+'</div>'+
-      '<div class="card stack"><div><h3>各科標示（標少數）</h3><p class="small muted">標示只由組別決定，與特殊生需求無關；被標「X」的人抽離自習，被標「＋」的人抽離考試。</p></div>'+
+    return '<div class="card stack"><div><h3>'+(e.type==='分科'?'各科選考人數':'組別對照表')+'</h3><p class="small muted">'+(e.type==='分科'?'分科每科各自選考，依名單的組別代碼換成考科後統計（代碼表在下方）。':'組別代碼對應考科；第 '+(e.round>=3?'3、4':'1、2')+' 次的對照（跟 ① 的次別連動）。')+'</p></div>'+map+'</div>'+
+      (e.type==='分科'?astRoomCards():'<div class="card stack"><div><h3>各科標示（標少數）</h3><p class="small muted">標示只由組別決定，與特殊生需求無關；被標「X」的人抽離自習，被標「＋」的人抽離考試。</p></div>'+
       '<div class="scroll"><table class="t compact"><thead><tr><th>組</th><th>科目</th><th>考</th><th>不考</th><th>座位表標示</th><th>狀態</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+warn+
-      '<p class="small muted">「接近一半」暫訂為兩邊差距小於 20%。<span class="pending">待使用者確認：門檻（P3）</span></p></div>'+
-      '<div class="card stack"><div><h3>抽離人數</h3><p class="small muted">標示一變，抽離名單與預備教室人數自動一致。</p></div>'+pulls+'<div class="row"><button class="btn" data-act="goprep">查看預備教室與抽離</button></div></div>'+
+      '<p class="small muted">「接近一半」暫訂為兩邊差距小於 20%。<span class="pending">待使用者確認：門檻（P3）</span></p></div>')+
+      '<div class="card stack"><div><h3>抽離人數</h3><p class="small muted">標示一變，抽離名單與預備教室人數自動一致。</p></div>'+pulls+(e.type==='學測'?'<p class="small muted">國文標示整個一起：國綜、國寫兩節一起抽離（節次見共用設定「節次與時長」）。</p>':'')+'<div class="row"><button class="btn" data-act="goprep">查看預備教室與抽離</button></div></div>'+
       nextBtn(5,'⑤ 排座與預覽')}
   function v4side(){
     var e=S.cur;if(e.type==='會考')return '<div class="card stack"><div class="lab">說明</div><p class="small muted">會考沒有選考，這一步顯示「不需要」。</p></div>';
@@ -1463,7 +1487,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="field" style="margin-left:30px"><span class="label">標籤紙張（只有標籤可選；座位表與名單固定 A4）</span><div class="seg fmtseg" role="group" aria-label="標籤紙張"><button type="button" data-act="epaper" data-v="B4" aria-pressed="'+(x.paper==='B4')+'">B4（一般）</button><button type="button" data-act="epaper" data-v="A3" aria-pressed="'+(x.paper==='A3')+'">A3（大尺寸）</button></div><span class="hint">兩種紙張的標籤格大小各自固定，B4 一張紙 6×8 格、A3 一張紙 7×7 格，不隨班級人數變。</span></div>'+(isJ?'':ck('pull','抽離自習名單（A4）','合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')+ck('prepSeat','預備教室的座位表（A4）與標籤（'+x.paper+'）','抽離考試，每節科目各自排；座位表、標籤各合併成一個檔案'))+'</div>'+
       '<div class="row" style="justify-content:space-between"><span class="muted">將產生 <b class="num">'+files.length+'</b> 個檔案</span><button class="btn btn-primary btn-lg" data-act="expgo"'+(ready?'':' disabled')+'>'+(stale?'排座過期，先重新排座':'下載 '+x.fmt)+'</button></div>'+
       '<p class="small muted">要列印時，請開啟下載的 Word 或 PDF 再列印，本程式不直接列印。Word 內嵌字型讓每台電腦開檔都不跑版，施工前會先驗證可行性。</p></div>'+result+
-      '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>預覽</h3><p class="small muted">'+room.name+'</p></div><div class="row"><div class="seg" role="group" aria-label="預覽類型"><button type="button" data-act="pv" data-v="label" aria-pressed="'+(pv==='label')+'">標籤</button><button type="button" data-act="pv" data-v="seat" aria-pressed="'+(pv==='seat')+'">座位表</button>'+(FEAT.pickup?'<button type="button" data-act="pv" data-v="rcv" aria-pressed="'+(pv==='rcv')+'">領卷清單</button>':'')+(FEAT.att?'<button type="button" data-act="pv" data-v="att" aria-pressed="'+(pv==='att')+'">出缺席記錄表</button>':'')+'</div></div></div>'+
+      (isJ?'':prepLblCard())+'<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>預覽</h3><p class="small muted">'+room.name+'</p></div><div class="row"><div class="seg" role="group" aria-label="預覽類型"><button type="button" data-act="pv" data-v="label" aria-pressed="'+(pv==='label')+'">標籤</button><button type="button" data-act="pv" data-v="seat" aria-pressed="'+(pv==='seat')+'">座位表</button>'+(FEAT.pickup?'<button type="button" data-act="pv" data-v="rcv" aria-pressed="'+(pv==='rcv')+'">領卷清單</button>':'')+(FEAT.att?'<button type="button" data-act="pv" data-v="att" aria-pressed="'+(pv==='att')+'">出缺席記錄表</button>':'')+'</div></div></div>'+
       '<div class="seg" role="group" aria-label="預覽教室" style="justify-self:start">'+d.rooms.map(function(r,i){return '<button type="button" data-act="sr" data-i="'+i+'" aria-pressed="'+(i===ri)+'">'+CNAME[r.c]+'</button>'}).join('')+'</div>'+prevH+'</div>'}
 
   /* ---------- 選用功能：共用設定第五個分頁 ---------- */
@@ -1478,6 +1502,67 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         '<label class="sw swcol"><span class="cap">啟用</span><span class="swrow"><input type="checkbox" data-feat="'+f[0]+'"'+(on?' checked':'')+'><span class="trk"></span><span class="st">'+(on?'已開啟':'未開啟')+'</span></span></label></div>'}).join('');
     return '<div class="card stack"><div><h3>選用功能</h3><p class="small muted">每所學校需要的不一樣，勾選要用的功能。沒開的功能會從導覽、下載頁與步驟中完全消失，不留灰色入口。</p></div>'+rows+
       '<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>核心功能永遠開啟，不在這裡：</b>排座、標籤、座位表、抽離、下載與防呆提示。設定只存在這台電腦的設定檔，不上傳。</span><span></span></div></div>'}
+
+  /* ---------- 節次與時長：共用設定第六個分頁（D92、D94；預設值依 docs/exam-schedule.md〈學校模擬考實際節次〉）---------- */
+  var SCH_TYPES=[['g12','學測第 1、2 次'],['g34','學測第 3、4 次'],['ast','分科'],['bcct','會考']];
+  var SCH_DEF={
+    g12:{rows:[['英文',1,100,1],['自然',2,110,1],['國綜',3,90,1],['英聽',4,50,1],['數學',5,100,2],['社會',6,110,2],['國寫',7,90,2]],
+      note:'一節一科，順序依學校科目表（與大考日程圖不同）。國文「整個一起標」：國綜、國寫是兩節，但標示與抽離當成一個。'},
+    g34:{rows:[['英文',1,100,1],['自然',2,110,1],['國綜',3,90,1],['數學B',4,100,1],['數學A',5,100,2],['社會',6,110,2],['國寫',7,90,2]],
+      note:'沒有英聽，英聽的位置換成數學 B。國文「整個一起標」：國綜、國寫是兩節，但標示與抽離當成一個。'},
+    ast:{rows:[['物理',1,80,1],['化學',2,80,1],['數學甲',3,80,1],['生物',4,80,1],['歷史',5,80,2],['地理',6,80,2],['數學乙',7,80,2],['公民與社會',8,80,2]],
+      note:'兩天各 4 節、共 8 節，一節一科，順序固定、與正式考試相同，每節 80 分鐘。學校偶爾把兩天壓成一天、文理組同節考不同科（例如 114 下學期第 6 次），那是特例：把兩科改成同一個節次編號即可。'},
+    bcct:{rows:[['社會',1,70,1],['數學',2,80,1],['國文',3,70,1],['寫作測驗',4,50,1],['自然',5,70,2],['英語閱讀',6,60,2],['英語聽力',7,25,2]],
+      note:'順序與時長同正式會考，兩天共 7 節。會考不需要抽離，節次與時長只用在標籤與日程顯示。'}};
+  function schGet(t){S.sch=S.sch||{};if(!S.sch[t]){var d=SCH_DEF[t];S.sch[t]={rows:d.rows.map(function(r){return{n:r[0],sec:r[1],dur:r[2],day:r[3]}}),times:{}}}return S.sch[t]}
+  function schedTab(){
+    var T=S.schT||'g12',d=SCH_DEF[T],D2=schGet(T),secs={};
+    D2.rows.forEach(function(r,i){var k=r.sec||0;(secs[k]=secs[k]||[]).push(i)});
+    var keys=Object.keys(secs).map(Number).sort(function(a,b){return a-b});
+    function row(i){var r=D2.rows[i],tag='';
+      if(r.n==='國綜'||r.n==='國寫')tag='<span class="badge b-acc">國文：整個一起標</span>';
+      if(r.n==='英聽'&&T==='g12')tag='<span class="pending">待確認：是否每次都排第一天最後一節</span>';
+      return '<div class="scrow"><div class="field"><span class="lab">科目</span><input class="input" data-scf="n" data-sci="'+i+'" value="'+esc(r.n)+'" aria-label="科目名稱"></div><div class="field"><span class="lab">節次</span><input class="input" type="number" min="1" data-scf="sec" data-sci="'+i+'" value="'+(r.sec||'')+'" aria-label="節次編號" placeholder="—"></div><div class="field"><span class="lab">時長（分鐘）</span><input class="input" type="number" min="1" data-scf="dur" data-sci="'+i+'" value="'+(r.dur||'')+'" aria-label="時長（分鐘）" placeholder="—"></div><button class="btn btn-sm btn-danger del" data-act="scdel" data-i="'+i+'" aria-label="刪除'+esc(r.n)+'">刪除</button>'+(tag?'<div style="grid-column:1/-1">'+tag+'</div>':'')+'</div>'}
+    var lastDay=0,blocks=keys.map(function(k){var ix=secs[k],multi=ix.length>1,dy=D2.rows[ix[0]].day,head='';
+      if(dy!==lastDay){head='<div class="scday">第 '+(dy===1?'一':'二')+' 天</div>';lastDay=dy}
+      return head+'<div class="scgrp'+(multi?' multi':'')+'"><div class="schd"><b>'+(k?'第 '+k+' 節':'還沒排節次')+'</b>'+(multi?'<span class="badge b-acc">'+ix.length+' 科同時進行</span>':'')+(k?'<label class="tm"><span class="small muted">開始時間（選填）</span><input class="input" type="time" data-sct="'+k+'" value="'+(D2.times[k]||'')+'" aria-label="第'+k+'節開始時間"></label>':'')+'</div>'+ix.map(row).join('')+(k?'<div class="row"><button class="btn btn-sm" data-act="scadd" data-sec="'+k+'">＋ 這一節再加一科</button></div>':'')+'</div>'}).join('');
+    var segT='<div class="seg" role="group" aria-label="考試類型">'+SCH_TYPES.map(function(x){return '<button type="button" data-act="sctype" data-v="'+x[0]+'" aria-pressed="'+(T===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
+    return '<div class="card stack"><div><h3>節次與時長</h3><p class="small muted">每種考試各一份，新增模擬考時自動帶入，可以改。時長比照大考；只看考試時間，不管發卷與休息；開始時間每次可能不同，所以選填，也不會印在標籤上，順序每次都一樣。</p></div>'+
+      '<div class="row" style="justify-content:space-between">'+segT+'<button class="btn" data-act="scrst">還原「'+(SCH_TYPES.filter(function(x){return x[0]===T})[0][1])+'」預設</button></div>'+
+      '<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>同編號＝同一節、同時進行。</b>'+d.note+'同一節各科的抽離人數會加總，再和預備教室容量比（預設一節一科，只有你自己把兩科改成同節時才會用到）。<br>對應：1 月＝學測、7 月＝分科、5 月＝國中會考。</span><span></span></div>'+
+      blocks+
+      '<div class="row"><button class="btn" data-act="scadd" data-sec="'+((keys.length?keys[keys.length-1]:0)+1)+'">＋ 新增一節</button><span class="small muted">節次編號改掉後，這科會自動移到那一節；刪掉一科後，其餘節次編號不會自動重排。</span></div></div>'}
+  /* ---------- 步驟③：預備教室排座方式（D94-4）與預備教室合併標籤範例（D94-5） ---------- */
+  function pmodeCard(){
+    var m=S.pmode||1;
+    return '<div class="card stack"><div><h3>預備教室排座方式</h3><p class="small muted">加考的同學去預備教室時，座位怎麼排。兩種都可以選，預設「同學優先」。標籤都是每個座位一張、各節的使用者列在同一張、貼一次。</p></div><div class="pmode" role="group" aria-label="預備教室排座方式">'+
+      '<button type="button" class="opt" data-act="pmode" data-v="1" aria-pressed="'+(m===1)+'"><b>① 同學優先（預設）</b><span class="small muted">同一個人每一節盡量坐同一個座位；同班盡量照編號由前往後排、每排輪替，方便貼標籤。同班遞增是「盡量」，排不到時只警告、不擋下載。</span></button>'+
+      '<button type="button" class="opt" data-act="pmode" data-v="2" aria-pressed="'+(m===2)+'"><b>② 監考優先</b><span class="small muted">盡量讓同班坐在一起，方便監考；同學不保證每節同一個座位。同班座號一定由小到大，不會有遞增警告。</span></button></div>'+
+      (m===1?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>範例警告（模式 ① 才會出現）：</b>預備教室「備一」第 2 排的「勤班」座號沒有照由小到大排（07 號在 05 號前面）。這是為了讓同一個人每節都坐同一格，不影響下載。<span class="small muted">想要嚴格遞增，請改選「監考優先」。</span></span><button class="btn btn-sm" data-act="pmode" data-v="2">改成監考優先</button></div>':'')+'</div>'}
+  function prepLblCard(){
+    return '<div class="card stack"><div><h3>預備教室合併標籤（範例）</h3><p class="small muted">預備教室每個座位一張。同一個座位在不同節由不同人使用時，各節列在同一張，只貼一次；每節一行、同字級，印「節次＋科目＋班座號」，不印時間。抽離自習不排座位、不印標籤，只出名單。</p></div><div class="plbls">'+
+      '<div class="plbl"><div class="ph"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第 5 節</small><span>歷史　勤 07</span></div></div>'+
+      '<div class="plbl"><div class="ph"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第 1 節</small><span>物理　勇 12</span></div><div class="pl"><small>第 7 節</small><span>數乙　勇 12</span></div></div>'+
+      '<div class="plbl"><div class="ph"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第 2 節</small><span>化學　誠 03</span></div><div class="pl"><small>第 6 節</small><span>地理　勤 21</span></div></div></div>'+
+      '<p class="small muted">第 2 張：同一個人（勇班 12 號）跨節坐同一格。第 3 張：兩個不同的人共用同一格。</p></div>'}
+  /* ---------- 步驟③：分科教室依組別群（D93，ast-spec 第六節） ---------- */
+  var AGRP=['醫學類','理工＋農學','社會乙組','社會組'];
+  function astRoomCard(d){
+    var RG=S.rgrp=S.rgrp||{};
+    var rows=d.rooms.slice(0,5).map(function(r,i){var a=RG['r'+i]||(i===0?[0]:i===1?[1]:i===2?[2]:[3]);RG['r'+i]=a;
+      return '<div class="field"><span class="label">'+esc(r.name)+'</span><div class="rgrp" role="group" aria-label="'+esc(r.name)+'專用組別群">'+AGRP.map(function(g,gi){return '<button type="button" data-act="rgrp" data-r="r'+i+'" data-g="'+gi+'" aria-pressed="'+(a.indexOf(gi)>-1)+'">'+g+'</button>'}).join('')+'</div></div>'}).join('');
+    return '<div class="card stack"><div><h3>教室專用組別群（分科）</h3><p class="small muted">分科的文理組是<b>每位考生自己的屬性</b>，不跟班級（理組班裡也有考社會組的人）。科目組合相同的考生盡量坐同一間教室（純教室），混不開才併教室；每間教室可多選組別群，沒選的教室照原本的理組／文組。組別群進哪幾間由你決定。</p></div>'+rows+'</div>'}
+  /* ---------- 步驟④：分科標示「依教室」自動（D93，ast-spec 第四、六節） ---------- */
+  function astRoomCards(){
+    var T='<td class="n">',E='<td class="muted">—</td>';
+    var code='<div class="scroll"><table class="t compact"><thead><tr><th>代碼</th><th>組別</th><th>考試科目</th></tr></thead><tbody><tr><td><b>1</b></td><td>自然組－醫學類</td><td>數甲、物理、化學、生物</td></tr><tr><td><b>2</b></td><td>自然組－理工類</td><td>數甲、物理、化學（不考生物）</td></tr><tr><td><b>3</b></td><td>自然組－農學類</td><td>數甲、化學、生物（不考物理）</td></tr><tr><td><b>9</b></td><td>社會乙組</td><td>數乙、歷史、地理、公民</td></tr><tr><td><b>4</b></td><td>社會組</td><td>歷史、地理、公民（不考數乙）</td></tr></tbody></table></div>';
+    var rooms='<div class="scroll"><table class="t compact"><thead><tr><th>教室（組別群）</th><th>科目</th><th>考</th><th>不考</th><th>座位表怎麼寫</th></tr></thead><tbody>'+
+      '<tr><td rowspan="2"><b>理組一</b><br><span class="small muted">醫學類 20 人</span></td><td>全部四科</td>'+T+'20</td>'+T+'0</td><td>整間都考，不標示</td></tr><tr><td colspan="4" class="small muted">不需要標示</td></tr>'+
+      '<tr><td rowspan="2"><b>理組二</b><br><span class="small muted">理工＋農學 27 人</span></td><td>生物</td>'+T+'16</td>'+T+'11</td><td><span class="badge b-warn">標「X生物」11 人</span></td></tr><tr><td>物理</td>'+T+'11</td>'+T+'16</td><td><span class="badge b-warn">標「X物理」16 人</span></td></tr>'+
+      '<tr><td><b>社會一</b><br><span class="small muted">社會組 58 人</span></td><td>數乙</td>'+T+'0</td>'+T+'58</td><td>整間都不考，不標；寫「考數乙時請在本教室自習」</td></tr></tbody></table></div>';
+    return '<div class="card stack"><div><h3>組別代碼表</h3><p class="small muted">名單的「組別」格是大考中心代碼，依下表換成考科；國文、英文不加考。沒有代碼 5：出現「5-社會組」這類不在表內的代碼，進待確認、不猜，也不會變成科目。</p></div>'+code+'</div>'+
+      '<div class="card stack"><div><h3>各教室標示（依教室自動）</h3><p class="small muted">排座完成後才算：<b>只有同一間教室裡「有人考、有人不考」某科，才標不考的人</b>（X＋科目）；整間都考或整間都不考的教室不標示。標示一律標「不考」的人（與學測的「標少數」不同）；被標的人在該科那一節去抽離自習。下表是範例，人數會跟著排座結果變。</p></div>'+rooms+
+      '<div class="alert a-info"><span class="ico" data-i="i"></span><span>各科的考／不考人數、標示人數都在排座後自動統計，這一步不用再選標哪一邊。</span><span></span></div></div>'}
   /* ---------- 出缺席記錄表（A4 紙面，D77③；標題用考試名稱，不寫死「模擬考」）---------- */
   function attHTML(e,room,seq){
     var subs=subjList(e),isJ=e.type==='會考',SH=subs.map(sh);
@@ -1509,13 +1594,14 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   function vSettings(){
     S.dept=S.dept||deptOf(S.cur);
     var tab=S.stab||'stu',d=D(),dept=S.dept,isJ=dept==='國中部';
-    var tabs=[['stu','學生名單'],['cls','班級資料'],['school','學校與表頭'],['rooms','教室清單'],['feat','選用功能']];
+    var tabs=[['stu','學生名單'],['cls','班級資料'],['school','學校與表頭'],['rooms','教室清單'],['sched','節次與時長'],['feat','選用功能']];
     var seg='<div class="utabs" role="group" aria-label="設定項目">'+tabs.map(function(t){return '<button type="button" data-act="stab" data-v="'+t[0]+'" aria-pressed="'+(tab===t[0])+'">'+t[1]+'</button>'}).join('')+'</div>';
-    var deptSeg=(tab==='school'||tab==='feat')?'':'<div class="row"><span class="label" style="margin:0">部別</span><div class="seg seg-soft" role="group" aria-label="部別">'+['高中部','國中部'].map(function(x){return '<button type="button" data-act="dept" data-v="'+x+'" aria-pressed="'+(dept===x)+'">'+x+'</button>'}).join('')+'</div><span class="small muted">'+(isJ?'國中部：不分文理組，會考科目固定七科':'高中部：每個班級分理組或文組')+'</span></div>';
+    var deptSeg=(tab==='school'||tab==='feat'||tab==='sched')?'':'<div class="row"><span class="label" style="margin:0">部別</span><div class="seg seg-soft" role="group" aria-label="部別">'+['高中部','國中部'].map(function(x){return '<button type="button" data-act="dept" data-v="'+x+'" aria-pressed="'+(dept===x)+'">'+x+'</button>'}).join('')+'</div><span class="small muted">'+(isJ?'國中部：不分文理組，會考科目固定七科':'高中部：每個班級分理組或文組')+'</span></div>';
     var body='';
     if(tab==='stu')body=vRosterTab();
     else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱" disabled></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td></tr>'}).join('')+'</tbody></table></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱（溫良恭儉勤誠）在原型固定。</p></div>';
     else if(tab==='feat')body=featTab();
+    else if(tab==='sched')body=schedTab();
     else if(tab==='school'){var sc=S.school=S.school||{name:'示範高級中學',seat:'【{學年}學年第{次別}次{類型}模擬考】座位表',label:'{學年}學年第{次別}次{類型}模擬考'};var pp=(S.exp&&S.exp.paper)||'B4';
       body='<div class="card stack"><div><h3>學校與表頭資訊</h3><p class="small muted">座位表與標籤的固定表頭文字、預設紙張。</p></div><div class="field"><label for="sch1">學校名稱</label><input class="input" id="sch1" data-sk="name" value="'+esc(sc.name)+'"></div><div class="field"><label for="sch2">座位表表頭</label><input class="input" id="sch2" data-sk="seat" value="'+esc(sc.seat)+'"><span class="hint">{學年}、{次別}、{類型} 會自動換成這次模擬考的內容</span></div><div class="field"><label for="sch3">標籤表頭</label><input class="input" id="sch3" data-sk="label" value="'+esc(sc.label)+'"></div>'+
         '<div class="field"><span class="label">預設紙張</span><div class="row"><span>座位表與名單：A4（固定）</span><div class="seg fmtseg" role="group" aria-label="標籤預設紙張"><button type="button" data-act="epaper" data-v="B4" aria-pressed="'+(pp!=='A3')+'">標籤 B4（一般）</button><button type="button" data-act="epaper" data-v="A3" aria-pressed="'+(pp==='A3')+'">標籤 A3（大尺寸）</button></div></div></div></div>'}
@@ -1611,6 +1697,12 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='rexp'){if(/^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName)||ev.target.closest('.stepper'))return;S.rsel=g('s');S.rexp=S.rexp===g('s')?null:g('s');render()}
     else if(a==='tpl')openTpl();
     else if(a==='stab'){S.stab=g('v');render()}
+    else if(a==='sctype'){S.schT=g('v');render()}
+    else if(a==='scrst'){var tt=S.schT||'g12';if(S.sch)delete S.sch[tt];render();toast('已還原預設節次與時長')}
+    else if(a==='scdel'){var sd=schGet(S.schT||'g12');sd.rows.splice(+g('i'),1);render()}
+    else if(a==='scadd'){var sa=schGet(S.schT||'g12'),sk=+g('sec'),dd2=(sa.rows.filter(function(x){return x.sec===sk})[0]||sa.rows[sa.rows.length-1]||{day:1}).day;sa.rows.push({n:'新科目',sec:sk,dur:sa.rows.length?(sa.rows[sa.rows.length-1].dur||80):80,day:dd2});render()}
+    else if(a==='pmode'){S.pmode=+g('v');render()}
+    else if(a==='rgrp'){S.rgrp=S.rgrp||{};var ra=S.rgrp[g('r')]||[],gi=+g('g'),ix=ra.indexOf(gi);if(ix>-1)ra.splice(ix,1);else ra.push(gi);S.rgrp[g('r')]=ra;render()}
     else if(a==='ccol'){pushUndo('班級色');var dd=D(),ci=+g('c'),kk=+g('k'),used=dd.cls.some(function(x,i2){return i2!==ci&&(x.col||i2+1)===kk});dd.cls[ci].col=kk;render();toast(used?'已改色；這個顏色另一個班也在用，建議換一個':'已改班級色，座位表與標籤同步更新')}
     else if(a==='subjreset'){pushUndo('還原預設考科');e.subj=null;render();toast('已還原成預設考科')}
     else if(a==='subjdel'){pushUndo('刪除考科');var sl=subjectsOf(e).map(function(x){return x.slice()});sl.splice(+g('i'),1);e.subj=sl;render();toast('已刪除考科；④ 的組別對照表要重新確認')}
@@ -1635,7 +1727,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='ps'){S.ps=g('s');render()}
     else if(a==='expgo'){var fl=exportFiles(e);showModal('<div class="modal" role="dialog" aria-label="下載"><h3>下載 '+fl.length+' 個檔案？</h3><p class="muted small">會寫入「'+esc(FN())+'\\'+esc(e.name)+'\\下載\\」。原型只模擬，不會真的產生檔案。</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="egodo">下載</button></div></div>',function(ev2){if(ev2.target.id!=='egodo')return;S.expDone=fl;closeModal();render();toast('已下載 '+fl.length+' 個檔案（模擬）')})}
   });
-  $('#app').addEventListener('change',function(ev){var fk=ev.target.getAttribute&&ev.target.getAttribute('data-feat');if(fk){FEAT[fk]=ev.target.checked;render();return}var sk=ev.target.getAttribute&&ev.target.getAttribute('data-sw');if(sk){S.rsw=S.rsw||{};S.rsw[sk]=ev.target.checked;if(sk.charAt(0)==='p'){markStale();render();return}var stx=ev.target.parentNode.querySelector('.st');if(stx)stx.textContent=ev.target.checked?'已列入':'未列入';var rrw=ev.target.closest('.roomrow');if(rrw)rrw.classList.toggle('off',!ev.target.checked);return}if(ev.target.getAttribute&&ev.target.getAttribute('data-act')==='eck'){S.exp[ev.target.getAttribute('data-k')]=ev.target.checked;S.expDone=null;render()}});
+  $('#app').addEventListener('change',function(ev){var scf=ev.target.getAttribute&&ev.target.getAttribute('data-scf'),sct=ev.target.getAttribute&&ev.target.getAttribute('data-sct');if(scf||sct){var sc2=schGet(S.schT||'g12');if(sct){sc2.times[sct]=ev.target.value;return}var rw=sc2.rows[+ev.target.getAttribute('data-sci')];if(rw){var v=ev.target.value;if(scf==='n')rw.n=v;else rw[scf]=Math.max(0,parseInt(v,10)||0)}if(scf==='sec')render();return}var fk=ev.target.getAttribute&&ev.target.getAttribute('data-feat');if(fk){FEAT[fk]=ev.target.checked;render();return}var sk=ev.target.getAttribute&&ev.target.getAttribute('data-sw');if(sk){S.rsw=S.rsw||{};S.rsw[sk]=ev.target.checked;if(sk.charAt(0)==='p'){markStale();render();return}var stx=ev.target.parentNode.querySelector('.st');if(stx)stx.textContent=ev.target.checked?'已列入':'未列入';var rrw=ev.target.closest('.roomrow');if(rrw)rrw.classList.toggle('off',!ev.target.checked);return}if(ev.target.getAttribute&&ev.target.getAttribute('data-act')==='eck'){S.exp[ev.target.getAttribute('data-k')]=ev.target.checked;S.expDone=null;render()}});
   $('#app').addEventListener('input',function(ev){var t=ev.target,rn=t.getAttribute&&t.getAttribute('data-rn');if(rn){var dd=D(),rr=rn.charAt(0)==='p'?dd.prep[+rn.slice(1)]:dd.rooms[+rn.slice(1)];if(rr){rr.name=t.value;markStale()}return}
     if(t.getAttribute&&t.getAttribute('data-sk')&&S.school){S.school[t.getAttribute('data-sk')]=t.value;return}
     if(t.id==='fq'){S.fq=t.value;$('#fres').innerHTML=findHTML();return}
