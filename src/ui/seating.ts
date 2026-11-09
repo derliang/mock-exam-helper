@@ -11,8 +11,10 @@ import {
   specialOf,
   runSeating,
   fullyAbsentCodes,
+  entryTracks,
   seatingVersion,
   suggestMarks,
+  preferMarkAbsent,
   validateSeating,
   type MarkSuggestion,
   type RunSeatingInput,
@@ -74,7 +76,8 @@ export const ruleKey = (track: Track | undefined, subjectId: string): string => 
 
 export function markSuggestions(doc: Doc, exam: ExamConfig): MarkSuggestion[] {
   if (!needsMarks(exam)) return [];
-  return suggestMarks(seatableEntries(doc, exam), examClasses(doc, exam), exam.subjects);
+  const list = suggestMarks(seatableEntries(doc, exam), examClasses(doc, exam), exam.subjects);
+  return exam.kind === 'ast' ? preferMarkAbsent(list) : list;
 }
 
 /**
@@ -240,6 +243,7 @@ export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResu
     codes,
     assignments: result.assignments,
     checkTrack: exam.division === 'senior',
+    ...(entryTracks(seatableEntries(doc, exam)) ? { trackOf: entryTracks(seatableEntries(doc, exam))! } : {}),
   });
   const capacity = rooms.reduce((a, r) => a + r.seatCount, 0);
   const checks: Check[] = [

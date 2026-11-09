@@ -14,6 +14,8 @@ export interface SeatExamInput {
   /** 本次勾選的教室（依清單順序）；預備教室會被略過 */
   classrooms: readonly Classroom[];
   codes: readonly StudentCode[];
+  /** 逐人指定文理組（分科）：有的人以它為準，沒有的看班級 */
+  trackOf?: ReadonlyMap<StudentCode, Track>;
 }
 
 export type SeatExamResult =
@@ -34,7 +36,7 @@ export function seatExam(input: SeatExamInput): SeatExamResult {
     const byTrack: Record<Track, StudentCode[]> = { science: [], liberal: [] };
     for (const code of input.codes) {
       const p = parseStudentCode(code);
-      const track = p ? classTrack.get(p.classNo) : undefined;
+      const track = input.trackOf?.get(code) ?? (p ? classTrack.get(p.classNo) : undefined);
       if (!p) errors.push(`考生編號格式不正確：${code}`);
       else if (!track) errors.push(`第 ${p.classNo} 班沒有設定組別`);
       else byTrack[track].push(code);
@@ -64,6 +66,7 @@ export function seatExam(input: SeatExamInput): SeatExamResult {
     codes: input.codes,
     assignments,
     checkTrack: input.division === 'senior',
+    ...(input.trackOf ? { trackOf: input.trackOf } : {}),
   });
   if (problems.length) return { ok: false, errors: problems };
   return { ok: true, assignments };

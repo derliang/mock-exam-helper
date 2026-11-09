@@ -40,7 +40,16 @@ export function suggestMarkMode(
 }
 
 function trackOf(entry: ExamEntry, classes: ReadonlyMap<number, ClassInfo>): Track | undefined {
-  return classes.get(entry.classNo)?.track;
+  return entry.track ?? classes.get(entry.classNo)?.track;
+}
+
+/**
+ * 分科的標示方向（使用者 2026-11-09 選定）：真實分科座位表一律標「不考的人」（X＋沒考的科），
+ * 即使他們占多數（例：同教室 41 人中 25 人不考數乙仍標 X數乙），所以不用「標少數」、也不問「接近一半」。
+ * 全考或全不考的科仍不標。使用者在步驟④手動選過的（locked）不受影響。
+ */
+export function preferMarkAbsent(list: readonly MarkSuggestion[]): MarkSuggestion[] {
+  return list.map((s) => (s.suggested === 'none' ? s : { ...s, suggested: 'mark-absent' as const, needsDecision: false }));
 }
 
 /** 依實際考試人數，對每個組別（國中部為全體）每科提出標示建議 */

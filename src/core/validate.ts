@@ -2,7 +2,7 @@
  * 驗證器（D25）：排座結果不合硬規則就擋下，絕不輸出。
  * 檢查與排座演算法無關，任何策略（含未來的覆寫）都要通過。
  */
-import type { ClassInfo, Classroom, SeatAssignment } from '../data/types';
+import type { ClassInfo, Classroom, SeatAssignment, Track } from '../data/types';
 import { classroomSeats, parseStudentCode, seatLabel } from '../data/helpers';
 
 export interface ValidationInput {
@@ -14,6 +14,8 @@ export interface ValidationInput {
   assignments: readonly SeatAssignment[];
   /** 高中部檢查教室組別；國中部不分組（D9/D69） */
   checkTrack: boolean;
+  /** 逐人指定文理組（分科）：有的人以它為準，沒有的看班級 */
+  trackOf?: ReadonlyMap<string, Track>;
   /** 允許的教室種類：主排座為 class（預設），抽離考試為 reserve（D27） */
   roomKind?: Classroom['kind'];
 }
@@ -64,9 +66,9 @@ export function validateSeating(input: ValidationInput): string[] {
       errors.push(`考生排進錯誤種類的教室：${a.code}（${room.name}）`);
     }
     if (input.checkTrack) {
-      const info = classByNo.get(p.classNo);
-      if (!info?.track) errors.push(`第 ${p.classNo} 班沒有設定組別`);
-      else if (room.track !== info.track) errors.push(`考生排進其他組別的教室：${a.code}（${room.name}）`);
+      const track = input.trackOf?.get(a.code) ?? classByNo.get(p.classNo)?.track;
+      if (!track) errors.push(`第 ${p.classNo} 班沒有設定組別`);
+      else if (room.track !== track) errors.push(`考生排進其他組別的教室：${a.code}（${room.name}）`);
     }
     placed.push({ ...p, room: r, row: a.row, order, label: `${room.name} ${seatLabel(a)}` });
   }
