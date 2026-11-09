@@ -460,6 +460,15 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .roomrow{cursor:pointer}
 .roomrow input,.roomrow .stepper{cursor:auto}
 /* 設定頁教室清單：點整列＝按「編輯座位表」，再點收合；輸入框、按鈕維持原操作（UI-18） */
+/* 步驟③ 狀態檢核：一項一格，上名稱、中大數字（座位數）、下狀態徽章；未通過用警示色（同 .stats .bad）；多出來用琥珀 */
+.stats.chkgrid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;background:var(--surface)}
+.stats.chkgrid>div.chk{border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.stats>div.chk{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.stats>div.chk .sub{font-size:13px;color:var(--text-3);font-weight:500}
+.stats>div.chk .badge{margin-top:6px}
+.stats>div.chk.bad{background:var(--danger-soft)}
+.stats>div.chk.warnc::before{background:var(--warn-bar)}
+.errnote{color:var(--danger-ink)}
 .t tr.rowtap{cursor:pointer}
 .t tr.rowtap.open{background:var(--accent-soft)}
 .t tr.rowtap .input{cursor:text}.t tr.rowtap .btn{cursor:pointer}
@@ -1242,10 +1251,17 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var rooms=d.rooms.map(function(r,i){return rrow(r,'r'+i,i+1,'r')}).join('');
     var preps=isJ?'':d.prep.map(function(r,i){return rrow(r,'p'+i,'備','p')}).join('');
     var cap=capacity(e);
-    var capH=cap.map(function(c){var ok=c.seats>=c.stu;return '<div class="alert '+(ok?'a-ok':'a-err')+'"><span class="ico" data-i="'+(ok?'✓':'×')+'"></span><span>'+(ok?'<b>'+c.label+'：</b>教室座位 '+c.seats+'，考生 '+c.stu+(c.extra?'，多 '+c.extra+' 個空位，空位留在最後面（由前往後連續排，中間不空位）。':'，剛好排滿。'):'<b>無法排座：</b>'+c.label+'教室座位 '+c.seats+'，'+c.label+'考生 '+c.stu+'。座位不能比考生少，請增加 '+(c.stu-c.seats)+' 個座位。')+'</span><span></span></div>'}).join('');
+    var cells='',notes='';
+    cap.forEach(function(c){var ok=c.seats>=c.stu,ex=ok&&c.extra>0;
+      cells+='<div class="chk'+(ok?(ex?' warnc':''):' bad')+'"><small>'+c.label+'座位</small><strong>'+c.seats+'</strong><span class="sub">考生 '+c.stu+'</span><span class="badge '+(ok?(ex?'b-warn':'b-ok'):'b-err')+'">'+(ok?(ex?'多 '+c.extra:'剛好'):'不足 '+(c.stu-c.seats))+'</span></div>';
+      notes+='<p class="small'+(ok?' muted':' errnote')+'">'+(ok?'<b>'+c.label+'：</b>教室座位 '+c.seats+'，考生 '+c.stu+(c.extra?'，多 '+c.extra+' 個空位，空位留在最後面（由前往後連續排，中間不空位）。':'，剛好排滿。'):'<b>無法排座：</b>'+c.label+'教室座位 '+c.seats+'，'+c.label+'考生 '+c.stu+'。座位不能比考生少，請增加 '+(c.stu-c.seats)+' 個座位。')+'</p>'});
+    var prepSeats=0;if(!isJ)d.prep.forEach(function(r){prepSeats+=seatsOf(r).length});
     var ps=prepShort(e);
-    var prepNote=isJ?'<div class="alert a-info"><span class="ico" data-i="i"></span><span>會考沒有抽離，不需要預備教室。</span><span></span></div>':(ps.n>0?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>預備教室座位不足：</b>「'+ps.who+'」那一節還缺 '+ps.n+' 個座位，請增加預備教室（D8）。</span><span></span></div>':'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span>預備教室容量夠用：每一節的抽離考試與自習都排得下。</span><span></span></div>');
-    return '<div class="card stack"><div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排（D69）。'+(isJ?'':'高中部理組、文組各自計算，預備教室不納入。')+'</p></div>'+capH+prepNote+'</div>'+
+    var prepNote='';
+    if(isJ){prepNote='<div class="alert a-info"><span class="ico" data-i="i"></span><span>會考沒有抽離，不需要預備教室。</span><span></span></div>'}
+    else{cells+='<div class="chk'+(ps.n>0?' bad':'')+'"><small>預備教室座位</small><strong>'+prepSeats+'</strong><span class="sub">'+d.prep.length+' 間</span><span class="badge '+(ps.n>0?'b-err':'b-ok')+'">'+(ps.n>0?'缺 '+ps.n:'夠用')+'</span></div>';
+      notes+=(ps.n>0?'<p class="small errnote"><b>預備教室座位不足：</b>「'+ps.who+'」那一節還缺 '+ps.n+' 個座位，請增加預備教室（D8）。</p>':'<p class="small muted">預備教室容量夠用：每一節的抽離考試與自習都排得下。</p>')}
+    return '<div class="card stack"><div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排（D69）。'+(isJ?'':'高中部理組、文組各自計算，預備教室不納入。')+'</p></div><div class="stats chkgrid">'+cells+'</div><div class="stack" style="gap:6px">'+notes+'</div>'+prepNote+'</div>'+
       '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組（D9）。')+'</p></div>'+cls+'</div>'+
       '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">每間教室一列，名稱可改；點教室那一列或「編輯座位表」就在下方展開座位表，可以收合。教室從設定頁的教室清單帶入，沿用上次的選擇（D65）。</p></div><div class="row"><button class="btn" data-act="tosettings" data-v="rooms">到設定頁看教室清單</button>'+(isJ?'':'<button class="btn" data-act="padd">新增預備教室</button>')+'</div></div>'+
       '<div class="roomlist">'+rooms+preps+'</div></div>'}

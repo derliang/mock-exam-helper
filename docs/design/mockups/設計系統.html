@@ -653,6 +653,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         <div><small>考生</small><strong>139</strong></div><div><small>座位</small><strong>139</strong></div><div><small>禁用</small><strong>11</strong></div>
         <div><small>班級教室</small><strong>4 間</strong></div><div><small>預備教室</small><strong>2 間</strong></div><div><small>驗證</small><strong style="color:var(--ok-ink)">通過</strong><div class="bar"><i style="width:100%;background:var(--ok-bar)"></i></div></div>
       </div></div>
+    <div class="card" style="margin-top:16px"><div class="lab">檢核格：一項一格、大數字、狀態徽章（步驟③ 狀態檢核）</div>
+      <p class="small muted" style="margin-bottom:12px">上方項目名稱、中間大數字（座位數，32，明文例外）、小字補充（考生人數）、下方狀態徽章：剛好＝綠、多出＝琥珀（頂端色條）、不足＝紅（整格淡紅底）。原本的說明文字留在格子下方 13px 小字，不足的那句用紅字。</p>
+      <div class="stats chkgrid">
+        <div class="chk"><small>文組座位</small><strong>133</strong><span class="sub">考生 133</span><span class="badge b-ok">剛好</span></div>
+        <div class="chk warnc"><small>理組座位</small><strong>140</strong><span class="sub">考生 133</span><span class="badge b-warn">多 7</span></div>
+        <div class="chk bad"><small>理組座位</small><strong>115</strong><span class="sub">考生 133</span><span class="badge b-err">不足 18</span></div>
+        <div class="chk"><small>預備教室座位</small><strong>72</strong><span class="sub">2 間</span><span class="badge b-ok">夠用</span></div>
+      </div>
+      <div class="stack" style="gap:6px;margin-top:10px"><p class="small muted"><b>文組：</b>教室座位 133，考生 133，剛好排滿。</p><p class="small errnote"><b>無法排座：</b>理組教室座位 115，理組考生 133。座位不能比考生少，請增加 18 個座位。</p></div>
+    </div>
   </section>
 
   <section id="footer">
@@ -823,6 +833,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .stats>div{position:relative;padding-top:13px}
 .stats>div::before{content:"";position:absolute;left:14px;top:0;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--accent-line)}
 .stats .bad::before{background:var(--danger)}
+.stats.chkgrid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;background:var(--surface)}
+.stats.chkgrid>div.chk{border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0;display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.stats>div.chk .sub{font-size:13px;color:var(--text-3);font-weight:500}
+.stats>div.chk .badge{margin-top:6px}
+.stats>div.chk.bad{background:var(--danger-soft)}
+.stats>div.chk.warnc::before{background:var(--warn-bar)}
+.errnote{color:var(--danger-ink)}
 
 /* 提示條：左側 4px 色條表達語氣，不再只靠底色 */
 .alert{box-shadow:inset 4px 0 0 var(--bar,var(--line-2));padding-left:18px}
