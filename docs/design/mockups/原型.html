@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.18</title>
+<title>模擬考原型 稿 v2.19</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -742,11 +742,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 /* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
 .plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .plbl{border:2px solid #222;border-radius:6px;background:#fff;color:#111;padding:10px 12px;display:grid;gap:6px;font-family:var(--font-body,inherit)}
-.plbl .ph{font-weight:800;font-size:15px;border-bottom:1.5px solid #222;padding-bottom:4px;display:flex;justify-content:space-between;gap:8px}
+.plbl .plh{font-weight:800;font-size:15px;border-bottom:1.5px solid #222;padding-bottom:4px;display:flex;justify-content:space-between;gap:8px}
 .plbl .pl{font-size:20px;font-weight:800;line-height:1.25;display:flex;gap:10px;align-items:baseline}
 .plbl .pl small{font-size:14px;font-weight:700;min-width:72px}
 .plbl.sp{background:#FFE08A}
 .pmode{display:grid;gap:8px}
+.psec{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
+.sh{font-size:17px;margin:0}
 .pmode .opt{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
 .pmode .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .rgrp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
@@ -765,7 +767,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.18・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.19・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -885,7 +887,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(e.round>=3)l.push(['數學A','組別','diff'],['數學B','組別','diff']);else l.push(['數學','全體','diff']);
     l.push(['自然','組別'],['社會','組別']);return l}
   function prevRound(e){var b=null;S.exams.forEach(function(x){if(x.type===e.type&&x.id!==e.id&&x.round<e.round&&(!b||x.round>b.round))b=x});return b}
-  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.18） */
+  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.19） */
   function FN(){return String(S.folder||'').split(/[\\/]/).filter(Boolean).pop()||''}
   function v1(){
     var e=S.cur,isJ=e.type==='會考',subs=subjectsOf(e),prev=prevRound(e);
@@ -1347,7 +1349,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       cells+='<div class="chk'+(pBad?' bad':'')+'"><small>預備教室座位</small><strong>'+ps.avail+'</strong><span class="sub">需要 '+ps.need+'・已列入 '+ps.on+'／'+ps.total+' 間</span><span class="badge '+(pBad?'b-err':'b-ok')+'">'+(pBad?'不足 '+ps.n:(pNone?'不需要':'夠用'))+'</span></div>';
       notes+=(pBad?'<p class="small errnote"><b>預備教室座位不足：</b>'+(ps.on===0?'還沒有把任何預備教室「列為預備」。':'')+'最多的一節「'+ps.who+'」要 '+ps.need+' 個座位（抽離考試 '+ps.ex+' 人要排座位、抽離自習 '+ps.st+' 人不用排座位但座位要夠），已列為預備的教室只有 '+ps.avail+' 個，還缺 '+ps.n+' 個。請打開預備教室的「列為預備」或增加座位。</p>':(pNone?'<p class="small muted">目前沒有抽離考試或抽離自習，不需要預備教室。</p>':'<p class="small muted">預備教室容量夠用（同一節各科的抽離人數加總再比容量）：最多的一節「'+ps.who+'」要 '+ps.need+' 個（抽離考試 '+ps.ex+'、抽離自習 '+ps.st+'），已列為預備的教室有 '+ps.avail+' 個座位。</p>'))}
     return '<div class="card stack"><div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。'+(isJ?'':'高中部理組、文組各自計算，預備教室不納入。')+'</p></div><div class="stats chkgrid">'+cells+'</div><div class="stack" style="gap:6px">'+notes+'</div>'+prepNote+'</div>'+
-      '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組。')+(e.type==='分科'?'分科的文理組跟考生走（每位考生自己的組別），不跟班級；下方「教室專用組別群」決定誰坐哪一間。':'')+'</p></div>'+cls+'</div>'+(e.type==='分科'?astRoomCard(d):'')+(isJ?'':pmodeCard()+prepLblCard())+
+      '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組。')+(e.type==='分科'?'分科的文理組跟考生走（每位考生自己的組別），不跟班級；下方「教室專用組別群」決定誰坐哪一間。':'')+'</p></div>'+cls+'</div>'+(e.type==='分科'?astRoomCard(d):'')+(isJ?'':pmodeCard())+
       '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">每間教室一列，名稱可改；點教室那一列或「編輯座位表」就在下方展開座位表，可以收合。教室從設定頁的教室清單帶入，沿用上次的選擇。'+capLine()+'</p></div><div class="row"><button class="btn" data-act="tosettings" data-v="rooms">到設定頁看教室清單</button>'+(isJ?'':'<button class="btn" data-act="padd">新增預備教室</button>')+'</div></div>'+
       '<div class="roomlist">'+rooms+preps+'</div></div>'}
   function v3side(){
@@ -1494,7 +1496,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="field" style="margin-left:30px"><span class="label">標籤紙張（只有標籤可選；座位表與名單固定 A4）</span><div class="seg fmtseg" role="group" aria-label="標籤紙張"><button type="button" data-act="epaper" data-v="B4" aria-pressed="'+(x.paper==='B4')+'">B4（一般）</button><button type="button" data-act="epaper" data-v="A3" aria-pressed="'+(x.paper==='A3')+'">A3（大尺寸）</button></div><span class="hint">兩種紙張的標籤格大小各自固定，B4 一張紙 6×8 格、A3 一張紙 7×7 格，不隨班級人數變。</span></div>'+(isJ?'':ck('pull','抽離自習名單（A4）','合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')+ck('prepSeat','預備教室的座位表（A4）與標籤（'+x.paper+'）','抽離考試，每節科目各自排；座位表、標籤各合併成一個檔案'))+'</div>'+
       '<div class="row" style="justify-content:space-between"><span class="muted">將產生 <b class="num">'+files.length+'</b> 個檔案</span><button class="btn btn-primary btn-lg" data-act="expgo"'+(ready?'':' disabled')+'>'+(stale?'排座過期，先重新排座':'下載 '+x.fmt)+'</button></div>'+
       '<p class="small muted">要列印時，請開啟下載的 Word 或 PDF 再列印，本程式不直接列印。Word 內嵌字型讓每台電腦開檔都不跑版，施工前會先驗證可行性。</p></div>'+result+
-      (isJ?'':prepLblCard())+'<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>預覽</h3><p class="small muted">'+room.name+'</p></div><div class="row"><div class="seg" role="group" aria-label="預覽類型"><button type="button" data-act="pv" data-v="label" aria-pressed="'+(pv==='label')+'">標籤</button><button type="button" data-act="pv" data-v="seat" aria-pressed="'+(pv==='seat')+'">座位表</button>'+(FEAT.pickup?'<button type="button" data-act="pv" data-v="rcv" aria-pressed="'+(pv==='rcv')+'">領卷清單</button>':'')+(FEAT.att?'<button type="button" data-act="pv" data-v="att" aria-pressed="'+(pv==='att')+'">出缺席記錄表</button>':'')+'</div></div></div>'+
+      '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>預覽</h3><p class="small muted">'+room.name+'</p></div><div class="row"><div class="seg" role="group" aria-label="預覽類型"><button type="button" data-act="pv" data-v="label" aria-pressed="'+(pv==='label')+'">標籤</button><button type="button" data-act="pv" data-v="seat" aria-pressed="'+(pv==='seat')+'">座位表</button>'+(FEAT.pickup?'<button type="button" data-act="pv" data-v="rcv" aria-pressed="'+(pv==='rcv')+'">領卷清單</button>':'')+(FEAT.att?'<button type="button" data-act="pv" data-v="att" aria-pressed="'+(pv==='att')+'">出缺席記錄表</button>':'')+'</div></div></div>'+
       '<div class="seg" role="group" aria-label="預覽教室" style="justify-self:start">'+d.rooms.map(function(r,i){return '<button type="button" data-act="sr" data-i="'+i+'" aria-pressed="'+(i===ri)+'">'+CNAME[r.c]+'</button>'}).join('')+'</div>'+prevH+'</div>'}
 
   /* ---------- 選用功能：共用設定第五個分頁 ---------- */
@@ -1541,15 +1543,15 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   /* ---------- 步驟③：預備教室排座方式（D94-4）與預備教室合併標籤範例（D94-5） ---------- */
   function pmodeCard(){
     var m=S.pmode||1;
-    return '<div class="card stack"><div><h3>預備教室排座方式</h3><p class="small muted">加考的同學去預備教室時，座位怎麼排。兩種都可以選，預設「同學優先」。標籤都是每個座位一張、各節的使用者列在同一張、貼一次。</p></div><div class="pmode" role="group" aria-label="預備教室排座方式">'+
+    return '<div class="card stack"><div><h3>預備教室排座與標籤</h3><p class="small muted">加考的同學去預備教室時，座位怎麼排，以及標籤長什麼樣子。</p></div><div class="stack" style="gap:8px"><div><h4 class="sh">排座方式</h4><p class="small muted">兩種都可以選，預設「同學優先」。</p></div><div class="pmode" role="group" aria-label="預備教室排座方式">'+
       '<button type="button" class="opt" data-act="pmode" data-v="1" aria-pressed="'+(m===1)+'"><b>① 同學優先（預設）</b><span class="small muted">同一個人每一節盡量坐同一個座位；同班盡量照編號由前往後排、每排輪替，方便貼標籤。同班遞增是「盡量」，排不到時只警告、不擋下載。</span></button>'+
       '<button type="button" class="opt" data-act="pmode" data-v="2" aria-pressed="'+(m===2)+'"><b>② 監考優先</b><span class="small muted">盡量讓同班坐在一起，方便監考；同學不保證每節同一個座位。同班座號一定由小到大，不會有遞增警告。</span></button></div>'+
-      (m===1?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>範例警告（模式 ① 才會出現）：</b>預備教室「備一」第 2 排的「勤班」座號沒有照由小到大排（07 號在 05 號前面）。這是為了讓同一個人每節都坐同一格，不影響下載。<span class="small muted">想要嚴格遞增，請改選「監考優先」。</span></span><button class="btn btn-sm" data-act="pmode" data-v="2">改成監考優先</button></div>':'')+'</div>'}
-  function prepLblCard(){
-    return '<div class="card stack"><div><h3>預備教室合併標籤（範例）</h3><p class="small muted">預備教室每個座位一張。同一個座位在不同節由不同人使用時，各節列在同一張，只貼一次；每節一行、同字級，印「節次＋科目＋班座號」，不印時間。抽離自習不排座位、不印標籤，只出名單。</p></div><div class="plbls">'+
-      '<div class="plbl"><div class="ph"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第 5 節</small><span>歷史　勤 07</span></div></div>'+
-      '<div class="plbl"><div class="ph"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第 1 節</small><span>物理　勇 12</span></div><div class="pl"><small>第 7 節</small><span>數乙　勇 12</span></div></div>'+
-      '<div class="plbl"><div class="ph"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第 2 節</small><span>化學　誠 03</span></div><div class="pl"><small>第 6 節</small><span>地理　勤 21</span></div></div></div>'+
+      (m===1?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>範例警告（模式 ① 才會出現）：</b>預備教室「備一」第 2 排的「勤班」座號沒有照由小到大排（07 號在 05 號前面）。這是為了讓同一個人每節都坐同一格，不影響下載。<span class="small muted">想要嚴格遞增，請改選「監考優先」。</span></span><button class="btn btn-sm" data-act="pmode" data-v="2">改成監考優先</button></div>':'')+'</div><div class="psec">'+lblSection()+'</div></div>'}
+  function lblSection(){
+    return '<div class="stack"><div><h4 class="sh">合併標籤（範例）</h4><p class="small muted">預備教室每個座位一張。同一個座位在不同節由不同人使用時，各節列在同一張，只貼一次；每節一行、同字級，印「節次＋科目＋班座號」，不印時間。抽離自習不排座位、不印標籤，只出名單。</p></div><div class="plbls">'+
+      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第 5 節</small><span>歷史　勤 07</span></div></div>'+
+      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第 1 節</small><span>物理　勇 12</span></div><div class="pl"><small>第 7 節</small><span>數乙　勇 12</span></div></div>'+
+      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第 2 節</small><span>化學　誠 03</span></div><div class="pl"><small>第 6 節</small><span>地理　勤 21</span></div></div></div>'+
       '<p class="small muted">第 2 張：同一個人（勇班 12 號）跨節坐同一格。第 3 張：兩個不同的人共用同一格。</p></div>'}
   /* ---------- 步驟③：分科教室依組別群（D93，ast-spec 第六節） ---------- */
   var AGRP=['醫學類','理工＋農學','社會乙組','社會組'];
