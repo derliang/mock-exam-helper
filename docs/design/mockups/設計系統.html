@@ -395,7 +395,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     <p>視覺沿用座位小幫手 v3.4.0（墨藍＋紙色、Noto 字型、四級圓角），兩個程式看起來是一家人，但不共用元件（D31）。以下新增的只有本專案才有的東西：班級六色、座位格、標籤格、個別考試標示、過期標示。頁面右上角可切換深淺色。</p>
     <div class="facts">
       <div class="fact"><b>色彩與 tokens 來源</b>座位小幫手 repo 的 <code>docs/design/DESIGN.md</code>（已讀到，直接沿用數值）</div>
-      <div class="fact"><b>對照決定記錄</b>D28 六色、D31 沿用、D39 標示、D40 統計、D43 字型、P12 裁切框線、P13 字型打包</div>
+      <div class="fact"><b>對照決定記錄</b>D28／D69 班級 12 色、D31 沿用、D39 標示、D40 統計、D43 字型、P12 裁切框線、P13 字型打包</div>
       <div class="fact"><b>標「待使用者確認」的</b>是我的提案，不是已定案；假資料姓名皆為虛構</div>
     </div>
   </div>
@@ -557,6 +557,22 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       </div>
     </div>
 
+    <div class="card" style="margin-top:16px"><div class="lab">復原鈕、返回鈕、部別、選項卡（TODO-04、07；UI-05、14、15；DESIGN 10.1、10.9）</div>
+      <div class="stack">
+        <div><div class="small muted" style="margin-bottom:6px">復原鈕：寫明動作，不顯示累計數字；▾ 列出可回頭的步驟，選「回到『X』之前」就退到那一步（比它新的動作一併退掉，後面步驟標過期）。沒有可復原的動作時兩顆都停用。</div>
+          <div class="row" style="gap:24px;align-items:flex-start;min-height:200px"><span class="undowrap"><button class="btn undo-main" type="button">↶ 復原：新增學生</button><button class="btn undo-more" type="button" aria-label="看可以回頭的步驟">▾</button><div class="undomenu" role="menu"><div class="small muted">選一步，回到那一步之前；比它新的動作一併退掉。</div><button type="button" role="menuitem">回到「新增學生」之前</button><button type="button" role="menuitem">回到「班級色」之前</button><button type="button" role="menuitem">回到「次別」之前</button></div></span>
+          <span class="undowrap"><button class="btn undo-main" type="button" disabled>↶ 復原</button><button class="btn undo-more" type="button" disabled aria-label="看可以回頭的步驟">▾</button></span></div></div>
+        <div><div class="small muted" style="margin-bottom:6px">「回到…」返回鈕：從 A 頁連去 B 頁處理事情時，B 頁頂端一律有它，名稱寫清楚；到了步驟頁還有「↩ 回到 ⑤ 排座與預覽」。</div>
+          <div class="row"><button class="btn btn-ghost" type="button">← 回到「學測第三次」② 考試名單</button><button class="btn" type="button">↩ 回到 ⑤ 排座與預覽</button></div></div>
+        <div><div class="small muted" style="margin-bottom:6px">部別分段：共用設定頁最上面「高中部／國中部」；國中部不分文理組、沒有預備教室。</div>
+          <div class="seg" role="group" aria-label="部別"><button type="button" aria-pressed="true">高中部</button><button type="button" aria-pressed="false">國中部</button></div></div>
+        <div><div class="small muted" style="margin-bottom:6px">選項卡（學期）：兩張並排、寬度依內容，不撐滿整列；選中的卡有主色邊框與淡底。</div>
+          <div class="termcards" role="group" aria-label="學期"><button type="button" class="tcard term" aria-pressed="true"><strong>上學期</strong><span class="badge b-acc">已選</span></button><button type="button" class="tcard term" aria-pressed="false"><strong>下學期</strong></button></div></div>
+        <div><div class="small muted" style="margin-bottom:6px">學生名單表與 Excel 動作鈕：欄位含「學號（選填）」，沒匯入顯示「（空白）」；三顆 Excel 鈕用綠色格式色與自繪圖示。</div>
+          <div class="row" style="margin-bottom:10px"><button class="btn btn-primary" type="button">新增學生</button><button class="btn btn-xls" type="button"><svg viewBox="0 0 26 26" width="22" height="22" aria-hidden="true" style="flex:none"><path class="ic-bg-x" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M8 11.5l9 7M17 11.5l-9 7" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>下載 Excel 範本</button><button class="btn btn-xls" type="button"><svg viewBox="0 0 26 26" width="22" height="22" aria-hidden="true" style="flex:none"><path class="ic-bg-x" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M8 11.5l9 7M17 11.5l-9 7" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>匯入 Excel</button><button class="btn btn-xls" type="button"><svg viewBox="0 0 26 26" width="22" height="22" aria-hidden="true" style="flex:none"><path class="ic-bg-x" d="M5 2h11l6 6v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2z"/><path d="M16 2v4a2 2 0 0 0 2 2h4z" fill="#fff" opacity=".4"/><path d="M8 11.5l9 7M17 11.5l-9 7" fill="none" stroke="#fff" stroke-width="1.9" stroke-linecap="round"/></svg>下載 Excel</button></div>
+          <div class="scroll"><table class="t" style="min-width:0"><thead><tr><th>班級</th><th>座號</th><th>考生編號</th><th>姓名</th><th>學號（選填）</th><th>組別</th></tr></thead><tbody><tr><td>溫</td><td>1</td><td>0101</td><td>王小明</td><td>1150101</td><td>6-自然組</td></tr><tr><td>溫</td><td>2</td><td>0102</td><td>李小華</td><td class="muted">（空白）</td><td>6-自然組</td></tr></tbody></table></div></div>
+      </div></div>
+
     <div class="card" style="margin-top:16px"><div class="lab">控制元件選用表（選錯元件視為 Bug，DESIGN 10.9）</div>
       <div class="scroll"><table class="t" style="min-width:0"><thead><tr><th>元件</th><th>用在</th><th>本站例子</th></tr></thead><tbody>
         <tr><td><b>按鈕</b></td><td>觸發一個動作</td><td>完成此步、編輯座位表、刪除</td></tr>
@@ -577,6 +593,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       <div class="card"><div class="lab">頁面骨架（照原型）</div>
         <div class="shell"><div>左側步驟欄<br>220px</div><div>主區<br>彈性寬度</div><div>右側欄<br>只有步驟①④<br>200～320px</div></div></div>
       <div class="card"><div class="lab">步驟狀態</div>
+        <div class="stepprog">第 2／6 步　已完成 1 步</div>
         <ol class="steps" id="stepList"></ol>
         <p class="small muted" style="margin-top:10px">可點的步驟都能直接跳（我的假設，D20 未決議題 5 尚待使用者確認）。</p></div>
       <div class="card"><div class="lab">過期標示</div>
@@ -590,9 +607,10 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     <header><h2>本專案專屬元件</h2><p>以下全部用假資料。可按「黑白預覽」，確認黑白列印時班級仍分得出來、標示仍醒目（D39）。</p></header>
     <div class="row" style="margin-bottom:16px"><button class="btn" id="grayBtn" aria-pressed="false">黑白預覽：關</button><span class="small muted">只影響下面的座位表與標籤</span></div>
 
-    <div class="card"><div class="lab">班級六色與文理組（溫良恭儉勤誠，設定頁可改，D28）<span class="pending">待使用者確認：班級清單版式</span></div>
+    <div class="card"><div class="lab">班級 12 色與文理組（預設溫良恭儉勤誠用前 6 色，設定頁可改，D28、D69）<span class="pending">待使用者確認：班級清單版式</span></div>
       <div class="cls-pal" id="clsPal"></div>
-      <p class="small muted" style="margin-top:10px">每個班級各有一個「理組／文組」切換，預設 01～03 理組、04～06 文組（可逐班更改；文理由班級決定，不是由學生決定）。六色色相相隔約 50°以上（琥珀、綠、藍、紫、洋紅、珊瑚），相鄰班與良／誠這類易混的班都分得開；淡底、深字，對比 ≥ 4.5:1。班級超過六個時另備更多色。每格另印班級小字，黑白也分得出班（D28）。</p></div>
+      <div class="small muted" style="margin:12px 0 6px">第 7～12 色（改色、班級超過六個時使用）</div><div class="cls-pal" id="clsPal2"></div>
+      <p class="small muted" style="margin-top:10px">每個班級各有一個「理組／文組」切換，預設 01～03 理組、04～06 文組（可逐班更改；文理由班級決定，不是由學生決定）。前六色色相相隔約 50°以上（琥珀、綠、藍、紫、洋紅、珊瑚），第 7～12 色為青綠、萊姆、靛、棕、灰藍、玫瑰；共 12 色，淡底、深字，對比 ≥ 4.5:1。選到別班已用的色要提醒。每格另印班級小字，黑白也分得出班（D28、D69）。</p></div>
 
     <div class="card" style="margin-top:16px"><div class="lab">個別考試標示（D39：文字＋底色＋粗框）<span class="pending">待使用者確認：式樣</span></div>
       <div class="row" id="markRow" style="align-items:flex-start;gap:24px"></div>
@@ -629,6 +647,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 
   <section id="footer">
     <header><h2>全站頁尾</h2><p>每一頁（資料夾設定、各步驟、共用設定頁）底部都有同一個頁尾：程式名稱、版本號、「© 版權所有」與「隱私權」兩個連結（版權人全站統一為 derliang）。短內容頁貼在視窗底部（sticky footer），不遮擋內容；版本號是按鈕，點開「關於」看版本、建置日期與資料只存本機的說明。頁尾不進 Word／PDF，列印時隱藏。</p></header>
+    <div class="card" style="margin-bottom:16px"><div class="lab">頁首品牌區（TODO-03）：程式名稱後面接版本號，與頁尾同一來源（package.json）；預發布版另加琥珀小標</div>
+      <div class="appbrand"><span>模擬考小幫手</span><span class="ver">v0.1.0-beta.1</span><span class="pf-pre pfx">beta</span></div></div>
     <div class="grid">
       <div class="card"><div class="lab">測試版（beta）</div>
         <footer class="pfoot"><span class="pf-name">模擬考小幫手</span><button type="button" class="pf-ver">v0.1.0-beta.1<span class="pf-pre">beta</span></button><button type="button" class="pf-copy pf-link">© 版權所有</button><button type="button" class="pf-copy pf-link">隱私權</button></footer></div>
@@ -638,11 +658,11 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   </section>
 
   <section id="flow">
-    <header><h2>引路與防錯（施工G）</h2><p>所有步驟頁共用：常駐摘要列、步驟「第N／6步」、底部「下一步」（前置沒過就停用並說明＋一鍵跳轉）、破壞性動作二次確認、空狀態、行內驗證。規則見 DESIGN.md 10.7。</p></header>
+    <header><h2>引路與防錯（施工G）</h2><p>所有步驟頁共用：常駐摘要列、步驟「第N／6步」、上方「下一步」（永遠可按；前置沒過只用琥珀提示說明＋一鍵跳轉，D47、D58）、破壞性動作二次確認、空狀態、行內驗證。規則見 DESIGN.md 10.7。</p></header>
     <div class="card" style="display:grid;gap:14px">
       <div class="sumbar"><span>考生 <b>7</b></span><span>座位 <b>9</b></span><span>空位 <b>2</b></span><button type="button" class="warnbtn">⚠ 警告 <b>1</b>　④ 有 1 項標示接近一半，要先選標「不考」或「加考」　<u>去 ④ 選標示</u></button></div>
-      <div class="alert a-warn"><span>⚠</span><div><b>還不能進下一步：</b>④ 有 1 項標示接近一半，要先選標「不考」或「加考」</div><button class="btn btn-primary">去 ④ 選標示</button></div>
-      <div style="text-align:right"><button class="btn btn-primary" disabled>下一步：⑤ 排座與預覽 →</button></div>
+      <div class="alert a-warn"><span>⚠</span><div><b>下一步之前還有事沒做完：</b>④ 有 1 項標示接近一半，要先選標「不考」或「加考」（提示只說明，不停用下面的按鈕）</div><button class="btn">去 ④ 選標示</button></div>
+      <div class="card" style="display:flex;gap:12px;align-items:center;justify-content:space-between;flex-wrap:wrap"><div><h3>④ 標示與抽離規則</h3><p class="small muted">組別對照表</p></div><button class="btn btn-primary">下一步：⑤ 排座與預覽 →</button></div>
       <div class="empty"><strong>還沒有匯入考試名單</strong><p class="muted">按上方「匯入考試名單 Excel」，選大考中心提供的考生資料名單（.xlsx）。</p></div>
     </div>
   </section>
@@ -814,6 +834,25 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .wrap{background:var(--sunken);border-color:var(--line)}
 .t tbody tr:nth-child(even):not(.editrow):not(.gap){background:rgba(111,104,88,.06)}
 .t tbody tr:nth-child(even):not(.editrow):not(.gap):hover{background:var(--accent-soft)}
+
+/* ===== 稿修正（2026-11-09）：選項卡、復原鈕、Excel 動作鈕、頁首品牌 ===== */
+.tcard{position:relative;text-align:left;font:inherit;color:var(--text);background:var(--surface);border:1.5px solid var(--line-2);border-radius:var(--r-lg);padding:16px;display:grid;gap:8px;cursor:pointer;min-width:0}
+.tcard:hover{border-color:var(--text-3)}
+.tcard[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.tcard.term{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;min-height:44px;width:auto}
+.tcard.term strong{font-size:14px}
+.termcards{display:flex;gap:10px;flex-wrap:wrap}
+.undowrap{position:relative;display:inline-flex}
+.undowrap .undo-main{border-top-right-radius:0;border-bottom-right-radius:0}
+.undowrap .undo-more{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-1px;padding:0 10px;min-width:40px}
+.undomenu{position:absolute;left:0;top:calc(100% + 6px);z-index:5;min-width:260px;display:grid;gap:4px;padding:10px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-md);box-shadow:var(--shadow-3)}
+.undomenu button{font:inherit;text-align:left;min-height:38px;padding:0 10px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text);cursor:pointer}
+.undomenu button:hover{background:var(--accent-soft);color:var(--accent-ink)}
+.btn-xls{display:inline-flex;align-items:center;gap:8px;border-color:var(--fmt-xls);background:var(--fmt-xls-soft);color:var(--text)}
+.appbrand{display:flex;gap:8px;align-items:baseline;flex-wrap:wrap;font-family:var(--f-head);font-weight:700;font-size:18px}
+.appbrand .ver{font-family:var(--f-ui);font-size:13px;font-weight:400;color:var(--text-3)}
+.stepprog{font-size:13px;font-weight:700;color:var(--text-2);padding:4px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.pfx{font-size:13px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
 </style>
 <script>
 (function(){
@@ -933,6 +972,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 
   /* 班級六色 */
   var CN=['溫','良','恭','儉','勤','誠'], HUE=['琥珀','綠','藍','紫','洋紅','珊瑚'];
+  (function(){var h=['青綠','萊姆','靛','棕','灰藍','玫瑰'],el=document.getElementById('clsPal2');h.forEach(function(n,i){var k=i+7;el.innerHTML+='<div class="cp" data-c="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line);color:var(--c'+k+'-ink)"><strong>第 '+k+' 色</strong><span>'+n+'</span></div>'})})();
   var cp=document.getElementById('clsPal');CN.forEach(function(n,i){var sci=i<3;cp.innerHTML+='<div class="cp" data-c="'+(i+1)+'"><strong>'+n+'</strong><span>0'+(i+1)+' 班・'+HUE[i]+'</span><div class="seg" role="group" aria-label="'+n+'班文理組" style="margin-top:6px"><button type="button" aria-pressed="'+sci+'">理組</button><button type="button" aria-pressed="'+(!sci)+'">文組</button></div></div>'});
 
   /* 假資料 */
