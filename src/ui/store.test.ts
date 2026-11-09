@@ -45,13 +45,16 @@ describe('班級與考試', () => {
     const d = setClassColor(demoDoc(), 'senior', 1, 9);
     expect(d.settings.classes.filter((c) => c.colorIndex === 9 && c.division === 'senior')).toHaveLength(1);
   });
-  it('新增考試：學測高中部、會考國中部、分科擋下、同名擋下', () => {
+  it('新增考試：學測高中部、會考國中部、分科（部分參加、八科）、同名擋下', () => {
     const now = new Date('2026-11-08T00:00:00Z');
     const g = newExam(demoDoc(), 'gsat', '學測第三次', now);
     if (!g.ok) throw new Error(g.error);
     expect(g.doc.exams[0]).toMatchObject({ division: 'senior', kind: 'gsat' });
     expect(newExam(g.doc, 'gsat', '學測第三次', now).ok).toBe(false);
-    expect(newExam(demoDoc(), 'ast', 'x', now).ok).toBe(false);
+    const a = newExam(demoDoc(), 'ast', '分科第一次', now);
+    if (!a.ok) throw new Error(a.error);
+    expect(a.doc.exams[0]).toMatchObject({ division: 'senior', kind: 'ast', participation: 'partial' });
+    expect(a.doc.exams[0]?.subjects.map((x) => x.name)).toEqual(['數學甲', '數學乙', '物理', '化學', '生物', '歷史', '地理', '公民與社會']);
     const b = newExam(demoDoc(), 'bcct', '會考第一次', now);
     if (!b.ok) throw new Error(b.error);
     expect(b.doc.exams[0]?.division).toBe('junior');

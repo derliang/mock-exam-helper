@@ -6,7 +6,7 @@ import { newExam, previousExam, schoolYear, suggestExamName, type Doc } from '..
 
 const TYPES: { kind: ExamKind; level: string; title: string; subj: string; soon?: boolean }[] = [
   { kind: 'gsat', level: '高中部', title: '學測模擬考', subj: '國、英、數（第 3 次起分數 A、數 B）、自然、社會' },
-  { kind: 'ast', level: '高中部', title: '分科模擬考', subj: '每一科都是選考；沒有實際名單與樣本，之後才做', soon: true },
+  { kind: 'ast', level: '高中部', title: '分科模擬考', subj: '數學甲、數學乙、物理、化學、生物、歷史、地理、公民與社會；每科都是選考，國英不加考' },
   { kind: 'bcct', level: '國中部', title: '會考模擬考', subj: '國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗（固定七科），沒有選考' },
 ];
 

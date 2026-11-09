@@ -41,9 +41,9 @@ describe('新增模擬考整頁', () => {
   it('三段式：選類型、基本資料、預設設定', () => {
     for (const t of ['1　選類型', '2　基本資料', '3　預設設定', '建立並開始', '← 回模擬考列表']) expect(html).toContain(t);
   });
-  it('三張類型卡，分科停用且標「尚未開放」，學測已選', () => {
+  it('三張類型卡，分科可選、學測已選', () => {
     expect((html.match(/class="tcard"/g) ?? []).length).toBe(3);
-    expect(html).toContain('尚未開放');
+    expect(html).not.toContain('尚未開放');
     expect(html).toContain('已選');
   });
   it('名稱預設帶建議名稱、學期下拉、唯讀對象、學年提示', () => {

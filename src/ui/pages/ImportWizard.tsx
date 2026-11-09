@@ -13,6 +13,7 @@ const KIND_TEXT: Record<ReviewItem['kind'], string> = { 'bad-id': '班級或座�
 export function scanOptionsFor(exam: ExamConfig, classNames: readonly string[]): ScanOptions {
   const ids = new Set(exam.subjects.map((s) => s.id));
   const bcct = exam.kind === 'bcct';
+  if (exam.kind === 'ast') return { subjects: exam.subjects, classNames, groupAsSubjects: true };
   const table = GROUP_TABLES[(exam.round ?? 1) >= 3 ? 'second' : 'first'];
   const groupTable = Object.fromEntries(Object.entries(table).map(([k, v]) => [k, v.map((x) => SUBJECT_ID_MAP[x] ?? x).filter((x) => ids.has(x))]));
   return { subjects: exam.subjects, classNames, ...(bcct ? { defaultSubjectIds: exam.subjects.map((s) => s.id) } : { groupTable }) };

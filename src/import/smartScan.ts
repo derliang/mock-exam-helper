@@ -16,6 +16,8 @@ export interface ScanOptions {
   /** 沒有組別欄時每人的預設科目 */
   defaultSubjectIds?: readonly string[];
   classNames?: readonly string[];
+  /** 分科：沒有組別代碼表，「組別／考科」欄的文字就是考生選考的科目（角色 taking） */
+  groupAsSubjects?: boolean;
 }
 
 export interface ScanMark extends RawMark {
@@ -118,6 +120,9 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
       const t = tokenizeMarks(get(r, field));
       for (const m of t.marks) marks.push({ ...m, role: m.prefixRole ?? role, present: true });
       if (field === 'note' && t.marks.length === 0) note = noteCell; // 純說明文字原樣保留
+    }
+    if (opts.groupAsSubjects) {
+      for (const m of tokenizeMarks(get(r, 'group').replace(/[.．。・·]/g, '、')).marks) marks.push({ ...m, role: m.prefixRole ?? 'taking', present: true });
     }
     for (const [ci, h] of Object.entries(subjectColumns)) {
       const v = normalizeCell(r[Number(ci)] ?? '').toUpperCase();
