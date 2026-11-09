@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.20</title>
+<title>模擬考原型 稿 v2.21</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -22,18 +22,18 @@
   --fmt-word-soft:#E6EEFB; --fmt-pdf-soft:#FBEAE8; --fmt-xls-soft:#E3F2E8;
   --att-fill:#22201B; --att-on:#FFFDF8;
   --cut:#8E8670;
-  --c1-bg:#FBE7C6; --c1-line:#E0B365; --c1-ink:#6B4300;
-  --c2-bg:#D8EFD3; --c2-line:#8CC784; --c2-ink:#1F5A1A;
-  --c3-bg:#D6E6F8; --c3-line:#8DB4E2; --c3-ink:#1A4478;
-  --c4-bg:#E7DCF5; --c4-line:#B39DD9; --c4-ink:#4A2E80;
-  --c5-bg:#F6D6EC; --c5-line:#D98ABF; --c5-ink:#7A1C5E;
-  --c6-bg:#F9D5CA; --c6-line:#E58A70; --c6-ink:#7A2A12;
-  --c7-bg:#CDEDE9; --c7-line:#6FC0B6; --c7-ink:#0F5A52;
-  --c8-bg:#E6EDBD; --c8-line:#B5C752; --c8-ink:#4C5A0A;
-  --c9-bg:#DADCF7; --c9-line:#9A9FE0; --c9-ink:#2F3490;
-  --c10-bg:#EBDCCB; --c10-line:#C09A72; --c10-ink:#5C3A17;
-  --c11-bg:#DFE3E8; --c11-line:#9AA5B1; --c11-ink:#2F3B48;
-  --c12-bg:#F8D3DC; --c12-line:#E08AA0; --c12-ink:#7A1B38;
+  --c1-bg:#E7DCF5; --c1-line:#B39DD9; --c1-ink:#4A2E80;
+  --c2-bg:#F6D6EC; --c2-line:#D98ABF; --c2-ink:#7A1C5E;
+  --c3-bg:#CDEDE9; --c3-line:#6FC0B6; --c3-ink:#0F5A52;
+  --c4-bg:#EBDCCB; --c4-line:#C09A72; --c4-ink:#5C3A17;
+  --c5-bg:#DFE3E8; --c5-line:#9AA5B1; --c5-ink:#2F3B48;
+  --c6-bg:#EBD9E3; --c6-line:#C79BB5; --c6-ink:#5E2D49;
+  --c7-bg:#CDB6EA; --c7-line:#8F6FC4; --c7-ink:#35205F;
+  --c8-bg:#EFB6DC; --c8-line:#C4569F; --c8-ink:#5F0F46;
+  --c9-bg:#A9DDD6; --c9-line:#3E9E92; --c9-ink:#093F39;
+  --c10-bg:#D9BE9F; --c10-line:#A4743F; --c10-ink:#432810;
+  --c11-bg:#BCC5CF; --c11-line:#6C7B8B; --c11-ink:#1E2833;
+  --c12-bg:#D9B6CB; --c12-line:#A5668A; --c12-ink:#46172F;
   --shadow-1:0 1px 2px rgba(34,32,27,.07),0 2px 6px -2px rgba(34,32,27,.06);
   --shadow-2:0 2px 4px rgba(34,32,27,.06),0 10px 24px -8px rgba(34,32,27,.16);
   --shadow-3:0 4px 8px rgba(34,32,27,.08),0 24px 48px -12px rgba(34,32,27,.30);
@@ -58,18 +58,18 @@
   --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
   --att-fill:#F1EDE2; --att-on:#13120E;
   --cut:#7C755F;
-  --c1-bg:#3B2F14; --c1-line:#7A6125; --c1-ink:#F5DDA3;
-  --c2-bg:#1E3320; --c2-line:#3E6B41; --c2-ink:#BFE5BC;
-  --c3-bg:#1C2D45; --c3-line:#3D5F8E; --c3-ink:#BCD4F2;
-  --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
-  --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
-  --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
-  --c7-bg:#17332F; --c7-line:#2F7068; --c7-ink:#BDEBE4;
-  --c8-bg:#2E3312; --c8-line:#6D7A22; --c8-ink:#E0EBA8;
-  --c9-bg:#232545; --c9-line:#4F559B; --c9-ink:#CDD0F5;
-  --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
-  --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
-  --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
+  --c1-bg:#2E2347; --c1-line:#6B568F; --c1-ink:#E0D2F5;
+  --c2-bg:#43203A; --c2-line:#8C4478; --c2-ink:#F5C3E4;
+  --c3-bg:#12332F; --c3-line:#3F8078; --c3-ink:#BEEAE4;
+  --c4-bg:#3A2D1F; --c4-line:#7C5E3C; --c4-ink:#EBD6BC;
+  --c5-bg:#26292E; --c5-line:#566170; --c5-ink:#D3D9E0;
+  --c6-bg:#3A2230; --c6-line:#8A5A75; --c6-ink:#EBD0DE;
+  --c7-bg:#3C2E5C; --c7-line:#8468B8; --c7-ink:#E8DBFA;
+  --c8-bg:#52294A; --c8-line:#A8558F; --c8-ink:#FAD0EB;
+  --c9-bg:#1A423D; --c9-line:#4F9B91; --c9-ink:#C9F0EA;
+  --c10-bg:#4A3826; --c10-line:#92704A; --c10-ink:#F0DEC8;
+  --c11-bg:#343A42; --c11-line:#6C7886; --c11-ink:#E2E7EC;
+  --c12-bg:#4A2D3E; --c12-line:#9C6B88; --c12-ink:#F2DCE8;
   --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
   --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}}
@@ -85,18 +85,18 @@
   --fmt-word-soft:#1B2740; --fmt-pdf-soft:#3A1F1D; --fmt-xls-soft:#1A3326;
   --att-fill:#F1EDE2; --att-on:#13120E;
   --cut:#7C755F;
-  --c1-bg:#3B2F14; --c1-line:#7A6125; --c1-ink:#F5DDA3;
-  --c2-bg:#1E3320; --c2-line:#3E6B41; --c2-ink:#BFE5BC;
-  --c3-bg:#1C2D45; --c3-line:#3D5F8E; --c3-ink:#BCD4F2;
-  --c4-bg:#2D2342; --c4-line:#5B4A8A; --c4-ink:#D8C9F2;
-  --c5-bg:#43203A; --c5-line:#8A3F78; --c5-ink:#F5C3E6;
-  --c6-bg:#432519; --c6-line:#8A4A33; --c6-ink:#F7CFC0;
-  --c7-bg:#17332F; --c7-line:#2F7068; --c7-ink:#BDEBE4;
-  --c8-bg:#2E3312; --c8-line:#6D7A22; --c8-ink:#E0EBA8;
-  --c9-bg:#232545; --c9-line:#4F559B; --c9-ink:#CDD0F5;
-  --c10-bg:#3A2D1F; --c10-line:#7C5E3C; --c10-ink:#EBD6BC;
-  --c11-bg:#26292E; --c11-line:#566170; --c11-ink:#D3D9E0;
-  --c12-bg:#43202B; --c12-line:#8C3F57; --c12-ink:#F5C3D0;
+  --c1-bg:#2E2347; --c1-line:#6B568F; --c1-ink:#E0D2F5;
+  --c2-bg:#43203A; --c2-line:#8C4478; --c2-ink:#F5C3E4;
+  --c3-bg:#12332F; --c3-line:#3F8078; --c3-ink:#BEEAE4;
+  --c4-bg:#3A2D1F; --c4-line:#7C5E3C; --c4-ink:#EBD6BC;
+  --c5-bg:#26292E; --c5-line:#566170; --c5-ink:#D3D9E0;
+  --c6-bg:#3A2230; --c6-line:#8A5A75; --c6-ink:#EBD0DE;
+  --c7-bg:#3C2E5C; --c7-line:#8468B8; --c7-ink:#E8DBFA;
+  --c8-bg:#52294A; --c8-line:#A8558F; --c8-ink:#FAD0EB;
+  --c9-bg:#1A423D; --c9-line:#4F9B91; --c9-ink:#C9F0EA;
+  --c10-bg:#4A3826; --c10-line:#92704A; --c10-ink:#F0DEC8;
+  --c11-bg:#343A42; --c11-line:#6C7886; --c11-ink:#E2E7EC;
+  --c12-bg:#4A2D3E; --c12-line:#9C6B88; --c12-ink:#F2DCE8;
   --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40),inset 0 1px 0 rgba(255,255,255,.03); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6); --shadow-3:0 4px 8px rgba(0,0,0,.5),0 24px 48px -12px rgba(0,0,0,.75);
   --shadow-accent:0 1px 2px rgba(0,0,0,.5),0 5px 12px -5px rgba(63,99,196,.55); --shadow-inset:inset 0 1px 2px rgba(0,0,0,.35); --shadow-bar:0 8px 14px -12px rgba(0,0,0,.8);
   color-scheme:dark}
@@ -253,8 +253,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .step:hover{background:var(--sunken)}
 .step .no{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;border:1.5px solid var(--line-2);background:var(--surface);color:var(--text-2)}
 .step small{display:block;color:var(--text-3);font-size:13px;line-height:1.3}
-.step.cur{background:var(--accent-soft);border-color:var(--accent-line)}
-.step.cur .no{background:var(--accent);border-color:var(--accent);color:var(--accent-on)}
+.step.cur{background:var(--sunken);border-color:var(--line-2)}
+.step.cur .no{background:var(--text);border-color:var(--text);color:var(--surface)}
 .step.done .no{background:var(--ok-soft);border-color:var(--ok-bar);color:var(--ok-ink)}
 .step.stale .no{background:var(--warn-soft);border-color:var(--warn-bar);color:var(--warn-ink)}
 
@@ -572,8 +572,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 
 /* 步驟導覽：目前位置加左側色條與立體環，已完成／過期用細環 */
 .step{transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
-.step.cur{box-shadow:inset 3px 0 0 var(--accent),var(--shadow-1)}
-.step.cur .no{box-shadow:0 0 0 3px var(--accent-line)}
+.step.cur{box-shadow:inset 3px 0 0 var(--text),var(--shadow-1)}
+.step.cur .no{box-shadow:0 0 0 3px var(--line-2)}
 .step.done .no{box-shadow:inset 0 0 0 1px var(--ok-bar)}
 .step.stale .no{box-shadow:inset 0 0 0 1px var(--warn-bar)}
 .step:not(.cur):hover .no{border-color:var(--accent);color:var(--accent-ink)}
@@ -747,6 +747,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .plbl .pl small{font-size:14px;font-weight:700;min-width:72px}
 .plbl.sp{background:#FFE08A}
 .pmode{display:grid;gap:8px}
+details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:pointer;font-weight:700;color:var(--accent-ink);min-height:32px;display:flex;align-items:center}details.more>div{padding:6px 0 2px}
 .psec{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
 .sh{font-size:17px;margin:0}
 .pmode .opt{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
@@ -767,7 +768,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.20・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.21・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -887,7 +888,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(e.round>=3)l.push(['數學A','組別','diff'],['數學B','組別','diff']);else l.push(['數學','全體','diff']);
     l.push(['自然','組別'],['社會','組別']);return l}
   function prevRound(e){var b=null;S.exams.forEach(function(x){if(x.type===e.type&&x.id!==e.id&&x.round<e.round&&(!b||x.round>b.round))b=x});return b}
-  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.20） */
+  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.21） */
   function FN(){return String(S.folder||'').split(/[\\/]/).filter(Boolean).pop()||''}
   function v1(){
     var e=S.cur,isJ=e.type==='會考',subs=subjectsOf(e),prev=prevRound(e);
@@ -1232,17 +1233,19 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="scroll" style="max-height:520px;overflow-y:auto"><table class="t compact nw"><thead><tr><th>班級</th><th>座號</th><th>考生編號</th><th>姓名</th><th>學號</th>'+(isJ?'':'<th>'+(e.type==='分科'?'組別／考科':'組別')+'</th>')+'<th>特殊生需求</th><th></th></tr></thead><tbody id="rbody">'+rosterRows()+'</tbody></table></div>'+
       '<p class="small muted">空號用斜紋底表示：刪除學生後座號保留，不會自動補號。座號 1～60 由使用者輸入。學號沒匯入就留空，不影響排座與考生編號。</p></div>'}
   function v2(){
-    var e=S.cur,d=D(),part=e.part==='part',isJ=e.type==='會考';
-    var st=e.cmpPending?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>還沒有匯入本次考試名單。</b>匯入後會和'+SN(S.cur)+'比對，排座前要處理完所有差異。</span><button class="btn btn-primary" data-act="cmpstart">匯入並比對</button></div>':'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span><b>已比對：</b>考試名單與學生名單沒有未處理的差異。</span><button class="btn" data-act="cmpstart">再匯入一次</button></div>';
-    var mode='<div class="card stack"><div><h3>誰會參加</h3><p class="small muted">學測、會考預設全員參加；分科預設部分參加。</p></div><div class="seg fmtseg" role="group" aria-label="參加模式"><button type="button" data-act="part" data-v="all" aria-pressed="'+(!part)+'">全員參加</button><button type="button" data-act="part" data-v="part" aria-pressed="'+part+'">部分參加</button></div>'+
-      (part?'<div class="alert a-info"><span class="ico" data-i="i"></span><span>沒報名的人<b>不算差異</b>，只在統計列顯示「未參加 12 人」，不排座、不出現在座位表。</span><span></span></div>':'<div class="alert a-info"><span class="ico" data-i="i"></span><span>學生名單有、考試名單沒有的人，會列為差異，逐筆處理。</span><span></span></div>')+'</div>';
-    var snap='<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>'+SN(S.cur)+'</h3><p class="small muted">這是「共用設定」裡的學生名單（'+d.stu.length+' 人），所有模擬考共用；在那裡改了名單，之後的名單比對也會跟著變。</p></div><button class="btn" data-act="tosettings" data-v="stu">查看／編輯'+SN(S.cur)+'</button></div></div>';
+    var e=S.cur,d=D(),part=e.part==='part',isJ=e.type==='會考',pend=!!e.cmpPending;
+    var per=d.cls.map(function(c,i){return d.stu.filter(function(s){return s.c===i}).length});
+    var head='<div class="row" style="justify-content:space-between;gap:10px"><div class="row" style="gap:10px"><h3>考試名單</h3>'+(pend?'<span class="badge b-warn">尚未匯入</span>':'<span class="badge b-ok">✓ 已比對，沒有差異</span>')+'</div><button class="btn'+(pend?' btn-primary':'')+'" data-act="cmpstart">'+(pend?'匯入並比對':'再匯入一次')+'</button></div>';
+    var file='<div class="row" style="gap:12px;justify-content:space-between"><div class="row" style="gap:10px"><span class="badge">考試名單.xlsx（模擬檔）</span><span class="muted small">'+(pend?'尚未匯入':'已匯入 '+d.stu.length+' 筆')+'</span></div>'+
+      '<div class="row" style="gap:8px"><span class="label" style="margin:0">誰會參加</span><div class="seg fmtseg" role="group" aria-label="參加模式"><button type="button" data-act="part" data-v="all" aria-pressed="'+(!part)+'">全員參加</button><button type="button" data-act="part" data-v="part" aria-pressed="'+part+'">部分參加</button></div></div></div>'+
+      '<p class="small muted">'+(part?'沒報名的人不算差異，不排座、不出現在座位表。':'學生名單有、考試名單沒有的人，列為差異，逐筆處理。')+'</p>';
     var ast='';
     if(e.type==='分科'){var smp=sortStu(d.stu).filter(function(x){return x.listed}).slice(0,3).concat(sortStu(d.stu).filter(function(x){return !x.listed}).slice(0,3)).sort(function(a,b){return sKey(a)-sKey(b)});
-      ast='<div class="card stack"><div><h3>匯入預覽：組別／考科</h3><p class="small muted">名單裡「組別／考科」欄寫的科目，直接當這個人的選考科目（可用「.」「、」或空白分隔）；沒明列科目的人，理組預設數學甲＋物理、化學、生物，文組預設數學乙＋歷史、地理、公民與社會，之後都可以加考。<b>預設只在匯入時套用</b>，畫面上暫時不能改預設。</p></div>'+
+      ast='<div class="psec"><h4 class="sh">匯入預覽：組別／考科</h4>'+
         '<div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>名單上的「組別／考科」</th><th>解析出的選考科目</th></tr></thead><tbody>'+smp.map(function(x){return '<tr><td>'+chip(x.c)+'</td><td class="n">'+x.no+'</td><td>'+esc(x.name)+'</td><td>'+(x.listed?astText(x):'<span class="muted">（空白）</span>')+'</td><td>'+(x.listed?'<span class="badge b-acc">依名單</span> ':'<span class="badge">預設'+(d.cls[x.c].grp==='sci'?'理組':'文組')+'</span> ')+x.sel.map(sh).join('、')+'</td></tr>'}).join('')+'</tbody></table></div>'+
-        '<p class="small muted">標示依教室自動決定（④）：同一間教室有人考、有人不考才標「不考」的人；不考→抽離自習，加考→抽離考試。名單的「組別」格若是大考中心代碼（1 醫學類、2 理工類、3 農學類、9 社會乙組、4 社會組），依代碼換成考科；不在代碼表的代碼（例：5）進待確認、不猜。</p></div>'}
-    return st+'<div class="card stack"><div><h3>本次考試名單</h3><p class="small muted">匯入大考中心格式的考試名單，只管「這次誰參加、考什麼科」。</p></div><div class="row"><span class="badge">考試名單.xlsx（模擬檔）</span><span class="muted small">'+(e.cmpPending?'尚未匯入':'已匯入 '+(d.stu.length+(part?0:0))+' 筆')+'</span></div></div>'+mode+ast+v2side()+snap+quickPanel(e)}
+        '<details class="more"><summary>說明：預設選考科目與組別代碼</summary><div>名單裡「組別／考科」欄寫的科目，直接當這個人的選考科目；沒明列的人，理組預設數學甲＋物理、化學、生物，文組預設數學乙＋歷史、地理、公民與社會，預設只在匯入時套用。組別格若是大考中心代碼（1 醫學類、2 理工類、3 農學類、9 社會乙組、4 社會組），依代碼換成考科；不在代碼表的代碼（例：5）進待確認、不猜。標示依教室自動決定（④）。</div></details></div>'}
+    var cls='<div class="psec"><div class="row" style="justify-content:space-between;gap:10px"><div class="row" style="gap:10px 22px"><span class="label" style="margin:0">各班人數</span>'+per.map(function(n,i){return '<span class="row" style="gap:6px">'+chip(i)+'<b class="num" style="font-size:17px">'+n+'</b></span>'}).join('')+'<span class="muted">合計 <b class="num">'+d.stu.length+'</b></span></div><button class="btn btn-sm" data-act="tosettings" data-v="stu" title="共用設定裡的名單，所有模擬考共用">查看／編輯'+SN(S.cur)+'</button></div></div>';
+    return '<div class="card stack">'+head+file+ast+cls+'</div>'+quickPanel(e)}
   function v2side(){
     var e=S.cur,d=D(),per=d.cls.map(function(c,i){return d.stu.filter(function(s){return s.c===i}).length});
     var cmp=e.cmpPending?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>尚未比對本次考試名單</b>。排座前要處理完所有差異。</span><span></span></div>':'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span>與考試名單已比對，沒有未處理的差異。</span><span></span></div>';

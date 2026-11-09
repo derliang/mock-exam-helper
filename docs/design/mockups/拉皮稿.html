@@ -171,8 +171,8 @@ ul.rules li::marker{color:var(--text-3)}
 
 /* 步驟導覽：目前位置加左側色條與立體環，已完成／過期用細環 */
 .step{transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
-.step.cur{box-shadow:inset 3px 0 0 var(--accent),var(--shadow-1)}
-.step.cur .no{box-shadow:0 0 0 3px var(--accent-line)}
+.step.cur{box-shadow:inset 3px 0 0 var(--text),var(--shadow-1)}
+.step.cur .no{box-shadow:0 0 0 3px var(--line-2)}
 .step.done .no{box-shadow:inset 0 0 0 1px var(--ok-bar)}
 .step.stale .no{box-shadow:inset 0 0 0 1px var(--warn-bar)}
 .step:not(.cur):hover .no{border-color:var(--accent);color:var(--accent-ink)}
