@@ -459,6 +459,10 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .rw{display:grid;gap:8px}
 .roomrow{cursor:pointer}
 .roomrow input,.roomrow .stepper{cursor:auto}
+/* 設定頁教室清單：點整列＝按「編輯座位表」，再點收合；輸入框、按鈕維持原操作（UI-18） */
+.t tr.rowtap{cursor:pointer}
+.t tr.rowtap.open{background:var(--accent-soft)}
+.t tr.rowtap .input{cursor:text}.t tr.rowtap .btn{cursor:pointer}
 .roomedit{display:grid;gap:12px;padding:14px;border:1px solid var(--accent-line);border-radius:var(--r-md);background:var(--surface)}
 .roomedit h4{margin:0;font-family:var(--f-head);font-size:14px}
 .prev .pgrid .pc{width:100%;height:32px}
@@ -1434,7 +1438,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       body='<div class="card stack"><div><h3>學校與表頭資訊</h3><p class="small muted">座位表與標籤的固定表頭文字、預設紙張（D61）。</p></div><div class="field"><label for="sch1">學校名稱</label><input class="input" id="sch1" data-sk="name" value="'+esc(sc.name)+'"></div><div class="field"><label for="sch2">座位表表頭</label><input class="input" id="sch2" data-sk="seat" value="'+esc(sc.seat)+'"><span class="hint">{學年}、{次別}、{類型} 會自動換成這次模擬考的內容</span></div><div class="field"><label for="sch3">標籤表頭</label><input class="input" id="sch3" data-sk="label" value="'+esc(sc.label)+'"></div>'+
         '<div class="field"><span class="label">預設紙張</span><div class="row"><span>座位表與名單：A4（固定）</span><div class="seg fmtseg" role="group" aria-label="標籤預設紙張"><button type="button" data-act="epaper" data-v="B4" aria-pressed="'+(pp!=='A3')+'">標籤 B4（一般）</button><button type="button" data-act="epaper" data-v="A3" aria-pressed="'+(pp==='A3')+'">標籤 A3（大尺寸）</button></div></div></div></div>'}
     else{
-      function rr(r,i,k){var key=(k==='p'?'p':'r')+i,open=S.rexp===key;return '<tr><td><input class="input" style="min-width:150px" data-rn="'+key+'" value="'+esc(r.name)+'" aria-label="教室名稱"></td><td>'+(k==='p'?'預備教室':'班級教室')+'</td><td class="n">'+r.cols+'×'+r.rows+'</td><td class="n">'+seatsOf(r).length+'</td><td><div class="row" style="flex-wrap:nowrap"><button class="btn btn-sm'+(open?' btn-primary':'')+'" data-act="rexp" data-s="'+key+'" aria-expanded="'+open+'">'+(open?'收合座位表':'編輯座位表')+'</button>'+(k==='p'?'<button class="btn btn-sm btn-danger" data-act="pdel" data-s="'+key+'">刪除</button>':'')+'</div></td></tr>'+(open?'<tr class="editrow"><td colspan="5">'+roomEditorHTML(key,true)+'</td></tr>':'')}
+      function rr(r,i,k){var key=(k==='p'?'p':'r')+i,open=S.rexp===key;return '<tr class="rowtap'+(open?' open':'')+'" data-act="rexp" data-s="'+key+'" aria-expanded="'+open+'"><td><input class="input" style="min-width:150px" data-rn="'+key+'" value="'+esc(r.name)+'" aria-label="教室名稱"></td><td>'+(k==='p'?'預備教室':'班級教室')+'</td><td class="n">'+r.cols+'×'+r.rows+'</td><td class="n">'+seatsOf(r).length+'</td><td><div class="row" style="flex-wrap:nowrap"><button class="btn btn-sm'+(open?' btn-primary':'')+'" data-act="rexp" data-s="'+key+'" aria-expanded="'+open+'">'+(open?'收合座位表':'編輯座位表')+'</button>'+(k==='p'?'<button class="btn btn-sm btn-danger" data-act="pdel" data-s="'+key+'">刪除</button>':'')+'</div></td></tr>'+(open?'<tr class="editrow"><td colspan="5">'+roomEditorHTML(key,true)+'</td></tr>':'')}
       body='<div class="card stack"><div><h3>教室清單（'+dept+'）</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡用開關選出並自動帶入上次的選擇，可修改（D65）。座位表在這裡也能編輯，和模擬考 ③ 是同一個編輯畫面。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>名稱</th><th>類型</th><th>橫排×深位</th><th>可排座位</th><th></th></tr></thead><tbody>'+
         d.rooms.map(function(r,i){return rr(r,i,'r')}).join('')+d.prep.map(function(r,i){return rr(r,i,'p')}).join('')+
         '</tbody></table></div>'+(isJ?'':'<div class="row"><button class="btn" data-act="padd">新增預備教室</button></div>')+'</div>'}
