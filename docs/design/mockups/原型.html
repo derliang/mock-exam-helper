@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.13</title>
+<title>模擬考原型 稿 v2.14</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -721,7 +721,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.13・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.14・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -1065,7 +1065,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   /* ---------- M2 定案新增：復原、返回、部別、教室編輯（D69） ---------- */
   /* 座位上限依標籤預設紙張（使用者 2026-11-09 裁示，同實作 seatCap(paper)）：B4 6×8＝48、A3 7×7＝49 */
   function maxSeat(){return ((S.exp&&S.exp.paper)||'B4')==='A3'?49:48}
-  function capNote(){return ((S.exp&&S.exp.paper)||'B4')==='A3'?'標籤預設紙張 A3，7×7＝49 格':'標籤預設紙張 B4，6×8＝48 格；改用 A3 可到 49'}
+  function capNote(){return ((S.exp&&S.exp.paper)||'B4')==='A3'?'座位上限依標籤紙張：A3 49、B4 48；目前 A3，7×7＝49 格':'座位上限依標籤紙張：A3 49、B4 48；目前 B4，6×8＝48 格'}
+  function capLine(){return '座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 '+((S.exp&&S.exp.paper)||'B4')+'，每間最多 '+maxSeat()+' 個）。'}
   var UNDO_MAX=20,UNDO=[];
   function snapState(){var e=S.cur;return JSON.stringify({id:e?e.id:null,data:e?e.data||null:null,subj:e?e.subj||null:null,part:e?e.part:null,prog:e?e.prog:null,cmp:e?!!e.cmpPending:false,master:S.master||{},school:S.school||null})}
   function pushUndo(label){UNDO.push({label:label,s:snapState()});if(UNDO.length>UNDO_MAX)UNDO.shift()}
@@ -1302,7 +1303,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       notes+=(pBad?'<p class="small errnote"><b>預備教室座位不足：</b>'+(ps.on===0?'還沒有把任何預備教室「列為預備」。':'')+'最多的一節「'+ps.who+'」要 '+ps.need+' 個座位（抽離考試 '+ps.ex+' 人要排座位、抽離自習 '+ps.st+' 人不用排座位但座位要夠），已列為預備的教室只有 '+ps.avail+' 個，還缺 '+ps.n+' 個。請打開預備教室的「列為預備」或增加座位（D8）。</p>':(pNone?'<p class="small muted">目前沒有抽離考試或抽離自習，不需要預備教室。</p>':'<p class="small muted">預備教室容量夠用：最多的一節「'+ps.who+'」要 '+ps.need+' 個（抽離考試 '+ps.ex+'、抽離自習 '+ps.st+'），已列為預備的教室有 '+ps.avail+' 個座位。</p>'))}
     return '<div class="card stack"><div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排（D69）。'+(isJ?'':'高中部理組、文組各自計算，預備教室不納入。')+'</p></div><div class="stats chkgrid">'+cells+'</div><div class="stack" style="gap:6px">'+notes+'</div>'+prepNote+'</div>'+
       '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組（D9）。')+(e.type==='分科'?'<span class="pending">待使用者確認：分科教室是否仍分文理組</span>':'')+'</p></div>'+cls+'</div>'+
-      '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">每間教室一列，名稱可改；點教室那一列或「編輯座位表」就在下方展開座位表，可以收合。教室從設定頁的教室清單帶入，沿用上次的選擇（D65）。</p></div><div class="row"><button class="btn" data-act="tosettings" data-v="rooms">到設定頁看教室清單</button>'+(isJ?'':'<button class="btn" data-act="padd">新增預備教室</button>')+'</div></div>'+
+      '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">每間教室一列，名稱可改；點教室那一列或「編輯座位表」就在下方展開座位表，可以收合。教室從設定頁的教室清單帶入，沿用上次的選擇（D65）。'+capLine()+'</p></div><div class="row"><button class="btn" data-act="tosettings" data-v="rooms">到設定頁看教室清單</button>'+(isJ?'':'<button class="btn" data-act="padd">新增預備教室</button>')+'</div></div>'+
       '<div class="roomlist">'+rooms+preps+'</div></div>'}
   function v3side(){
     var e=S.cur,d=D(),cap=capacity(e),pseat=0;d.prep.forEach(function(r){pseat+=seatsOf(r).length});
@@ -1504,7 +1505,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         '<div class="field"><span class="label">預設紙張</span><div class="row"><span>座位表與名單：A4（固定）</span><div class="seg fmtseg" role="group" aria-label="標籤預設紙張"><button type="button" data-act="epaper" data-v="B4" aria-pressed="'+(pp!=='A3')+'">標籤 B4（一般）</button><button type="button" data-act="epaper" data-v="A3" aria-pressed="'+(pp==='A3')+'">標籤 A3（大尺寸）</button></div></div></div></div>'}
     else{
       function rr(r,i,k){var key=(k==='p'?'p':'r')+i,open=S.rexp===key;return '<tr class="rowtap'+(open?' open':'')+'" data-act="rexp" data-s="'+key+'" aria-expanded="'+open+'"><td><input class="input" style="min-width:150px" data-rn="'+key+'" value="'+esc(r.name)+'" aria-label="教室名稱"></td><td>'+(k==='p'?'預備教室':'班級教室')+'</td><td class="n">'+r.cols+'×'+r.rows+'</td><td class="n">'+seatsOf(r).length+'</td><td><div class="row" style="flex-wrap:nowrap"><button class="btn btn-sm'+(open?' btn-primary':'')+'" data-act="rexp" data-s="'+key+'" aria-expanded="'+open+'">'+(open?'收合座位表':'編輯座位表')+'</button>'+(k==='p'?'<button class="btn btn-sm btn-danger" data-act="pdel" data-s="'+key+'">刪除</button>':'')+'</div></td></tr>'+(open?'<tr class="editrow"><td colspan="5">'+roomEditorHTML(key,true)+'</td></tr>':'')}
-      body='<div class="card stack"><div><h3>教室清單（'+dept+'）</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡用開關選出並自動帶入上次的選擇，可修改（D65）。座位表在這裡也能編輯，和模擬考 ③ 是同一個編輯畫面。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>名稱</th><th>類型</th><th>橫排×深位</th><th>可排座位</th><th></th></tr></thead><tbody>'+
+      body='<div class="card stack"><div><h3>教室清單（'+dept+'）</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡用開關選出並自動帶入上次的選擇，可修改（D65）。座位表在這裡也能編輯，和模擬考 ③ 是同一個編輯畫面。'+capLine()+'</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>名稱</th><th>類型</th><th>橫排×深位</th><th>可排座位</th><th></th></tr></thead><tbody>'+
         d.rooms.map(function(r,i){return rr(r,i,'r')}).join('')+d.prep.map(function(r,i){return rr(r,i,'p')}).join('')+
         '</tbody></table></div>'+(isJ?'':'<div class="row"><button class="btn" data-act="padd">新增預備教室</button></div>')+'</div>'}
     return '<div class="pagebar">'+(S.ret?wsBack():'<button class="btn btn-ghost" data-act="list">← 模擬考列表</button>')+'</div><div class="pagehead"><h1>共用設定</h1><span class="badge">資料夾層級，所有模擬考共用</span><span style="margin-left:auto">'+undoBtn()+'</span></div><div class="stack">'+seg+deptSeg+body+'</div>'}
