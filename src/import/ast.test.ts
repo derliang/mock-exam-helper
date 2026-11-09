@@ -46,3 +46,25 @@ describe('分科：選考差異大時，每科標少數那一邊', () => {
     expect(s.find((x) => x.subjectId === 'biology')?.suggested).toBe('none');
   });
 });
+
+describe('分科：沒寫科目的考生依文理組帶預設，可加考／不考', () => {
+  const track = (n: number) => (n === 1 ? 'science' : 'liberal') as 'science' | 'liberal';
+  const o = scanOptionsFor(exam, ['301', '302'], track);
+  const sc = scanExamSheet([
+    ['班級', '座號', '姓名', '組別', '加考', '特殊生需求註明'],
+    ['301', '1', '甲', '', '', ''],
+    ['301', '2', '乙', '', '歷史', '不考生物'],
+    ['302', '1', '丙', '', '物理', ''],
+    ['302', '2', '丁', '地理', '', ''],
+  ], o);
+  it('理組＝數甲＋物化生；文組＝數乙＋歷地公；加考／不考修改預設；明列科目則只考所列', () => {
+    const mapping = Object.fromEntries(sc.groups.map((g) => [g.id, g.suggestion ?? 'ignore']));
+    const r = buildEntries(sc, o, { mapping, rows: {} });
+    expect(r.entries.map((e) => e.subjectIds)).toEqual([
+      ['math-jia', 'physics', 'chemistry', 'biology'],
+      ['math-jia', 'physics', 'chemistry', 'history'],
+      ['math-yi', 'history', 'geography', 'civics', 'physics'],
+      ['geography'],
+    ]);
+  });
+});

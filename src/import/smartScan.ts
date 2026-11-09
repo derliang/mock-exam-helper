@@ -18,6 +18,8 @@ export interface ScanOptions {
   classNames?: readonly string[];
   /** 分科：沒有組別代碼表，「組別／考科」欄的文字就是考生選考的科目（角色 taking） */
   groupAsSubjects?: boolean;
+  /** 分科：沒有明列選考科目的考生，依班級文理組帶入預設科目（可再被「不考／加考」修改） */
+  defaultByClass?: (classNo: number) => readonly string[];
 }
 
 export interface ScanMark extends RawMark {
@@ -193,7 +195,11 @@ export function buildEntries(scan: ExamScan, opts: ScanOptions, dec: Decisions):
   const toEntry = (r: Pick<ScanRow, 'classNo' | 'seatNo' | 'name' | 'groupCode' | 'note' | 'marks'>): { e: ExamEntry; badGroup: boolean } => {
     const gk = r.groupCode ? groupKeyOf(r.groupCode) : '';
     const table = opts.groupTable?.[gk];
-    let subjects = [...(gk ? (table ?? []) : (opts.defaultSubjectIds ?? []))];
+    const explicit = !!opts.groupAsSubjects && r.marks.some((m) => {
+      const t = dec.mapping[groupOf.get(m.key) ?? ''];
+      return m.role === 'taking' && m.present && !!t && t !== IGNORE;
+    });
+    let subjects = [...(gk ? (table ?? []) : opts.groupAsSubjects ? (explicit ? [] : (opts.defaultByClass?.(r.classNo) ?? [])) : (opts.defaultSubjectIds ?? []))];
     for (const m of r.marks) {
       const target = dec.mapping[groupOf.get(m.key) ?? ''];
       if (!m.present || !target || target === IGNORE) continue;
