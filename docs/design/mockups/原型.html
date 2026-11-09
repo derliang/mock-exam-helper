@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.5</title>
+<title>模擬考原型 稿 v2.6</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -694,10 +694,11 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .pp .pp-at th,.pp .pp-at td{border:.3mm solid var(--cut);padding:.5mm 1.2mm;text-align:center;height:6.2mm}
 .pp .pp-at th{background:#F3EEDD;font-weight:700}
 .pp .pp-at td.l{text-align:left}.pp .pp-at td.d{color:var(--gray)}.pp .pp-at td.b small{font-size:7pt;color:var(--gray)}
+.pagebar{margin-bottom:4px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.5・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.6・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -1437,7 +1438,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       body='<div class="card stack"><div><h3>教室清單（'+dept+'）</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡用開關選出並自動帶入上次的選擇，可修改（D65）。座位表在這裡也能編輯，和模擬考 ③ 是同一個編輯畫面。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>名稱</th><th>類型</th><th>橫排×深位</th><th>可排座位</th><th></th></tr></thead><tbody>'+
         d.rooms.map(function(r,i){return rr(r,i,'r')}).join('')+d.prep.map(function(r,i){return rr(r,i,'p')}).join('')+
         '</tbody></table></div>'+(isJ?'':'<div class="row"><button class="btn" data-act="padd">新增預備教室</button></div>')+'</div>'}
-    return '<div class="pagehead">'+(S.ret?wsBack():'<button class="btn btn-ghost" data-act="list">← 模擬考列表</button>')+'<h1>共用設定</h1><span class="badge">資料夾層級，所有模擬考共用</span><span style="margin-left:auto">'+undoBtn()+'</span></div><div class="stack">'+seg+deptSeg+body+'</div>'}
+    return '<div class="pagebar">'+(S.ret?wsBack():'<button class="btn btn-ghost" data-act="list">← 模擬考列表</button>')+'</div><div class="pagehead"><h1>共用設定</h1><span class="badge">資料夾層級，所有模擬考共用</span><span style="margin-left:auto">'+undoBtn()+'</span></div><div class="stack">'+seg+deptSeg+body+'</div>'}
   function vFind(){
     var e=S.cur,d=D();if(!e.seat){computeSeat(e)}
     return '<div class="stack" style="max-width:860px"><div><h1 style="font-size:26px">考生查詢</h1><p class="muted">輸入考生編號或姓名，立刻看到教室與座位（D66）。</p></div><div class="card stack"><div class="field"><label for="fq">考生編號或姓名</label><input class="input" id="fq" value="'+esc(S.fq||'')+'" placeholder="例如 0207 或 蔡小雅" style="max-width:280px"></div><div id="fres" class="stack">'+findHTML()+'</div></div></div>'}
