@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, Track } from '../../data';
-import { AST_DEFAULT_BY_TRACK } from '../subjects';
+import { AST_DEFAULT_BY_TRACK, AST_GROUP_TABLE, astTrackOfSubjects } from '../subjects';
 import {
   buildEntries, diffEntries, GROUP_TABLES, IGNORE, prefillMapping, rememberMapping, scanExamSheet,
   type ExamScan, type ReviewItem, type RowDecision, type SavedMarkMap, type ScanOptions, type Sheet,
@@ -17,7 +17,8 @@ export function scanOptionsFor(exam: ExamConfig, classNames: readonly string[], 
   if (exam.kind === 'ast') {
     const ids = new Set(exam.subjects.map((s) => s.id));
     const defaultByClass = (n: number): string[] => { const t = trackOf?.(n); return t ? AST_DEFAULT_BY_TRACK[t].filter((x) => ids.has(x)) : []; };
-    return { subjects: exam.subjects, classNames, groupAsSubjects: true, defaultByClass };
+    const groupTable = Object.fromEntries(Object.entries(AST_GROUP_TABLE).map(([k, v]) => [k, v.filter((x) => ids.has(x))]));
+    return { subjects: exam.subjects, classNames, groupAsSubjects: true, groupTable, defaultByClass, trackOfSubjects: astTrackOfSubjects };
   }
   const table = GROUP_TABLES[(exam.round ?? 1) >= 3 ? 'second' : 'first'];
   const groupTable = Object.fromEntries(Object.entries(table).map(([k, v]) => [k, v.map((x) => SUBJECT_ID_MAP[x] ?? x).filter((x) => ids.has(x))]));

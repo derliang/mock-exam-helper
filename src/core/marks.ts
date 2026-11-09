@@ -40,7 +40,7 @@ export function suggestMarkMode(
 }
 
 function trackOf(entry: ExamEntry, classes: ReadonlyMap<number, ClassInfo>): Track | undefined {
-  return classes.get(entry.classNo)?.track;
+  return entry.track ?? classes.get(entry.classNo)?.track;
 }
 
 /** 依實際考試人數，對每個組別（國中部為全體）每科提出標示建議 */

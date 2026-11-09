@@ -2,7 +2,7 @@
  * 一次完成整套排座（給畫面層 C 與輸出層 D 用的單一入口）：
  * 主排座 → 標示 → 抽離分配 → 組成 SeatingResult（含資料版本碼）。任一步不合規則就擋下（D25）。
  */
-import type { ClassInfo, Classroom, Division, ExamEntry, MarkRule, Override, SeatingResult, Subject } from '../data/types';
+import type { ClassInfo, Classroom, Division, ExamEntry, MarkRule, Override, SeatingResult, Subject, Track } from '../data/types';
 import { studentCode } from '../data/helpers';
 import { allocateDetaches, overrideWarnings, type SpecialPlacement } from './detach';
 import { seatExam } from './exam';
@@ -42,12 +42,19 @@ export function seatingVersion(input: RunSeatingInput): string {
 export const fullyAbsentCodes = (input: { entries: readonly { classNo: number; seatNo: number; subjectIds: string[] }[]; seatFullyAbsent?: boolean }): string[] =>
   input.seatFullyAbsent ? [] : input.entries.filter((e) => e.subjectIds.length === 0).map((e) => studentCode(e.classNo, e.seatNo));
 
+/** 逐人指定的文理組（分科）；沒有任何人指定就回 undefined，行為與以前完全相同 */
+export function entryTracks(entries: readonly ExamEntry[]): Map<string, Track> | undefined {
+  const m = new Map<string, Track>();
+  for (const e of entries) if (e.track) m.set(studentCode(e.classNo, e.seatNo), e.track);
+  return m.size ? m : undefined;
+}
+
 export function runSeating(input: RunSeatingInput): RunSeatingResult {
   const fullyAbsent = fullyAbsentCodes(input);
   const absentSet = new Set(fullyAbsent);
   const seatable = input.entries.filter((e) => !absentSet.has(studentCode(e.classNo, e.seatNo)));
   const codes = seatable.map((e) => studentCode(e.classNo, e.seatNo));
-  const seated = seatExam({ division: input.division, classes: input.classes, classrooms: input.classrooms, codes });
+  const seated = seatExam({ division: input.division, classes: input.classes, classrooms: input.classrooms, codes, ...(entryTracks(seatable) ? { trackOf: entryTracks(seatable)! } : {}) });
   if (!seated.ok) return { ok: false, errors: seated.errors };
 
   const marks = applyMarks(seatable, input.classes, input.subjects, input.markRules);

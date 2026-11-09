@@ -29,7 +29,7 @@ export function classCapacity(doc: Doc, exam: ExamConfig): { lines: CapacityLine
   const trackOfClass = new Map(doc.settings.classes.filter((c) => c.division === exam.division).map((c) => [c.no, c.track]));
   const lines: CapacityLine[] = [];
   for (const t of ['science', 'liberal'] as Track[]) {
-    lines.push(line(TRACK_NAME[t], rooms.filter((r) => r.track === t).reduce((n, r) => n + r.seatCount, 0), roster.filter((s) => trackOfClass.get(s.classNo) === t).length));
+    lines.push(line(TRACK_NAME[t], rooms.filter((r) => r.track === t).reduce((n, r) => n + r.seatCount, 0), roster.filter((s) => (s.track ?? trackOfClass.get(s.classNo)) === t).length));
   }
   return { lines, untracked: rooms.filter((r) => !r.track).length, noList: false, seats };
 }

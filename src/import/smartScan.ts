@@ -20,6 +20,8 @@ export interface ScanOptions {
   groupAsSubjects?: boolean;
   /** 分科：沒有明列選考科目的考生，依班級文理組帶入預設科目（可再被「不考／加考」修改） */
   defaultByClass?: (classNo: number) => readonly string[];
+  /** 分科：依考生實際考的科目決定文理組，寫進 ExamEntry.track（排座與標示以它為準，不看班級） */
+  trackOfSubjects?: (subjectIds: readonly string[]) => 'science' | 'liberal' | undefined;
 }
 
 export interface ScanMark extends RawMark {
@@ -78,6 +80,12 @@ export function smartSeat(cell: string): number | null {
 }
 
 const groupKeyOf = (cell: string): string => normalizeCell(cell).charAt(0).toUpperCase();
+/**
+ * 組別代碼的鍵。分科的組別格可能是代碼（「2-自然組-理工類」）也可能直接寫科目（「數甲.物理」），
+ * 所以分科只有「數字＋橫線」開頭才當代碼，其餘一律是科目文字，鍵為空。
+ */
+const codeKey = (cell: string, opts: ScanOptions): string =>
+  opts.groupAsSubjects && !/^\s*\d\s*[-－—–]/.test(normalizeCell(cell)) ? '' : groupKeyOf(cell);
 
 export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOptions): ExamScan {
   const empty = (problems: string[]): ExamScan => ({ header: null, columns: {}, headers: {}, subjectColumns: {}, rows: [], review: [], skipped: [], blankRows: 0, groups: [], problems });
@@ -123,7 +131,8 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
       for (const m of t.marks) marks.push({ ...m, role: m.prefixRole ?? role, present: true });
       if (field === 'note' && t.marks.length === 0) note = noteCell; // 純說明文字原樣保留
     }
-    if (opts.groupAsSubjects) {
+    // 組別格是代碼（例「2-自然組-理工類」且代碼在對照表）時由代碼表決定科目，不當成科目文字拆
+    if (opts.groupAsSubjects && codeKey(get(r, 'group'), opts) === '') {
       for (const m of tokenizeMarks(get(r, 'group').replace(/[.．。・·]/g, '、')).marks) marks.push({ ...m, role: m.prefixRole ?? 'taking', present: true });
     }
     for (const [ci, h] of Object.entries(subjectColumns)) {
@@ -149,7 +158,7 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
       out.review.push({ row: rowNo, kind: 'dup', message: `班級 ${classNo} 座號 ${seatNo} 重複`, cells, draft: base, marks, ...(note ? { note } : {}) });
       continue;
     }
-    const gk = groupKeyOf(get(r, 'group'));
+    const gk = codeKey(get(r, 'group'), opts);
     if (col.group !== undefined && gk && opts.groupTable && !opts.groupTable[gk]) {
       out.review.push({ row: rowNo, kind: 'bad-group', message: `組別「${get(r, 'group')}」不在對照表中`, cells, draft: base, marks, ...(note ? { note } : {}) });
       seen.add(key);
@@ -193,7 +202,7 @@ export function buildEntries(scan: ExamScan, opts: ScanOptions, dec: Decisions):
   const pendingGroups = scan.groups.filter((g) => used.has(g.id) && dec.mapping[g.id] === undefined);
 
   const toEntry = (r: Pick<ScanRow, 'classNo' | 'seatNo' | 'name' | 'groupCode' | 'note' | 'marks'>): { e: ExamEntry; badGroup: boolean } => {
-    const gk = r.groupCode ? groupKeyOf(r.groupCode) : '';
+    const gk = r.groupCode ? codeKey(r.groupCode, opts) : '';
     const table = opts.groupTable?.[gk];
     const explicit = !!opts.groupAsSubjects && r.marks.some((m) => {
       const t = dec.mapping[groupOf.get(m.key) ?? ''];
@@ -207,6 +216,8 @@ export function buildEntries(scan: ExamScan, opts: ScanOptions, dec: Decisions):
       else if (!subjects.includes(target)) subjects.push(target);
     }
     const e: ExamEntry = { classNo: r.classNo, seatNo: r.seatNo, name: r.name, subjectIds: subjects };
+    const tr = opts.trackOfSubjects?.(subjects);
+    if (tr) e.track = tr;
     if (r.groupCode) e.groupCode = r.groupCode;
     if (r.note) e.note = r.note;
     return { e, badGroup: !!gk && !!opts.groupTable && !table };
