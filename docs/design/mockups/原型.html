@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.8</title>
+<title>模擬考原型 稿 v2.7</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -712,7 +712,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.8・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.7・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -736,7 +736,6 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
   var STEPS=[['考試設定','類型、次別、考科'],['考試名單','匯入、比對、參加者'],['教室設定','橫排、深位、預備教室'],['標示與抽離規則','組別對照表'],['排座與預覽','班級色、驗證、統計'],['下載','Word、PDF']];
   var S={
     screen:'init', folder:null, cur:null, step:1,
-    rsw:{p0:true,p1:true}, /* 種子資料：兩間預備教室已「列為預備」；新增的預備教室預設關（TODO-16） */
     type:'學測', name:'', year:'115', term:'上學期', from:null,
     exams:[
       {id:3,round:3,round0:3,name:'學測第三次',type:'學測',level:'高三',year:'115',n:266,prog:['d','d','d','d','s','d'],note:'名單改過，座位表過期',edit:'2026-11-05 16:42'},
