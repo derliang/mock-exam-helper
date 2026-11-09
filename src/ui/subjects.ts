@@ -21,6 +21,24 @@ export const AST_DEFAULT_BY_TRACK: Record<'science' | 'liberal', string[]> = {
   liberal: ['math-yi', 'history', 'geography', 'civics'],
 };
 
+/**
+ * 分科報名「組別」代碼表（大考中心五種組別；真實名單右側附表，114-2 學年名單確認）：
+ * 組別格寫「2-自然組-理工類」，取開頭的號碼。沒有「5」：名單出現過「5-社會組」只有一筆，視為筆誤、請使用者確認。
+ */
+export const AST_GROUP_TABLE: Record<string, string[]> = {
+  '1': ['math-jia', 'physics', 'chemistry', 'biology'], // 自然組—醫學類
+  '2': ['math-jia', 'physics', 'chemistry'], // 自然組—理工類
+  '3': ['math-jia', 'chemistry', 'biology'], // 自然組—農學類
+  '9': ['math-yi', 'history', 'geography', 'civics'], // 社會乙組
+  '4': ['history', 'geography', 'civics'], // 社會組
+};
+
+/** 分科考生的文理組：考任何自然科（數甲、物理、化學、生物）就是理組，否則文組；沒有科目回 undefined */
+export function astTrackOfSubjects(subjectIds: readonly string[]): 'science' | 'liberal' | undefined {
+  if (subjectIds.length === 0) return undefined;
+  return subjectIds.some((x) => ['math-jia', 'physics', 'chemistry', 'biology'].includes(x)) ? 'science' : 'liberal';
+}
+
 /** 學測：第 1、2 次數學單一科且有英聽；第 3、4 次數學分 A、B，無英聽（D36/D52） */
 export function defaultSubjects(kind: ExamKind, round = 1): Subject[] {
   if (kind === 'bcct') return BCCT_SUBJECTS.map((x) => ({ ...x }));

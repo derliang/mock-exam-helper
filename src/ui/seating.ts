@@ -11,6 +11,7 @@ import {
   specialOf,
   runSeating,
   fullyAbsentCodes,
+  entryTracks,
   seatingVersion,
   suggestMarks,
   validateSeating,
@@ -240,6 +241,7 @@ export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResu
     codes,
     assignments: result.assignments,
     checkTrack: exam.division === 'senior',
+    ...(entryTracks(seatableEntries(doc, exam)) ? { trackOf: entryTracks(seatableEntries(doc, exam))! } : {}),
   });
   const capacity = rooms.reduce((a, r) => a + r.seatCount, 0);
   const checks: Check[] = [
