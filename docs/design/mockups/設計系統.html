@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考設計系統 稿 v2.15</title>
+<title>模擬考設計系統 稿 v2.16</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -395,7 +395,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="top">
-  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.15・2026-11-09</span></span>
+  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.16・2026-11-09</span></span>
   <nav class="toc" aria-label="目錄">
     <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#paper">座位表與標籤</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
   </nav>
@@ -590,7 +590,11 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
           <div class="scroll"><table class="t" style="min-width:0"><thead><tr><th>班級</th><th>座號</th><th>考生編號</th><th>姓名</th><th>學號（選填）</th><th>組別</th></tr></thead><tbody><tr><td>溫</td><td>1</td><td>0101</td><td>王小明</td><td>1150101</td><td>6-自然組</td></tr><tr><td>溫</td><td>2</td><td>0102</td><td>李小華</td><td class="muted">（空白）</td><td>6-自然組</td></tr></tbody></table></div></div>
       </div></div>
 
-    <div class="card" style="margin-top:16px"><div class="lab">選用功能列與會考快速模式條件（D75、D77；DESIGN 10.8）</div>
+    <div class="card" style="margin-top:16px"><div class="lab">節次分組框（共用設定「節次與時長」；D92、DESIGN 10.11）</div><div class="stack"><div class="small muted">同編號＝同一節同時進行：一個節次一個框，左側粗色條；框內每科一列（科目、節次、時長，右側刪除）；兩科以上同節時框底改淺藍並顯示「N 科同時進行」；開始時間（選填）在框的右上角，整節共用。沒有節次的科目放在琥珀色「還沒排節次」框，附「待確認」。</div>
+<div class="scgrp multi"><div class="schd"><b>第 1 節</b><span class="badge b-acc">2 科同時進行</span><label class="tm"><span class="small muted">開始時間（選填）</span><input class="input" type="time" value="08:40" style="width:150px"></label></div>
+<div class="scrow"><div class="field"><span class="small muted">科目</span><input class="input" value="物理"></div><div class="field"><span class="small muted">節次</span><input class="input" value="1"></div><div class="field"><span class="small muted">時長（分鐘）</span><input class="input" value="80"></div><button class="btn btn-sm btn-danger">刪除</button></div>
+<div class="scrow"><div class="field"><span class="small muted">科目</span><input class="input" value="歷史"></div><div class="field"><span class="small muted">節次</span><input class="input" value="1"></div><div class="field"><span class="small muted">時長（分鐘）</span><input class="input" value="80"></div><button class="btn btn-sm btn-danger">刪除</button></div></div></div></div>
+<div class="card" style="margin-top:16px"><div class="lab">選用功能列與會考快速模式條件（D75、D77；DESIGN 10.8）</div>
       <div class="stack">
         <div class="small muted">選用功能列：左邊功能名稱、「預設：關」與一句說明（含開啟後哪裡會多出東西），右邊開關（標示在上方、右側寫「已開啟／未開啟」）。開著的整列淡藍底。會考專用的功能另加「會考專用」徽章。</div>
         <div class="featrow on"><div class="fi"><div class="row" style="gap:8px"><b>出缺席記錄表（A4）</b><span class="badge">預設：關</span></div><p class="small muted">每間教室一頁、照座位順序，每科留打勾格，考試當天點名用。開啟後：下載頁多一個勾選項。</p></div><div class="swf"><span class="cap">啟用</span><label class="swx"><input type="checkbox" checked><span class="trk"></span><span class="st">已開啟</span></label></div></div>
@@ -907,6 +911,14 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .stepprog{font-size:13px;font-weight:700;color:var(--text-2);padding:4px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
 .pfx{font-size:13px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
 
+/* ===== 節次分組框（共用設定「節次與時長」，D92）===== */
+.scgrp{border:1px solid var(--line);border-left:6px solid var(--accent);border-radius:var(--r-md);background:var(--surface);padding:12px 14px;display:grid;gap:10px}
+.scgrp.multi{background:var(--accent-soft);border-color:var(--accent-line)}
+.scgrp.none{border-left-color:var(--warn);background:var(--warn-soft);border-color:var(--warn-line)}
+.schd{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px}
+.schd .tm{display:flex;align-items:center;gap:6px;margin-left:auto}
+.scrow{display:grid;grid-template-columns:minmax(0,1fr) 84px 110px auto;gap:8px;align-items:end}
+@media (max-width:560px){.scrow{grid-template-columns:1fr 1fr}.scrow .field:first-child{grid-column:1/-1}.schd .tm{margin-left:0;width:100%}}
 /* ===== C 項：選用功能列、會考快速模式條件清單、出缺席記錄表紙面 ===== */
 .featrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 18px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
 .featrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
