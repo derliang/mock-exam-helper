@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.11</title>
+<title>模擬考原型 稿 v2.12</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -397,6 +397,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .t.nw td,.t.nw th{white-space:nowrap}
 .stack>*,.grid>*,.grid2>*{min-width:0}.row{min-width:0}.seg{max-width:100%;overflow-x:auto}.seg button{flex:none}
 .ws.wide{grid-template-columns:230px minmax(0,1fr)}
+/* v2.12 常駐摘要列（DESIGN 10.7 H2；外觀同實作 .sumbar）：六步驟頁、步驟內容上方，不可關 */
+.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;position:sticky;top:64px;z-index:5;box-shadow:var(--shadow-1)}
+.sumbar b{font-family:var(--f-no,inherit);font-size:18px;font-variant-numeric:tabular-nums}
+.sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}
+.sumbar .ok{color:var(--ok-ink);font-weight:700}
+.sumbar .warnbtn{margin-left:auto;display:inline-block;flex:0 1 auto;min-width:0;line-height:1.5;min-height:36px;padding:6px 12px;border:1.5px solid var(--warn-bar);border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn-ink);font:inherit;font-weight:700;cursor:pointer;text-align:left}
+.sumbar .warnbtn u{white-space:nowrap}.sumbar .warnbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 @media (max-width:760px){.ws.wide{grid-template-columns:minmax(0,1fr)}}
 .ws .chart{--cw:90px;--ch:104px}
 .cell.dim{opacity:.25}
@@ -691,8 +698,10 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .pbar{flex-wrap:wrap;row-gap:4px}
 .pbar .nav{order:3;flex:1 1 100%}
 .ws .side{top:104px}
+.sumbar{top:104px}
 @media (min-width:561px) and (max-width:1000px){.pbar .nav{flex-wrap:wrap;overflow:visible}}
-@media (min-width:761px) and (max-width:1000px){.ws .side{top:140px}}
+@media (min-width:761px) and (max-width:1000px){.ws .side{top:140px}.sumbar{top:140px}}
+@media (max-width:760px){.sumbar{position:static}.sumbar .warnbtn{margin-left:0}}
 
 /* ===== C 項（選用功能、出缺席記錄表、會考快速模式）===== */
 .featrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 18px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
@@ -712,7 +721,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.11・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.12・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -1054,7 +1063,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       h+='<tr><td>在本教室考'+x+'</td>'+cs.map(function(c){return '<td class="n">'+(row[c]||0)+'</td>'}).join('')+'<td class="n">'+t+'</td></tr>'});
     return h+'</tbody>'}
   /* ---------- M2 定案新增：復原、返回、部別、教室編輯（D69） ---------- */
-  var MAXSEAT=48,UNDO_MAX=20,UNDO=[];
+  var MAXSEAT=49,UNDO_MAX=20,UNDO=[];
   function snapState(){var e=S.cur;return JSON.stringify({id:e?e.id:null,data:e?e.data||null:null,subj:e?e.subj||null:null,part:e?e.part:null,prog:e?e.prog:null,cmp:e?!!e.cmpPending:false,master:S.master||{},school:S.school||null})}
   function pushUndo(label){UNDO.push({label:label,s:snapState()});if(UNDO.length>UNDO_MAX)UNDO.shift()}
   function undo(){S.undoOpen=false;var u=UNDO.pop();if(!u){toast('沒有可以復原的操作');return}var s=JSON.parse(u.s),ex=S.exams.filter(function(x){return x.id===s.id})[0];if(ex){S.cur=ex;ex.data=s.data;ex.subj=s.subj;ex.part=s.part;ex.prog=s.prog;ex.cmpPending=s.cmp;ex.seat=null}S.master=s.master;S.school=s.school;render();toast('已復原：'+u.label)}
@@ -1079,7 +1088,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var n=seatsOf(r).length,off=r.cols*r.rows-n,g='<div class="prev"><div class="pgrid" style="grid-template-columns:repeat('+r.cols+',minmax(0,1fr));max-width:'+(r.cols*56)+'px;width:100%">';
     for(var rr=r.rows;rr>=1;rr--)for(var c=1;c<=r.cols;c++){var k=c+','+rr,o=!!r.off[k];g+='<button type="button" class="pc'+(o?' off':'')+'" data-act="toff" data-s="'+key+'" data-k="'+k+'" aria-pressed="'+o+'" aria-label="第'+c+'排第'+rr+'深位'+(o?'，不排':'')+'">'+c+'-'+rr+'</button>'}
     g+='</div><div class="podium">講臺</div><span class="hint">座標是「排－深位」。點哪個座位，哪個就「不排」（例如壞掉的桌椅、走道），再點一次恢復；排座時會跳過不排的座位，人由前往後連續坐。</span></div>';
-    return '<div class="roomedit"><div class="row" style="justify-content:space-between"><div><h4>編輯座位表：'+esc(r.name)+'</h4><p class="small muted">橫排 '+r.cols+' × 深位 '+r.rows+' ＝ '+(r.cols*r.rows)+' 個座位，可排 '+n+'、不排 '+off+'。一間教室最多 '+MAXSEAT+' 個座位（一張標籤紙 6×8 格）。</p></div><button class="btn btn-sm" data-act="rexp" data-s="'+key+'" aria-expanded="true">收合</button></div>'+
+    return '<div class="roomedit"><div class="row" style="justify-content:space-between"><div><h4>編輯座位表：'+esc(r.name)+'</h4><p class="small muted">橫排 '+r.cols+' × 深位 '+r.rows+' ＝ '+(r.cols*r.rows)+' 個座位，可排 '+n+'、不排 '+off+'。一間教室最多 '+MAXSEAT+' 個座位（A3 標籤紙 7×7＝49 格）。</p></div><button class="btn btn-sm" data-act="rexp" data-s="'+key+'" aria-expanded="true">收合</button></div>'+
       (withStep?'<div class="row"><div class="field" style="gap:2px"><span class="small muted">橫排（左右）</span>'+stp(key,'cols','橫排',r.cols)+'</div><div class="field" style="gap:2px"><span class="small muted">深位（前後）</span>'+stp(key,'rows','深位',r.rows)+'</div></div>':'')+g+'</div>'}
   function openTpl(){
     var dept=S.dept||deptOf(S.cur),file='學生名單範本-'+dept+'.xlsx';
@@ -1324,6 +1333,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     var n=0;groups(e).forEach(function(g){subjList(e).forEach(function(s){if(rule(e,g[0],s).need)n++})});
     return '<div class="card stack"><div class="lab">待處理</div>'+(n?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>有 '+n+' 項接近一半的科目要選。</span><span></span></div>':'<div class="alert a-ok"><span class="ico" data-i="✓"></span><span>沒有要選的項目。</span><span></span></div>')+'</div>'+
       '<div class="card stack"><div class="lab">範例標示</div><div class="lprev">'+['B4','A3'].map(function(p){var a=p==='A3',st=sortStu(D().stu).filter(function(s){return marksOf(e,s).length})[0],W=a?297:250,H=a?420:353;return '<figure><div class="lprev-box" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px"><div class="lsheet-one" style="width:'+(W*2.4).toFixed(1)+'px;height:'+(H*2.4).toFixed(1)+'px"><div class="lprev-cell" style="width:'+(W/6*2.4).toFixed(1)+'px;height:'+(H/8*2.4).toFixed(1)+'px">'+(st?labelHTML(st,'1-1'):'')+'</div></div></div><figcaption><b>'+p+'</b>（'+(a?'大標籤':'小標籤')+'）<br>'+(W/6).toFixed(1)+'×'+(H/8).toFixed(1)+' mm</figcaption></figure>'}).join('')+'</div><p class="small muted">標籤上的樣子（用文字加粗框）。兩張依實際尺寸等比例並排：A3 的格子比 B4 大約寬 19%、高 19%。座位表另外使用班級底色，其餘相同，只是不分紙張。</p></div>'}
+  /* ---------- 常駐摘要列（v2.12，DESIGN 10.7 H2）：考生／座位／空位（不足改缺位）／待處理；資料與 blockers() 同源 ---------- */
+  function sumbarHTML(e){
+    var none=!!e.cmpPending,cap=capacity(e),seats=0,stu=D().stu.length;cap.forEach(function(c){seats+=c.seats});
+    var spare=seats-stu,lack=spare<0;
+    var iss=blockers(e).filter(function(x){return !/尚未完成$/.test(x.t)}).map(function(x){return {step:x.step||2,t:x.t}});
+    if(none)iss=[{step:2,t:'還沒匯入考試名單',fix:'去 ② 匯入'}].concat(iss.filter(function(x){return x.step!==2}));
+    var first=iss[0];
+    return '<div class="sumbar" role="region" aria-label="本次考試摘要">'+(none?'<span>考生 <b>尚未匯入考試名單</b></span>':'<span>考生 <b>'+stu+'</b></span>')+'<span>座位 <b>'+seats+'</b></span>'+
+      (none||!seats?'<span>空位 <b>—</b></span>':lack?'<span class="bad">缺位 <b>'+(-spare)+'</b></span>':'<span>空位 <b>'+spare+'</b></span>')+
+      (iss.length?'<button type="button" class="warnbtn" data-act="step" data-n="'+first.step+'" title="'+esc(iss.map(function(x){return x.t}).join('；'))+'">⚠ 待處理 <b>'+iss.length+'</b>　'+esc(first.t)+'　<u>'+(first.fix||('去 '+'①②③④⑤⑥'.charAt(first.step-1)+' '+STEPS[first.step-1][0]))+'</u></button>':'<span class="ok">待處理 <b>0</b>　✓ 沒有待處理的事</span>')+'</div>'}
   /* ---------- 工作區外框 ---------- */
   function vWs(){
     var e=S.cur,view=stepView(),s=STEPS[S.step-1],wide=view.side==='';
@@ -1331,7 +1350,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       return '<li><button class="step '+(k==='skip'?'skip':k)+'" type="button" data-act="step" data-n="'+(i+1)+'"'+(i+1===S.step?' aria-current="step"':'')+'><span class="no">'+(k==='done'?'✓':k==='stale'?'!':(i+1))+'</span><span><b>'+st[0]+'</b><small>'+(tag?tag+'・':'')+st[1]+'</small></span></button></li>'}).join('');
     return '<div class="pagehead"><button class="btn btn-ghost" data-act="list">← 模擬考列表</button><h1 style="font-size:26px">'+esc(e.name)+'</h1><span class="badge">'+typeLabel(e.type)+'</span><span class="small muted">已儲存到資料夾（模擬）</span><span style="margin-left:auto;display:inline-flex;gap:10px;flex-wrap:wrap">'+undoBtn()+'<button class="btn" data-act="tosettings" data-v="stu">設定</button></span></div>'+wsRet()+
       '<div class="ws'+(wide?' wide':'')+'"><aside class="side"><div class="card" style="padding:10px"><div class="stepprog">第 '+S.step+'／6 步　已完成 '+STEPS.filter(function(x,i){return stepState(i+1)==='done'}).length+' 步</div><ol class="steps">'+sl+'</ol></div></aside>'+
-      '<section class="main"><div class="card stephead"><div><h2 style="font-size:26px">'+'①②③④⑤⑥'.charAt(S.step-1)+' '+s[0]+'</h2><p class="muted small">'+s[1]+'</p></div>'+(NEXT(e,S.step)?'<button class="btn btn-primary" data-act="'+(S.step===1?'next1':'next')+'" data-n="'+NEXT(e,S.step)[0]+'">完成此步，前往 '+NEXT(e,S.step)[1]+'</button>':'<span class="small muted">最後一步</span>')+'</div>'+view.main+'</section>'+
+      '<section class="main">'+sumbarHTML(e)+'<div class="card stephead"><div><h2 style="font-size:26px">'+'①②③④⑤⑥'.charAt(S.step-1)+' '+s[0]+'</h2><p class="muted small">'+s[1]+'</p></div>'+(NEXT(e,S.step)?'<button class="btn btn-primary" data-act="'+(S.step===1?'next1':'next')+'" data-n="'+NEXT(e,S.step)[0]+'">完成此步，前往 '+NEXT(e,S.step)[1]+'</button>':'<span class="small muted">最後一步</span>')+'</div>'+view.main+'</section>'+
       (wide?'':'<aside class="side side-r">'+view.side+'</aside>')+'</div>'}
   function blockedCard(bl,what){
     return '<div class="card stack"><div class="alert a-err"><span class="ico" data-i="×"></span><span><b>還不能'+what+'：</b>下面的事項要先處理完，系統不會輸出不合規則的結果（D25、D47）。</span><span></span></div>'+
@@ -1552,7 +1571,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='grp'){pushUndo('文理組');D().cls[+g('c')].grp=g('g');markStale();render()}
     else if(a==='rsel'){S.rsel=g('s');render()}
     else if(a==='dim'){if(g('s'))S.rsel=g('s');var rm=selRoom(),w=g('w'),v=Math.max(1,Math.min(12,rm[w]+ +g('d'))),oc=rm[w],offN=Object.keys(rm.off).length;
-      pushUndo('教室座位');rm[w]=v;if(rm.cols*rm.rows>MAXSEAT){rm[w]=oc;UNDO.pop();toast('一間教室最多 '+MAXSEAT+' 個座位（一張標籤紙 6×8 格）');return}
+      pushUndo('教室座位');rm[w]=v;if(rm.cols*rm.rows>MAXSEAT){rm[w]=oc;UNDO.pop();toast('一間教室最多 '+MAXSEAT+' 個座位（A3 標籤紙 7×7＝49 格）');return}
       rm.off={};var ord2=[];for(var c2=1;c2<=rm.cols;c2++)for(var r2=1;r2<=rm.rows;r2++)ord2.push(c2+','+r2);for(var q2=Math.max(0,ord2.length-offN);q2<ord2.length;q2++)rm.off[ord2[q2]]=1;markStale();render()}
     else if(a==='toff'){pushUndo('教室座位');if(g('s'))S.rsel=g('s');var rm2=selRoom(),k=g('k'),ord=[];for(var c1=1;c1<=rm2.cols;c1++)for(var r1=1;r1<=rm2.rows;r1++)ord.push(c1+','+r1);if(rm2.off[k])delete rm2.off[k];else if(Object.keys(rm2.off).length<ord.length-1)rm2.off[k]=1;markStale();render()}
     else if(a==='padd'){pushUndo('新增預備教室');var pp=D().prep;pp.push({name:'預備教室'+(pp.length+1),cols:6,rows:5,off:{}});S.rsel='p'+(pp.length-1);markStale();render()}
