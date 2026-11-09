@@ -14,6 +14,7 @@ import {
   entryTracks,
   seatingVersion,
   suggestMarks,
+  preferMarkAbsent,
   validateSeating,
   type MarkSuggestion,
   type RunSeatingInput,
@@ -75,7 +76,8 @@ export const ruleKey = (track: Track | undefined, subjectId: string): string => 
 
 export function markSuggestions(doc: Doc, exam: ExamConfig): MarkSuggestion[] {
   if (!needsMarks(exam)) return [];
-  return suggestMarks(seatableEntries(doc, exam), examClasses(doc, exam), exam.subjects);
+  const list = suggestMarks(seatableEntries(doc, exam), examClasses(doc, exam), exam.subjects);
+  return exam.kind === 'ast' ? preferMarkAbsent(list) : list;
 }
 
 /**
