@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.10</title>
+<title>模擬考原型 稿 v2.11</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -712,7 +712,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.10・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.11・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -739,7 +739,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     type:'學測', name:'', year:'115', term:'上學期', from:null,
     exams:[
       {id:3,round:3,round0:3,name:'學測第三次',type:'學測',level:'高三',year:'115',n:266,prog:['d','d','d','d','s','d'],note:'名單改過，座位表過期',edit:'2026-11-05 16:42'},
-      {id:4,round:1,round0:1,name:'分科第一次（示範）',type:'分科',level:'高三',year:'115',n:266,part:'part',prog:['d','d','d','d','c',''],note:'進行中：排座與預覽',edit:'2026-11-09 10:20'},
+      {id:4,round:1,round0:1,name:'分科第一次（示範）',type:'分科',level:'高三',year:'115',term:'下學期',n:266,part:'part',prog:['d','d','d','d','c',''],note:'進行中：排座與預覽',edit:'2026-11-09 10:20'},
       {id:2,round:2,round0:2,name:'學測第二次',type:'學測',level:'高三',year:'115',n:266,prog:['d','d','d','d','d','d'],note:'已下載',edit:'2026-10-12 09:15'},
       {id:1,round:1,round0:1,name:'會考第一次',type:'會考',level:'國三',year:'115',n:236,prog:['d','d','c','n','',''],note:'進行中：教室設定',edit:'2026-10-28 14:03'}
     ]
@@ -812,7 +812,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         '<p class="small muted">高中部：學測、分科；國中部：會考。</p></div>'+
       '<div class="card stack"><div class="lab">2　基本資料</div>'+
         '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))"><div class="field"><label for="nn">模擬考名稱</label><input class="input" id="nn" value="'+S.name+'"><span class="hint">資料夾名稱會用這個名稱</span></div>'+
-        '<div class="field"><span class="label">學期</span><div class="termcards" role="group" aria-label="學期">'+termCards(S.term,'new')+'</div><span class="hint">學年度依今天的日期自動算：'+schoolYear()+' 學年</span></div>'+
+        '<div class="field"><span class="label">學期</span><div class="termcards" role="group" aria-label="學期">'+termCards(S.term,'new')+'</div><span class="hint">學測預設上學期、分科預設下學期（切換類型時自動帶入，仍可自己改）；學年度依今天的日期自動算：'+schoolYear()+' 學年</span></div>'+
         '<div class="field"><label>對象</label><div class="input" style="display:flex;align-items:center">'+(isJ?'國三':'高三')+'</div><span class="hint">由類型決定</span></div></div></div>'+
       '<div class="card stack"><div class="lab">3　預設設定</div>'+
         (prev?'<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>會帶入「'+prev.name+'」的設定</b>：學生名單、教室、'+(isJ?'':'標示與抽離規則、')+'名稱以外的選項。每一步都能再改，改了不影響舊的模擬考。</span><span></span></div>':'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>還沒有同類型的模擬考，所有步驟從空白開始。</span><span></span></div>')+
@@ -851,7 +851,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     return '<div class="card stack">'+
       '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));align-items:start">'+
       '<div class="field"><label for="xn">模擬考名稱</label><input class="input" id="xn" value="'+e.name+'"><span class="hint">子資料夾名稱同步更換</span></div>'+
-      '<div class="field"><span class="label">學期</span><div class="termcards" role="group" aria-label="學期">'+termCards(e.term||'上學期','cur')+'</div><span class="hint">學年度（'+e.year+'）依建立日期自動算</span></div>'+
+      '<div class="field"><span class="label">學期</span><div class="termcards" role="group" aria-label="學期">'+termCards(e.term||'上學期','cur')+'</div><span class="hint">學測預設上學期、分科預設下學期；學年度（'+e.year+'）依建立日期自動算</span></div>'+
       '<div class="field"><span class="label">類型與對象</span><div class="input" style="display:flex;align-items:center;gap:8px;background:var(--surface)"><span class="badge">'+typeLabel(e.type)+'</span>'+e.level+'</div><span class="hint">建立後不可更改類型</span></div></div>'+seg+'</div>'+
       '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>考科表</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除（D52）</p></div><div class="row">'+(e.subj?'<button class="btn" data-act="subjreset">還原預設</button>':'')+(isJ?'':'<button class="btn" data-act="subjedit" data-i="-1">新增考科</button>')+'</div></div>'+alertM+(e.subj?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span>考科表已自訂，④ 的組別對照表要重新確認。</span><span></span></div>':'')+
       '<div class="scroll"><table class="t compact"><thead><tr><th>科目</th><th>誰要考</th><th></th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
@@ -1634,7 +1634,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     else if(a==='list')go('list');
     else if(a==='new'){S.type='學測';S.name='';S.term='上學期';go('new')}
     else if(a==='term'){if(b.getAttribute('data-w')==='new')S.term=b.getAttribute('data-t');else{pushUndo('學期');S.cur.term=b.getAttribute('data-t')}render()}
-    else if(a==='type'){S.type=b.getAttribute('data-t');S.name='';render()}
+    else if(a==='type'){S.type=b.getAttribute('data-t');S.name='';if(S.type==='學測')S.term='上學期';else if(S.type==='分科')S.term='下學期';render()}
     else if(a==='open'){S.cur=S.exams.filter(function(x){return x.id==b.getAttribute('data-id')})[0];S.step=1;go('ws')}
     else if(a==='step'){S.step=+b.getAttribute('data-n');S.ret=null;render()}
     else if(a==='round'){pushUndo('次別');var ce=S.cur;ce.round=+b.getAttribute('data-r');if(/^學測第.次$/.test(ce.name))ce.name='學測第'+CN[ce.round]+'次';ce.subj=null;render()}
