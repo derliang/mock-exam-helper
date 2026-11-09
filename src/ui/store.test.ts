@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { demoDoc } from './repository';
-import { addStudent, newExam, removeStudent, searchStudents, setClassColor, setClassTrack, updateStudent } from './store';
+import { addStudent, defaultSemester, newExam, removeStudent, searchStudents, setClassColor, setClassTrack, updateStudent } from './store';
 
 describe('學生名單', () => {
   it('新增：重複座號、班級不存在、座號越界、姓名空白都擋下', () => {
@@ -98,5 +98,20 @@ describe('新考試的標籤格數（D74）', () => {
       const r = newExam(d, 'gsat', '學測第一次', now);
       expect(r.ok && r.doc.exams.at(-1)?.labelLayout).toEqual({ paper, cols, rows });
     }
+  });
+  it('學期預設依類型（D91）：學測上學期、分科下學期、會考上學期；仍可指定', () => {
+    const now = new Date('2026-11-08T00:00:00Z');
+    expect(defaultSemester('gsat')).toBe('first');
+    expect(defaultSemester('ast')).toBe('second');
+    expect(defaultSemester('bcct')).toBe('first');
+    const sem = (kind: 'gsat' | 'ast' | 'bcct', semester?: 'first' | 'second') => {
+      const r = newExam(demoDoc(), kind, 'x', now, semester ? { semester } : {});
+      if (!r.ok) throw new Error(r.error);
+      return r.doc.exams[0]?.semester;
+    };
+    expect(sem('gsat')).toBe('first');
+    expect(sem('ast')).toBe('second');
+    expect(sem('bcct')).toBe('first');
+    expect(sem('ast', 'first')).toBe('first');
   });
 });

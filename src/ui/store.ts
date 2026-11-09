@@ -98,12 +98,15 @@ export interface NewExamOptions {
   prev?: ExamConfig;
 }
 
+/** 依類型的學期預設（D91）：學測模擬考一定是上學期，分科一定是下學期，會考不變（上學期）；仍可手動改 */
+export const defaultSemester = (kind: ExamKind): Semester => (kind === 'ast' ? 'second' : 'first');
+
 export function newExam(doc: Doc, kind: ExamKind, name: string, now: Date, opts: NewExamOptions = {}): Result<Doc> {
   const n = name.trim();
   if (!n) return fail('請輸入考試名稱');
   if (doc.exams.some((e) => e.name === n)) return fail('已有同名的模擬考');
   const division: Division = kind === 'bcct' ? 'junior' : 'senior';
-  const semester = opts.semester ?? 'first';
+  const semester = opts.semester ?? defaultSemester(kind);
   if (opts.round !== undefined && (!Number.isInteger(opts.round) || opts.round < 1)) return fail('次別要是 1 以上的整數');
   const round = kind === 'gsat' ? opts.round ?? nextRound(doc, kind, now) : undefined;
   const prev = opts.prev && opts.prev.kind === kind ? opts.prev : undefined;
