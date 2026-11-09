@@ -11,6 +11,8 @@ const ABSENT_PREFIX = /^(缺考|缺|不考|免考|X|×|✗|✘)(?=.)/;
 const EXTRA_PREFIX = /^(加考|加|\+)(?=.)/;
 /** 單字科目縮寫：可連寫（「缺國英」「國英數」） */
 const INITIALS = '國英數自社理歷地公物化生';
+/** 本身就是科目名稱的兩字詞，不可拆成單字（分科） */
+const WHOLE_NAMES = new Set(['物理', '地理', '生物', '公民', '歷史', '化學']);
 
 export interface RawMark {
   /** 原文（去頭尾空白） */
@@ -43,7 +45,7 @@ export function tokenizeMarks(cell: string): { marks: RawMark[]; prose: string[]
     if (!key) continue;
     if (key.length > 6) { prose.push(p); continue; }
     const chars = [...key];
-    if (chars.length >= 2 && chars.every((c) => INITIALS.includes(c))) {
+    if (chars.length >= 2 && !WHOLE_NAMES.has(key) && chars.every((c) => INITIALS.includes(c))) {
       for (const c of chars) marks.push({ raw: prefixRole ? `${p.slice(0, p.length - key.length)}${c}` : c, key: c, prefixRole });
     } else marks.push({ raw: p, key, prefixRole });
   }
@@ -151,11 +153,17 @@ export function groupMarks(marks: readonly RawMark[], subjects: readonly { id: s
 const ALIASES: [RegExp, string[]][] = [
   [/國/, ['國', 'CH', 'CHI', 'CHINESE', 'C']],
   [/英(?!聽)/, ['英', 'ENG', 'EN', 'ENGLISH', 'E']],
-  [/數.*A|數甲/, ['數A', '數甲', 'MA', 'MATHA']],
-  [/數.*B|數乙/, ['數B', '數乙', 'MB', 'MATHB']],
+  [/數學?甲|數.*A/, ['數A', '數甲', 'MA', 'MATHA']],
+  [/數學?乙|數.*B/, ['數B', '數乙', 'MB', 'MATHB']],
   [/^數學?$/, ['數', 'MATH', 'M']],
   [/自/, ['自', '自然', 'SCI', 'SCIENCE', 'S']],
-  [/社/, ['社', '社會', 'SOC', 'SOCIAL']],
+  [/^社/, ['社', '社會', 'SOC', 'SOCIAL']],
+  [/物理/, ['物', '物理', 'PHY', 'PHYSICS']],
+  [/化學/, ['化', '化學', 'CHEM', 'CHEMISTRY']],
+  [/^生物/, ['生', '生物', 'BIO', 'BIOLOGY']],
+  [/歷史/, ['歷', '史', '歷史', 'HIS', 'HISTORY']],
+  [/地理/, ['地', '地理', 'GEO', 'GEOGRAPHY']],
+  [/公民/, ['公', '公民', '公民與社會', 'CIV', 'CIVICS']],
 ];
 
 /** 群組成員 → 建議科目 id；多個科目都符合（或都不符合）就不建議 */

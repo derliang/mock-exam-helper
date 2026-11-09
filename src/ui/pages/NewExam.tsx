@@ -2,11 +2,11 @@ import { useState } from 'preact/hooks';
 import type { ExamKind, Semester } from '../../data';
 import { Alert, Button } from '../components';
 import { checkExamName } from '../flow';
-import { newExam, previousExam, schoolYear, suggestExamName, type Doc } from '../store';
+import { defaultSemester, newExam, previousExam, schoolYear, suggestExamName, type Doc } from '../store';
 
 const TYPES: { kind: ExamKind; level: string; title: string; subj: string; soon?: boolean }[] = [
   { kind: 'gsat', level: '高中部', title: '學測模擬考', subj: '國、英、數（第 3 次起分數 A、數 B）、自然、社會' },
-  { kind: 'ast', level: '高中部', title: '分科模擬考', subj: '每一科都是選考；沒有實際名單與樣本，之後才做', soon: true },
+  { kind: 'ast', level: '高中部', title: '分科模擬考', subj: '數學甲、數學乙、物理、化學、生物、歷史、地理、公民與社會；每科都是選考，國英不加考' },
   { kind: 'bcct', level: '國中部', title: '會考模擬考', subj: '國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗（固定七科），沒有選考' },
 ];
 
@@ -17,7 +17,9 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
   const [name, setName] = useState(() => suggestExamName(p.doc, 'gsat', (p.now ?? (() => new Date()))()));
   // 使用者沒自己改過名稱時，換類型就跟著換建議名稱
   const [edited, setEdited] = useState(false);
-  const [semester, setSemester] = useState<Semester>('first');
+  const [semester, setSemester] = useState<Semester>(defaultSemester('gsat'));
+  // 使用者沒自己改過學期時，換類型就跟著換預設學期（D91）
+  const [semEdited, setSemEdited] = useState(false);
   const [err, setErr] = useState('');
   const check = checkExamName(p.doc, name);
   const prev = previousExam(p.doc, kind);
@@ -26,6 +28,7 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
   const pick = (k: ExamKind) => {
     setKind(k); setErr('');
     if (!edited) setName(suggestExamName(p.doc, k, now()));
+    if (!semEdited) setSemester(defaultSemester(k));
   };
   const submit = () => {
     if (!check.ok) return;
@@ -62,7 +65,7 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
               <input id="exam-name" class="input" value={name} aria-invalid={!check.ok} onInput={(e) => { setName(e.currentTarget.value); setEdited(true); }} />
               <span class={check.ok ? 'hint' : 'field-msg'}>{check.ok ? '資料夾名稱會用這個名稱' : check.message}</span></div>
             <div class="field"><label for="exam-term">學期</label>
-              <select id="exam-term" class="input" value={semester} onChange={(e) => setSemester(e.currentTarget.value as Semester)}>
+              <select id="exam-term" class="input" value={semester} onChange={(e) => { setSemester(e.currentTarget.value as Semester); setSemEdited(true); }}>
                 <option value="first">上學期</option><option value="second">下學期</option>
               </select>
               <span class="hint">學年度依今天的日期自動算：{schoolYear(now())} 學年</span></div>
@@ -82,7 +85,7 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
         {err && <Alert tone="danger">{err}</Alert>}
         <div class="btnrow" style="justify-content:flex-end">
           <Button onClick={p.onCancel}>取消</Button>
-          <Button kind="primary" disabled={!check.ok || kind === 'ast'} onClick={submit}>建立並開始</Button>
+          <Button kind="primary" disabled={!check.ok} onClick={submit}>建立並開始</Button>
         </div>
       </div>
     </section>

@@ -16,6 +16,10 @@ export interface ScanOptions {
   /** 沒有組別欄時每人的預設科目 */
   defaultSubjectIds?: readonly string[];
   classNames?: readonly string[];
+  /** 分科：沒有組別代碼表，「組別／考科」欄的文字就是考生選考的科目（角色 taking） */
+  groupAsSubjects?: boolean;
+  /** 分科：沒有明列選考科目的考生，依班級文理組帶入預設科目（可再被「不考／加考」修改） */
+  defaultByClass?: (classNo: number) => readonly string[];
 }
 
 export interface ScanMark extends RawMark {
@@ -119,6 +123,9 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
       for (const m of t.marks) marks.push({ ...m, role: m.prefixRole ?? role, present: true });
       if (field === 'note' && t.marks.length === 0) note = noteCell; // 純說明文字原樣保留
     }
+    if (opts.groupAsSubjects) {
+      for (const m of tokenizeMarks(get(r, 'group').replace(/[.．。・·]/g, '、')).marks) marks.push({ ...m, role: m.prefixRole ?? 'taking', present: true });
+    }
     for (const [ci, h] of Object.entries(subjectColumns)) {
       const v = normalizeCell(r[Number(ci)] ?? '').toUpperCase();
       if (!v) continue;
@@ -188,7 +195,11 @@ export function buildEntries(scan: ExamScan, opts: ScanOptions, dec: Decisions):
   const toEntry = (r: Pick<ScanRow, 'classNo' | 'seatNo' | 'name' | 'groupCode' | 'note' | 'marks'>): { e: ExamEntry; badGroup: boolean } => {
     const gk = r.groupCode ? groupKeyOf(r.groupCode) : '';
     const table = opts.groupTable?.[gk];
-    let subjects = [...(gk ? (table ?? []) : (opts.defaultSubjectIds ?? []))];
+    const explicit = !!opts.groupAsSubjects && r.marks.some((m) => {
+      const t = dec.mapping[groupOf.get(m.key) ?? ''];
+      return m.role === 'taking' && m.present && !!t && t !== IGNORE;
+    });
+    let subjects = [...(gk ? (table ?? []) : opts.groupAsSubjects ? (explicit ? [] : (opts.defaultByClass?.(r.classNo) ?? [])) : (opts.defaultSubjectIds ?? []))];
     for (const m of r.marks) {
       const target = dec.mapping[groupOf.get(m.key) ?? ''];
       if (!m.present || !target || target === IGNORE) continue;
