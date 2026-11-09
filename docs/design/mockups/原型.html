@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.19</title>
+<title>模擬考原型 稿 v2.20</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -767,7 +767,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.19・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.20・2026-11-09</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -887,7 +887,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     if(e.round>=3)l.push(['數學A','組別','diff'],['數學B','組別','diff']);else l.push(['數學','全體','diff']);
     l.push(['自然','組別'],['社會','組別']);return l}
   function prevRound(e){var b=null;S.exams.forEach(function(x){if(x.type===e.type&&x.id!==e.id&&x.round<e.round&&(!b||x.round>b.round))b=x});return b}
-  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.19） */
+  /* 網頁取不到完整路徑，只能顯示使用者授權的資料夾名稱（使用者 2026-11-09 裁示，稿 v2.20） */
   function FN(){return String(S.folder||'').split(/[\\/]/).filter(Boolean).pop()||''}
   function v1(){
     var e=S.cur,isJ=e.type==='會考',subs=subjectsOf(e),prev=prevRound(e);
@@ -1349,7 +1349,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       cells+='<div class="chk'+(pBad?' bad':'')+'"><small>預備教室座位</small><strong>'+ps.avail+'</strong><span class="sub">需要 '+ps.need+'・已列入 '+ps.on+'／'+ps.total+' 間</span><span class="badge '+(pBad?'b-err':'b-ok')+'">'+(pBad?'不足 '+ps.n:(pNone?'不需要':'夠用'))+'</span></div>';
       notes+=(pBad?'<p class="small errnote"><b>預備教室座位不足：</b>'+(ps.on===0?'還沒有把任何預備教室「列為預備」。':'')+'最多的一節「'+ps.who+'」要 '+ps.need+' 個座位（抽離考試 '+ps.ex+' 人要排座位、抽離自習 '+ps.st+' 人不用排座位但座位要夠），已列為預備的教室只有 '+ps.avail+' 個，還缺 '+ps.n+' 個。請打開預備教室的「列為預備」或增加座位。</p>':(pNone?'<p class="small muted">目前沒有抽離考試或抽離自習，不需要預備教室。</p>':'<p class="small muted">預備教室容量夠用（同一節各科的抽離人數加總再比容量）：最多的一節「'+ps.who+'」要 '+ps.need+' 個（抽離考試 '+ps.ex+'、抽離自習 '+ps.st+'），已列為預備的教室有 '+ps.avail+' 個座位。</p>'))}
     return '<div class="card stack"><div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。'+(isJ?'':'高中部理組、文組各自計算，預備教室不納入。')+'</p></div><div class="stats chkgrid">'+cells+'</div><div class="stack" style="gap:6px">'+notes+'</div>'+prepNote+'</div>'+
-      '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組。')+(e.type==='分科'?'分科的文理組跟考生走（每位考生自己的組別），不跟班級；下方「教室專用組別群」決定誰坐哪一間。':'')+'</p></div>'+cls+'</div>'+(e.type==='分科'?astRoomCard(d):'')+(isJ?'':pmodeCard())+
+      '<div class="card stack"><div><h3>班級</h3><p class="small muted">'+(isJ?'':'文理由班級決定，預設 01～03 理組、04～06 文組。')+(e.type==='分科'?'分科的考生文理組看他自己的組別；教室的文理組＝班級的文理組，理組考生只排理組班教室、文組考生只排文組班教室；下方「分科教室使用情形」由程式依報名自動決定。':'')+'</p></div>'+cls+'</div>'+(e.type==='分科'?astUseCard(d):'')+(isJ?'':pmodeCard())+
       '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">每間教室一列，名稱可改；點教室那一列或「編輯座位表」就在下方展開座位表，可以收合。教室從設定頁的教室清單帶入，沿用上次的選擇。'+capLine()+'</p></div><div class="row"><button class="btn" data-act="tosettings" data-v="rooms">到設定頁看教室清單</button>'+(isJ?'':'<button class="btn" data-act="padd">新增預備教室</button>')+'</div></div>'+
       '<div class="roomlist">'+rooms+preps+'</div></div>'}
   function v3side(){
@@ -1553,23 +1553,24 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
       '<div class="plbl"><div class="plh"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第 1 節</small><span>物理　勇 12</span></div><div class="pl"><small>第 7 節</small><span>數乙　勇 12</span></div></div>'+
       '<div class="plbl"><div class="plh"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第 2 節</small><span>化學　誠 03</span></div><div class="pl"><small>第 6 節</small><span>地理　勤 21</span></div></div></div>'+
       '<p class="small muted">第 2 張：同一個人（勇班 12 號）跨節坐同一格。第 3 張：兩個不同的人共用同一格。</p></div>'}
-  /* ---------- 步驟③：分科教室依組別群（D93，ast-spec 第六節） ---------- */
-  var AGRP=['醫學類','理工＋農學','社會乙組','社會組'];
-  function astRoomCard(d){
-    var RG=S.rgrp=S.rgrp||{};
-    var rows=d.rooms.slice(0,5).map(function(r,i){var a=RG['r'+i]||(i===0?[0]:i===1?[1]:i===2?[2]:[3]);RG['r'+i]=a;
-      return '<div class="field"><span class="label">'+esc(r.name)+'</span><div class="rgrp" role="group" aria-label="'+esc(r.name)+'專用組別群">'+AGRP.map(function(g,gi){return '<button type="button" data-act="rgrp" data-r="r'+i+'" data-g="'+gi+'" aria-pressed="'+(a.indexOf(gi)>-1)+'">'+g+'</button>'}).join('')+'</div></div>'}).join('');
-    return '<div class="card stack"><div><h3>教室專用組別群（分科）</h3><p class="small muted">分科的文理組是<b>每位考生自己的屬性</b>，不跟班級（理組班裡也有考社會組的人）。科目組合相同的考生盡量坐同一間教室（純教室），混不開才併教室；每間教室可多選組別群，沒選的教室照原本的理組／文組。組別群進哪幾間由你決定。</p></div>'+rows+'</div>'}
-  /* ---------- 步驟④：分科標示「依教室」自動（D93，ast-spec 第四、六節） ---------- */
+  /* ---------- 步驟③：分科教室使用情形（程式依這次的報名情況自動決定；使用者 2026-11-09 更正，D95） ---------- */
+  function astUseCard(d){
+    var R=[['溫班','理組','38','used','醫學類、理工、農學混合'],['良班','理組','31','used','理工、農學混合'],['恭班','理組','0','empty',''],['儉班','文組','49','used','社會乙組 24＋社會組 25 混合'],['勤班','文組','16','used','全為社會乙組'],['誠班','文組','0','empty','']];
+    var rows=R.map(function(r){return '<tr><td><b>'+r[0]+'教室</b></td><td>'+r[1]+'教室</td><td class="n">'+r[2]+'</td><td>'+(r[3]==='empty'?'<span class="badge b-ok">本次沒人考，可當抽離自習教室</span>':'使用中<span class="small muted">　'+r[4]+'</span>')+'</td></tr>'}).join('');
+    return '<div class="card stack"><div><h3>分科教室使用情形（自動）</h3><p class="small muted">分科每次的報名情況都不一樣，所以<b>沒有預設的分法，由程式依這次的報名自動決定</b>：理組考生只排進理組班的教室、文組考生只排進文組班的教室（教室的文理組＝班級的文理組）；每一組用幾間依人數而定，用不到的教室整間空著。<b>目標是用最少的教室</b>（每多一間教室就多一位監考人力）。</p></div>'+
+      '<div class="scroll"><table class="t compact"><thead><tr><th>教室</th><th>類別</th><th>本次考生（範例）</th><th>使用情形</th></tr></thead><tbody>'+rows+'</tbody></table></div>'+
+      '<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>少數人抽離：</b>同一間教室裡不考某科的人如果是少數，就抽離到<b>沒有在考試的教室</b>或預備教室自習；加考的少數人抽離到預備教室考試。<br><b>理組班的學生如果報名的是社會組（例如加考社會），算文組考生，和文組一起坐文組班教室</b>，不為他們多開教室。上表是範例，教室與人數會跟著報名名單變。</span><span></span></div></div>'}
+  /* ---------- 步驟④：分科標示「依教室」自動（D93、D95；真實座位表的寫法） ---------- */
   function astRoomCards(){
-    var T='<td class="n">',E='<td class="muted">—</td>';
+    var T='<td class="n">';
     var code='<div class="scroll"><table class="t compact"><thead><tr><th>代碼</th><th>組別</th><th>考試科目</th></tr></thead><tbody><tr><td><b>1</b></td><td>自然組－醫學類</td><td>數甲、物理、化學、生物</td></tr><tr><td><b>2</b></td><td>自然組－理工類</td><td>數甲、物理、化學（不考生物）</td></tr><tr><td><b>3</b></td><td>自然組－農學類</td><td>數甲、化學、生物（不考物理）</td></tr><tr><td><b>9</b></td><td>社會乙組</td><td>數乙、歷史、地理、公民</td></tr><tr><td><b>4</b></td><td>社會組</td><td>歷史、地理、公民（不考數乙）</td></tr></tbody></table></div>';
-    var rooms='<div class="scroll"><table class="t compact"><thead><tr><th>教室（組別群）</th><th>科目</th><th>考</th><th>不考</th><th>座位表怎麼寫</th></tr></thead><tbody>'+
-      '<tr><td rowspan="2"><b>理組一</b><br><span class="small muted">醫學類 20 人</span></td><td>全部四科</td>'+T+'20</td>'+T+'0</td><td>整間都考，不標示</td></tr><tr><td colspan="4" class="small muted">不需要標示</td></tr>'+
-      '<tr><td rowspan="2"><b>理組二</b><br><span class="small muted">理工＋農學 27 人</span></td><td>生物</td>'+T+'16</td>'+T+'11</td><td><span class="badge b-warn">標「X生物」11 人</span></td></tr><tr><td>物理</td>'+T+'11</td>'+T+'16</td><td><span class="badge b-warn">標「X物理」16 人</span></td></tr>'+
-      '<tr><td><b>社會一</b><br><span class="small muted">社會組 58 人</span></td><td>數乙</td>'+T+'0</td>'+T+'58</td><td>整間都不考，不標；寫「考數乙時請在本教室自習」</td></tr></tbody></table></div>';
+    var rooms='<div class="scroll"><table class="t compact"><thead><tr><th>教室</th><th>科目</th><th>考</th><th>不考</th><th>座位表怎麼寫</th></tr></thead><tbody>'+
+      '<tr><td><b>溫班</b><br><span class="small muted">理組教室・醫學類 20 人</span></td><td>四科</td>'+T+'20</td>'+T+'0</td><td>整間都考，不標示</td></tr>'+
+      '<tr><td rowspan="2"><b>良班</b><br><span class="small muted">理組教室・理工＋農學 27 人</span></td><td>生物</td>'+T+'16</td>'+T+'11</td><td><span class="badge b-warn">標「X生物」11 人</span></td></tr><tr><td>物理</td>'+T+'11</td>'+T+'16</td><td><span class="badge b-warn">標「X物理」16 人</span></td></tr>'+
+      '<tr><td><b>儉班</b><br><span class="small muted">文組教室・社會乙組＋社會組 49 人</span></td><td>數乙</td>'+T+'24</td>'+T+'25</td><td><span class="badge b-warn">標「X數乙」25 人</span></td></tr>'+
+      '<tr><td><b>勤班</b><br><span class="small muted">文組教室・全為社會組 16 人</span></td><td>數乙</td>'+T+'0</td>'+T+'16</td><td>整間都不考，不標；寫「考數乙時請在本教室自習」</td></tr></tbody></table></div>';
     return '<div class="card stack"><div><h3>組別代碼表</h3><p class="small muted">名單的「組別」格是大考中心代碼，依下表換成考科；國文、英文不加考。沒有代碼 5：出現「5-社會組」這類不在表內的代碼，進待確認、不猜，也不會變成科目。</p></div>'+code+'</div>'+
-      '<div class="card stack"><div><h3>各教室標示（依教室自動）</h3><p class="small muted">排座完成後才算：<b>只有同一間教室裡「有人考、有人不考」某科，才標不考的人</b>（X＋科目）；整間都考或整間都不考的教室不標示。標示一律標「不考」的人（與學測的「標少數」不同）；被標的人在該科那一節去抽離自習。下表是範例，人數會跟著排座結果變。</p></div>'+rooms+
+      '<div class="card stack"><div><h3>各教室標示（依教室自動）</h3><p class="small muted">排座完成後才算：<b>只有同一間教室裡「有人考、有人不考」某科，才標不考的人</b>（X＋科目）；整間都考或整間都不考的教室不標示。被標的人在該科那一節去抽離自習（少數人抽離到空教室或預備教室）。下表是範例，人數會跟著排座結果變。</p></div>'+rooms+
       '<div class="alert a-info"><span class="ico" data-i="i"></span><span>各科的考／不考人數、標示人數都在排座後自動統計，這一步不用再選標哪一邊。</span><span></span></div></div>'}
   /* ---------- 出缺席記錄表（A4 紙面，D77③；標題用考試名稱，不寫死「模擬考」）---------- */
   function attHTML(e,room,seq){
