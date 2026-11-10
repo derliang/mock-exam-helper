@@ -73,9 +73,17 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   }
 
   const stale = isStale(doc, exam);
+  const senior = exam.division === 'senior'; // 會考沒有標示、抽離、個別覆寫（單人特例）
+  const trackOf = (t?: string) => (senior && t ? (t === 'science' ? '（理）' : '（文）') : '');
   const rooms = examRooms(doc, exam);
   const classRooms = rooms.filter((r) => r.kind === 'class');
-  const room = classRooms.find((r) => r.id === roomId) ?? classRooms[0];
+  const reserveRooms = rooms.filter((r) => r.kind === 'reserve');
+  const resSel = reserveRooms.find((r) => r.id === roomId);
+  const room = resSel ? undefined : (classRooms.find((r) => r.id === roomId) ?? classRooms[0]);
+  const roomOptions = [
+    ...classRooms.map((r) => ({ value: r.id, label: `${r.name}${trackOf(r.track)}` })),
+    ...reserveRooms.map((r) => ({ value: r.id, label: `${r.name}（預備）` })),
+  ];
   const checks = stale ? null : validationChecks(doc, exam, result);
   const pass = checks?.filter((c) => c.ok).length ?? 0;
   const allPass = !!checks && pass === checks.length;
@@ -92,8 +100,6 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const model = room ? chartModel(doc, exam, result, room) : null;
   const present = model ? [...new Set(model.lines.flat().flatMap((c) => (c.kind === 'student' ? [c.classNo] : [])))].sort((a, b) => a - b) : [];
   const stat = room ? roomStatTable(doc, exam, result, room.id) : null;
-  const senior = exam.division === 'senior'; // 會考沒有標示、抽離、個別覆寫（單人特例）
-  const trackOf = (t?: string) => (senior && t ? (t === 'science' ? '（理）' : '（文）') : '');
   const vcode = <div class="vcode">產生 {taipei(result.generatedAt)}　資料版本 {result.dataVersion}（名單或設定改了，版本碼就會變）</div>;
 
   return (
@@ -115,14 +121,32 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       )}
       {err && <SeatError errors={err} onStep={p.onStep} />}
 
+      {resSel && (
+        <div class="card stack">
+          <div><h3>座位表預覽</h3><p class="small muted">預備教室只排「抽離考試」的人；抽離自習不排座位、不印標籤，只出名單。</p></div>
+          <Seg label="教室" value={resSel.id} onChange={(v) => { setRoomId(v); setOnly(''); }} options={roomOptions} />
+          {(() => {
+            const here = pulls.filter((x) => x.roomId === resSel.id);
+            const cur = here.find((x) => x.key === pullKey) ?? here[0];
+            const m = cur ? detachChartModel(doc, exam, result, resSel, cur.subjectId) : null;
+            return cur && m ? (
+              <>
+                {here.length > 1 && <Seg label="抽離考試科目" value={cur.key} onChange={setPullKey} options={here.map((x) => ({ value: x.key, label: x.name }))} />}
+                <SeatChart model={m} title={`【${exam.name}】抽離考試（＋${cur.name}）座位表`} sub={`${resSel.name}　考生 ${m.count} 人`} pull />
+              </>
+            ) : <Alert tone="info">這間預備教室目前沒有抽離考試的人：抽離自習不排座位、不印標籤，只出名單。</Alert>;
+          })()}
+        </div>
+      )}
+
       {room && model && (
         <div class="card stack">
           <div class="btnrow" style="justify-content:space-between">
             <div><h3>座位表預覽</h3><p class="small muted">班級色；橫排（左右）與深位（前後）；點任一格可做個別覆寫。</p></div>
             <ConfirmButton kind="default" copy={confirmCopy.reseat(overrides.length)} onConfirm={run}>重新排座</ConfirmButton>
           </div>
-          {classRooms.length > 1 && (
-            <Seg label="教室" value={room.id} onChange={(v) => { setRoomId(v); setOnly(''); }} options={classRooms.map((r) => ({ value: r.id, label: `${r.name}${trackOf(r.track)}` }))} />
+          {roomOptions.length > 1 && (
+            <Seg label="教室" value={room.id} onChange={(v) => { setRoomId(v); setOnly(''); }} options={roomOptions} />
           )}
           {present.length > 1 && (
             <Seg label="檢視班級" value={only} onChange={setOnly} options={[{ value: '', label: '全部班級' }, ...present.map((c) => ({ value: String(c), label: `只看${classes.find((x) => x.no === c)?.name ?? c}` }))]} />
