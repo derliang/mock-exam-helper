@@ -84,7 +84,7 @@ export function genCase(rng: Rng, o: GenOptions = {}): RunSeatingInput {
       const rows = rng.int(1, 8);
       const depth = rng.int(1, 8);
       const seatCount = rng.chance(0.5) ? rows * depth : rng.int(1, rows * depth);
-      const room: Classroom = { id: `R${++id}`, name: `教室${id}`, kind: 'class', rows, depth, seatCount };
+      const room: Classroom = { id: `R${++id}`, name: `教室${id}`, kind: 'class', rows, depth, seatCount, division };
       if (g) room.track = g;
       classrooms.push(room);
       cap += seatCount;
@@ -94,7 +94,7 @@ export function genCase(rng: Rng, o: GenOptions = {}): RunSeatingInput {
   for (let i = 0; i < nReserve; i++) {
     const rows = rng.int(2, 8);
     const depth = rng.int(2, 8);
-    classrooms.push({ id: `P${i + 1}`, name: `預備${i + 1}`, kind: 'reserve', rows, depth, seatCount: rng.chance(0.5) ? rows * depth : rng.int(1, rows * depth) });
+    classrooms.push({ id: `P${i + 1}`, name: `預備${i + 1}`, kind: 'reserve', rows, depth, seatCount: rng.chance(0.5) ? rows * depth : rng.int(1, rows * depth), division: 'senior' });
   }
 
   const markRules: MarkRule[] = [];
