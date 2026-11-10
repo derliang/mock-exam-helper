@@ -45,16 +45,16 @@ describe('會考不匯入名單：考生＝共用學生名單', () => {
     expect(flow.summary.students).toBe(10);
     expect(examProgress(doc, exam).cells[1]).toBe('d');
     const bar = renderToString(<SummaryBar flow={flow} onGo={noop} />);
-    expect(bar).toContain('考生 <b>10</b>');
+    expect(bar).toContain('<span class="sl">考生</span><b>10</b>');
     expect(bar).not.toContain('尚未匯入考試名單');
   });
   it('③ 狀態檢核：考生 10、座位 12、空位 2、夠用；會考不需要預備教室', () => {
     const { doc, exam } = junior([12]);
     expect(classCapacity(doc, exam)).toMatchObject({ noList: false, seats: 12 });
     const html = renderToString(<Step3 doc={doc} exam={exam} onChange={noop} />);
-    expect(html).toContain('<small>考生</small><strong>10</strong>');
-    expect(html).toContain('<small>座位</small><strong>12</strong>');
-    expect(html).toContain('<small>空位</small><strong>2</strong>');
+    expect(html).toContain('座位</small><strong>12</strong>');
+    expect(html).toContain('考生 10');
+    expect(html).toContain('多 2');
     expect(html).toContain('多 2 個空位');
     expect(html).toContain('會考沒有抽離，不需要預備教室');
     expect(html).not.toContain('尚未匯入考試名單');
@@ -62,7 +62,7 @@ describe('會考不匯入名單：考生＝共用學生名單', () => {
   it('座位不足：顯示缺位與「缺 N 個座位」並擋下 ③', () => {
     const { doc, exam } = junior([6]);
     const html = renderToString(<Step3 doc={doc} exam={exam} onChange={noop} />);
-    expect(html).toContain('<small>缺位</small><strong>4</strong>');
+    expect(html).toContain('不足 4');
     expect(html).toContain('請增加 4 個座位');
     const flow = flowOf(doc, exam, 1);
     expect(flow.steps[2]!.state).toBe('todo');
@@ -78,7 +78,7 @@ describe('會考不匯入名單：考生＝共用學生名單', () => {
   it('學生名單是空的：不顯示考生 0，給座位合計與說明', () => {
     const { doc, exam } = junior([12], 0);
     const html = renderToString(<Step3 doc={doc} exam={exam} onChange={noop} />);
-    expect(html).toContain('<small>考生</small><strong>—</strong>');
+    expect(html).not.toContain('考生 0');
     expect(html).toContain('教室座位合計 12');
   });
 });
@@ -93,7 +93,7 @@ describe('高中部：沒匯入名單維持 D82，但座位合計與統計列仍
     expect(seatingBlockers(r.doc, exam).some((b) => b.step === 2)).toBe(true);
     const html = renderToString(<Step3 doc={r.doc} exam={exam} onChange={noop} />);
     expect(html).toContain('匯入考試名單後檢核夠不夠');
-    expect(html).toContain('<small>考生</small><strong>—</strong>');
+    expect(html).not.toContain('考生 0');
   });
 });
 

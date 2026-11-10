@@ -13,8 +13,8 @@ const chars = new Set(readFileSync(new URL('NotoSansTC-Regular-big5.chars.txt', 
 const has = (ch: string) => chars.has(ch);
 
 describe('匯出規劃', () => {
-  it('預設：座位表、標籤、抽離自習名單、預備教室座位表與標籤，各一個檔', () => {
-    const files = planFiles(makeFixture(), defaultOptions('B4'));
+  it('全勾：座位表、標籤、抽離自習名單、預備教室座位表與標籤，各一個檔（抽離自習預設不勾）', () => {
+    const files = planFiles(makeFixture(), { ...defaultOptions('B4'), study: true });
     expect(files.map((f) => f.key)).toEqual(['seat', 'label', 'study', 'reserveSeat', 'reserveLabel']);
     expect(files.map((f) => f.pages)).toEqual([2, 2, 1, 1, 1]);
     expect(files[0]!.name).toBe('測試模擬考-座位表.docx');
@@ -23,7 +23,7 @@ describe('匯出規劃', () => {
 
   it('取消勾選就不產生；標籤沒勾則沒有預備教室標籤', () => {
     const f = planFiles(makeFixture(), { ...defaultOptions('A3'), seat: false, label: false, study: false });
-    expect(f.map((x) => x.key)).toEqual(['reserveSeat']);
+    expect(f.map((x) => x.key)).toEqual(['reserveSeat', 'reserveLabel']); // 預備教室座位表與標籤是同一個勾選
   });
 
   it('A3 預設 7×7，B4 預設 6×8：標籤檔格數跟著紙張走', async () => {
@@ -38,7 +38,7 @@ describe('匯出規劃', () => {
   });
 
   it('Word：每類一個 .docx，內含字型與頁尾版本碼', { timeout: 30000 }, async () => {
-    const out = await runExport(makeFixture(), defaultOptions('B4'), { fonts });
+    const out = await runExport(makeFixture(), { ...defaultOptions('B4'), study: true }, { fonts });
     expect(out.map((f) => f.name.split('-')[1])).toEqual(['座位表.docx', '標籤（B4）.docx', '抽離自習名單.docx', '預備教室座位表.docx', '預備教室標籤（B4）.docx']);
     for (const f of out) {
       const z = await JSZip.loadAsync(f.data as Uint8Array);

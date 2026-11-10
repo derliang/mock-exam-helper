@@ -225,13 +225,14 @@ export interface Check {
   detail: string;
 }
 
+/** 稿 v2.22 的九項驗證（校-39）：順序與用字照稿；「預備教室座位夠」與「個別覆寫都能套用」另外算 */
 const CHECKS: { title: string; match: RegExp; track?: true }[] = [
-  { title: '每位考生恰好一個座位', match: /沒有座位|兩個座位|不在名單/ },
-  { title: '座位存在且不重複', match: /座位不存在|同一座位|未選用/ },
-  { title: '同班編號沿座位遞增', match: /遞增/ },
-  { title: '同一排不同班不穿插', match: /穿插/ },
-  { title: '座位由前往後連續安排，中間不空位', match: /中間有空位/ },
-  { title: '理組、文組排進同組別的教室', match: /組別|錯誤種類/, track: true },
+  { title: '每位考生恰好坐一個位置', match: /沒有座位|兩個座位|不在名單/ },
+  { title: '空位（禁用）沒有排入學生', match: /座位不存在|同一座位|未選用/ },
+  { title: '文理不混（理組班教室只有理組班）', match: /組別|錯誤種類/, track: true },
+  { title: '同一排內，同班連續、不穿插', match: /穿插/ },
+  { title: '同班編號沿座位順序遞增', match: /遞增/ },
+  { title: '座位由前往後連續安排，中間不空位（空位只在最後）', match: /中間有空位/ },
 ];
 
 export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResult): Check[] {
@@ -253,6 +254,10 @@ export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResu
       detail: `考生 ${codes.length} 人，座位 ${capacity} 個`,
     },
   ];
+  if (exam.division === 'senior') {
+    const dp = detachPreview(doc, exam);
+    checks.push({ title: '預備教室座位夠抽離考試與抽離自習（只算有列為預備的）', ok: dp.ok, detail: dp.ok ? '夠用' : (dp.errors[0] ?? '不足') });
+  }
   for (const c of CHECKS) {
     if (c.track && exam.division === 'junior') continue; // 會考不分文理組，不顯示這一項
     const hit = errors.filter((e) => c.match.test(e));
@@ -260,6 +265,9 @@ export function validationChecks(doc: Doc, exam: ExamConfig, result: SeatingResu
   }
   const other = errors.filter((e) => !CHECKS.some((c) => c.match.test(e)));
   if (other.length) checks.push({ title: '其他', ok: false, detail: other.join('；') });
+  const ovr = examOverrides(doc, exam);
+  const gone = ovr.filter((o) => !codes.includes(o.code));
+  checks.push({ title: '個別覆寫都能套用', ok: gone.length === 0, detail: gone.length ? `${gone.length} 筆覆寫的考生已不在名單` : `${ovr.length} 筆覆寫皆可套用` });
   return checks;
 }
 
@@ -399,10 +407,15 @@ export function overrideNotes(doc: Doc, exam: ExamConfig, result: SeatingResult 
 }
 
 /** ④ 組別對照表：大考中心組別代碼 → 人數與考科（D15）；同代碼考科不一致時標出 differing 人數（#70） */
-export function groupTable(doc: Doc, exam: ExamConfig): { code: string; count: number; subjectIds: string[]; /** 考科與標準（人數最多的組合）不同的人數；0＝一致 */ differing: number }[] {
+export function groupTable(doc: Doc, exam: ExamConfig): { code: string; count: number; subjectIds: string[]; /** 考科與標準（人數最多的組合）不同的人數；0＝一致 */ differing: number; /** 理組、文組各幾人（依班級的組別；班級未分組者不計入） */ science: number; liberal: number }[] {
   const by = new Map<string, Map<string, { n: number; ids: string[] }>>();
+  const trackN = new Map<string, { science: number; liberal: number }>();
   for (const e of examEntries(doc, exam)) {
     const code = e.groupCode ?? '（未填）';
+    const tk = doc.settings.classes.find((c) => c.division === exam.division && c.no === e.classNo)?.track;
+    const tn = trackN.get(code) ?? { science: 0, liberal: 0 };
+    if (tk === 'science') tn.science++; else if (tk === 'liberal') tn.liberal++;
+    trackN.set(code, tn);
     const ids = exam.subjects.filter((s) => e.subjectIds.includes(s.id)).map((s) => s.id);
     const combos = by.get(code) ?? new Map<string, { n: number; ids: string[] }>();
     const key = ids.join(',');
@@ -415,6 +428,6 @@ export function groupTable(doc: Doc, exam: ExamConfig): { code: string; count: n
     // 標準＝人數最多的組合；同人數取鍵值小者，結果與資料列順序無關
     const list = [...combos.entries()].sort((a, b) => b[1].n - a[1].n || (a[0] < b[0] ? -1 : 1));
     const count = list.reduce((n, [, v]) => n + v.n, 0);
-    return { code, count, subjectIds: list[0]![1].ids, differing: count - list[0]![1].n };
+    return { code, count, subjectIds: list[0]![1].ids, differing: count - list[0]![1].n, science: trackN.get(code)?.science ?? 0, liberal: trackN.get(code)?.liberal ?? 0 };
   });
 }

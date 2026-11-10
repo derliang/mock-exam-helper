@@ -18,9 +18,13 @@ export interface FlowIssue {
   fix: string;
   /** block＝擋下後面的步驟；warn＝提醒 */
   level: 'block' | 'warn';
+  /** 副說明（逐項待處理的第二行） */
+  sub?: string;
+  /** 容量類問題的「需要／可用／缺少」 */
+  need?: number; have?: number; lack?: number;
 }
 
-export interface FlowStep { no: StepNo; name: string; state: StepState; note?: string }
+export interface FlowStep { no: StepNo; name: string; state: StepState; note?: string; /** 第二行短語（會考的 ③ 沒有預備教室） */ blurb?: string }
 
 export interface FlowSummary {
   students: number;
@@ -37,6 +41,9 @@ export interface Flow {
 }
 
 const STEPS: StepNo[] = [1, 2, 3, 4, 5, 6];
+
+/** 左側步驟欄每項第二行的短語（稿 v2.22） */
+export const STEP_BLURBS = ['類型、次別、考科', '匯入、比對、參加者', '橫排、深位、預備教室', '組別對照表', '班級色、驗證、統計', 'Word、PDF'] as const;
 
 /** 算出目前考試的整體流程狀態；current 是正在看的步驟（顯示成「目前」） */
 export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
@@ -62,7 +69,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   const classRooms = rooms.filter((r) => r.kind === 'class');
   if (classRooms.length === 0) add({ step: 3, text: '③ 還沒有選班級教室', fix: '去 ③ 勾選教室', level: 'block' });
   else if (students > 0 && checkSeats(classSeats, students).level === 'block') {
-    add({ step: 3, text: `③ 座位 ${classSeats} 少於考生 ${students}，還差 ${students - classSeats} 個`, fix: '去 ③ 增加座位', level: 'block' });
+    add({ step: 3, text: `③ 座位 ${classSeats} 少於考生 ${students}，還差 ${students - classSeats} 個`, fix: '去 ③ 增加座位', level: 'block', need: students, have: classSeats, lack: students - classSeats });
   }
   const noTrack = roomsMissingTrack(classRooms, exam.division);
   if (noTrack.length) add({ step: 3, text: `③ 班級教室「${noTrack.map((r) => r.name).join('、')}」還沒指定理組／文組，排座時分不出誰坐哪間`, fix: '去 ③ 指定理組／文組', level: 'block' });
@@ -94,6 +101,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
     name: STEP_NAMES[no - 1]!,
     state: no === current ? 'cur' : no === 4 && !needsMarks(exam) ? 'skip' : done[no],
     ...(no === 4 && !needsMarks(exam) ? { note: '會考不需要' } : {}),
+    ...(no === 3 && exam.division === 'junior' ? { blurb: '橫排、深位' } : {}),
   }));
   return { steps, issues, summary: { students, seats: classSeats, spare, warnings: issues.length } };
 }
@@ -112,7 +120,7 @@ export type NextAction =
 export function nextAction(flow: Flow, current: StepNo): NextAction {
   if (current >= 6) return { kind: 'none' };
   const to = (current + 1) as StepNo;
-  const label = `下一步：${'①②③④⑤⑥'[to - 1]} ${STEP_NAMES[to - 1]}`;
+  const label = `完成此步，前往 ${'①②③④⑤⑥'[to - 1]} ${STEP_NAMES[to - 1]}`;
   // 前面的步驟（含目前這步）還有 block 問題就標示；進 ⑥ 時 ⑤ 本身也要完成
   const need = prerequisites(flow, to);
   const first = need[0];

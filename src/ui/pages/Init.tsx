@@ -53,12 +53,12 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
           <span class="small muted">或者</span>
           <button type="button" class="btn btn-primary btn-lg" disabled={busy || !p.fsSupported} onClick={pick}>選擇資料夾</button>
           {p.onRestore && <button type="button" class="btn btn-lg" disabled={busy} onClick={() => run(() => p.onRestore!())}>繼續使用上次的資料夾</button>}
-          <span class="small muted">需要 Chrome 瀏覽器</span>
+          <span class="small muted">限使用 <a href="https://www.google.com/intl/zh-TW/chrome/" target="_blank" rel="noopener noreferrer">Chrome</a> 瀏覽器</span>
         </div>
         {err && <Alert tone="danger">{err}</Alert>}
       </div>
       {p.fsSupported
-        ? <Alert tone="info">每次模擬考都會在這個資料夾裡另外建立一個獨立的資料夾，不同次的資料不會互相蓋掉。</Alert>
+        ? <Alert tone="info">每次模擬考都會在這個資料夾裡自己放一個資料夾，不同次的資料不會互相蓋掉。</Alert>
         : <Alert tone="danger">目前這個瀏覽器無法儲存資料，請改用 Chrome 開啟。</Alert>}
     </div>
   );

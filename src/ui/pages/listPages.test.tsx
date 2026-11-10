@@ -48,7 +48,7 @@ describe('新增模擬考整頁', () => {
   });
   it('名稱預設帶建議名稱、學期下拉、唯讀對象、學年提示', () => {
     expect(html).toContain('value="學測第一次"');
-    expect(html).toContain('<select');
+    expect(html).toContain('termcards');
     expect(html).toContain('上學期');
     expect(html).toContain('高三');
     expect(html).toContain('115 學年');

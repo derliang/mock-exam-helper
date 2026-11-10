@@ -44,7 +44,7 @@ describe('步驟① 考科表與誰要考', () => {
   it('頁面：卡片、誰要考欄、學期下拉、次別 5 以上仍有選中項、參加方式不在這步', () => {
     const { doc, second } = twoGsat();
     const html = renderToString(<Step1 doc={doc} exam={second} onChange={noop} />);
-    for (const t of ['基本資料', '考科表', '誰要考', '依組別代碼決定', '每位考生都考', '新增考科', '沿用上次的設定', '不沿用，從空白開始', '已自動帶入「<b>學測第一次</b>」', '<select']) expect(html).toContain(t);
+    for (const t of ['考科表', '誰要考', '依組別代碼決定', '每位考生都考', '新增考科', '沿用上次的設定', '不沿用，從空白開始', '已自動帶入「<b>學測第一次</b>」', 'termcards']) expect(html).toContain(t);
     expect(html).not.toContain('全員參加');
     expect(html).not.toContain('還原預設'); // 還沒自訂才不出現
     const fifth = { ...second, round: 5 };
@@ -95,7 +95,7 @@ describe('步驟② 考試名單', () => {
   it('尚未匯入：warn 狀態 alert＋「匯入本次考試名單」、誰會參加、各班人數、名單比對、共用學生名單', () => {
     const { doc, second } = twoGsat();
     const html = renderToString(<Step2 doc={doc} exam={second} onChange={noop} onToRoster={noop} />);
-    for (const t of ['還沒有匯入本次考試名單', '匯入本次考試名單', '本次考試名單', '誰會參加', '全員參加', '部分參加', '各班人數', '合計', '名單比對', '共用學生名單', '查看／編輯共用學生名單']) expect(html).toContain(t);
+    for (const t of ['還沒有匯入本次考試名單', '匯入本次考試名單', '誰會參加', '全員參加', '部分參加', '各班人數', '合計', '考試名單', '查看／編輯高三學生名單']) expect(html).toContain(t);
   });
   it('已匯入且全部一致：ok alert＋「再匯入一次」', () => {
     const { doc, second } = twoGsat();

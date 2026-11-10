@@ -3,7 +3,7 @@ import type { ExamConfig, Semester, Subject } from '../../data';
 import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StepHead } from '../components';
 import { carryMode, carryRows, carrySource, resumeCarry, stopCarry } from '../carry';
 import { confirmCopy } from '../flow';
-import { updateExam, KIND_LABEL, type Doc } from '../store';
+import { updateExam, examLabel, KIND_LABEL, type Doc } from '../store';
 import { defaultSubjects, isCustomized, mathSplit, removeSubject, saveSubject, subjectTags, subjectWho, WHO_LABEL, type SubjectWho } from '../subjects';
 
 const CN = ['', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
@@ -31,35 +31,38 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="① 考試設定">名稱、學期、次別與考科表；考科表決定 ② 名單比對的科目與 ⑥ 下載檔的標題。</StepHead>
+      <StepHead title="① 考試設定" />
 
       <div class="card stack">
-        <div><h3>基本資料</h3><p class="small muted">類型建立後不可更改。</p></div>
         <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,220px),1fr));align-items:start">
           <div class="field"><label for="x-name">模擬考名稱</label>
             <input id="x-name" class="input" value={exam.name} onChange={(e) => set({ name: e.currentTarget.value })} />
             <span class="hint">子資料夾名稱同步更換</span></div>
-          <div class="field"><label for="x-term">學期</label>
-            <select id="x-term" class="input" value={exam.semester} onChange={(e) => set({ semester: e.currentTarget.value as Semester })}>
-              <option value="first">上學期</option><option value="second">下學期</option>
-            </select>
-            <span class="hint">學年度依建立日期自動算</span></div>
+          <div class="field"><span class="label">學期</span>
+            <div class="termcards" role="group" aria-label="學期" id="x-term">
+              {([['first', '上學期'], ['second', '下學期']] as const).map(([v, l]) => (
+                <button type="button" key={v} class="tcard term" aria-pressed={exam.semester === v} onClick={() => set({ semester: v as Semester })}>
+                  <strong>{l}</strong>{exam.semester === v && <span class="tick badge b-acc">已選</span>}
+                </button>
+              ))}
+            </div>
+            <span class="hint">學測預設上學期、分科預設下學期；學年度依建立日期自動算</span></div>
           <div class="field"><span class="label">類型與對象</span>
-            <div class="input" style="display:flex;align-items:center;gap:8px;background:var(--surface)"><Badge>{KIND_LABEL[exam.kind].replace(/（.*）/, '')}</Badge>{exam.division === 'senior' ? '高三' : '國三'}</div>
+            <div class="input" style="display:flex;align-items:center;gap:8px;background:var(--surface)"><Badge>{examLabel(exam)}</Badge>{exam.division === 'senior' ? '高三' : '國三'}</div>
             <span class="hint">建立後不可更改類型</span></div>
         </div>
         {gsat && (
           <div class="field"><span class="label">次別（學測模擬考第幾次）</span>
             <Seg<string> label="次別" value={String(round)} onChange={(v) => setRound(Number(v))}
               options={rounds.map((n) => ({ value: String(n), label: `第${CN[n] ?? n}次` }))} />
-            <span class="hint">第 1、2 次：數學為單一科，另考英聽　｜　第 3 次起：數學分為數學A、數學B</span></div>
+            <span class="hint">第 1、2 次數學是單一科，第 3 次起分為數學A、數學B</span></div>
         )}
         {err && <Alert tone="danger">{err}</Alert>}
       </div>
 
       <div class="card stack">
         <div class="row" style="justify-content:space-between">
-          <div><h3>本次考科表</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除；只影響這一次模擬考。</p></div>
+          <div><h3>考科表</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除</p></div>
           {!fixed && (
             <div class="row">
               {custom && <ConfirmButton kind="default" copy={confirmCopy.resetSubjects()} onConfirm={() => set({ subjects: defaultSubjects(exam.kind, exam.round) })}>還原本次考科</ConfirmButton>}

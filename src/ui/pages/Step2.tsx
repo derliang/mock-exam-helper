@@ -3,7 +3,7 @@ import type { ExamConfig, ExamEntry, Participation, RosterDiff, RosterDiffChoice
 import { allResolved, applyDiffs, compareRosters, diffsStale, readXlsx, refreshDiffs, validateResolved, type Sheet } from '../../import';
 import { Alert, Badge, Button, ClassChip, ConfirmButton, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
-import { syncDiffs, updateExam, type Doc } from '../store';
+import { rosterName, syncDiffs, updateExam, type Doc } from '../store';
 import { ImportWizard } from './ImportWizard';
 
 const KIND_TEXT: Record<RosterDiff['kind'], string> = {
@@ -135,44 +135,51 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const status = !entries && bcctAll
     ? (roster.length > 0
       ? <Alert tone="ok" action={<Button onClick={() => input.current?.click()}>仍要匯入考試名單</Button>}><b>全員參加，不需匯入。</b>會考每位同學都考，學生名單就是考試名單（共 {roster.length} 人）；只有要記錄缺考時才需要匯入。</Alert>
-      : <Alert tone="warn" action={<Button kind="primary" onClick={p.onToRoster}>去匯入學生名單</Button>}><b>共用學生名單是空的。</b>會考不需匯入考試名單，請先到「共用設定」匯入國中部學生名單。</Alert>)
+      : <Alert tone="warn" action={<Button kind="primary" onClick={p.onToRoster}>去匯入學生名單</Button>}><b>國三學生名單是空的。</b>會考不需匯入考試名單，請先到「共用設定」匯入國三學生名單。</Alert>)
     : !entries
     ? <Alert tone="warn" action={<Button kind="primary" onClick={() => input.current?.click()}>匯入本次考試名單</Button>}><b>還沒有匯入本次考試名單。</b>匯入後會和共用學生名單比對，排座前要處理完所有差異。</Alert>
     : diffs.length > 0
       ? <Alert tone="warn" action={<Button kind="primary" onClick={() => setShowCmp(true)}>處理差異</Button>}><b>還有 {diffs.length - resolved} 筆差異沒處理</b>：共 {diffs.length} 筆，全部處理完才能繼續排座。</Alert>
       : <Alert tone="ok" action={<ConfirmButton kind="default" undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>再匯入一次</ConfirmButton>}><b>已比對：</b>考試名單與學生名單沒有未處理的差異。</Alert>;
 
+  const sn = rosterName(exam.division);
+  const reimport = entries
+    ? <ConfirmButton kind="default" undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>再匯入一次</ConfirmButton>
+    : null;
+  const headBadge = !entries && bcctAll ? <Badge tone="ok">全員參加，不需匯入</Badge>
+    : !entries ? <Badge tone="warn">尚未匯入</Badge>
+    : diffs.length > 0 ? <Badge tone="warn">差異 {diffs.length} 筆</Badge>
+    : <Badge tone="ok">✓ 已比對，沒有差異</Badge>;
+
+  // 稿 v2.22（校-60）：步驟② 合成一張「考試名單」卡，區塊內上下分區；待處理時才多一則帶動作的提示
   return (
     <section class="stack">
-      <StepHead title="② 考試名單">這次誰參加、考什麼科。匯入大考中心格式的考生資料名單，再和共用學生名單比對。</StepHead>
-      {status}
-      {filePick}
-      {err && <Alert tone="danger">{err}</Alert>}
-
+      <StepHead title="② 考試名單" />
       <div class="card stack">
-        <div><h3>本次考試名單</h3><p class="small muted">匯入大考中心格式的考試名單，只管「這次誰參加、考什麼科」。</p></div>
-        <div class="row">
-          <Badge>Excel（.xlsx）</Badge>
-          <span class="muted small">{entries ? `已匯入 ${entries.length} 筆` : bcctAll ? `不需匯入（全員 ${roster.length} 人）` : '尚未匯入'}</span>
-          {done && <Badge tone="ok">已完成</Badge>}
-          {entries && diffs.length > 0 && (
-            <ConfirmButton kind="default" small undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>重新匯入</ConfirmButton>
-          )}
+        <div class="row" style="justify-content:space-between;gap:10px">
+          <div class="row" style="gap:10px"><h3>考試名單</h3>{headBadge}</div>
+          {reimport}
         </div>
-        {sheets && (
-          <ImportWizard sheets={sheets} exam={exam} classNames={classNames} trackOf={(n) => doc.settings.classes.find((c) => c.division === exam.division && c.no === n)?.track} previous={entries ?? undefined} saved={doc.settings.markMap ?? {}}
-            onCancel={() => setSheets(null)} onDone={adopt} />
-        )}
-      </div>
-
-      <div class="card stack">
-        <div><h3>誰會參加</h3><p class="small muted">學測、會考預設全員參加；分科預設部分參加。</p></div>
-        <Seg<Participation> label="參加模式" value={exam.participation}
-          onChange={(v) => { const r = updateExam(doc, exam.id, { participation: v }); if (r.ok) p.onChange(syncDiffs(r.doc)); }}
-          options={[{ value: 'all', label: '全員參加' }, { value: 'partial', label: '部分參加' }]} />
-        {exam.participation === 'partial'
-          ? <Alert tone="info">共用學生名單裡有、但不在本次考試名單的人，<b>不視為名單錯誤</b>，只在統計列顯示「未參加 {notJoin} 人」，不排座、不出現在座位表。</Alert>
-          : <Alert tone="info">共用學生名單有、考試名單沒有的人，會列為差異，逐筆處理。</Alert>}
+        {done && !diffs.length ? null : status}
+        {filePick}
+        {err && <Alert tone="danger">{err}</Alert>}
+        <div class="row" style="gap:12px;justify-content:space-between">
+          <div class="row" style="gap:10px">
+            <Badge>Excel（.xlsx）</Badge>
+            <span class="muted small">{entries ? `已匯入 ${entries.length} 筆` : bcctAll ? `不需匯入（全員 ${roster.length} 人）` : '尚未匯入'}</span>
+            {entries && diffs.length > 0 && (
+              <ConfirmButton kind="default" small undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>重新匯入</ConfirmButton>
+            )}
+          </div>
+          <div class="row" style="gap:8px"><span class="label" style="margin:0">誰會參加</span>
+            <Seg<Participation> label="參加模式" value={exam.participation}
+              onChange={(v) => { const r = updateExam(doc, exam.id, { participation: v }); if (r.ok) p.onChange(syncDiffs(r.doc)); }}
+              options={[{ value: 'all', label: '全員參加' }, { value: 'partial', label: '部分參加' }]} />
+          </div>
+        </div>
+        <p class="small muted">{exam.participation === 'partial'
+          ? `沒報名的人不算差異，只在統計列顯示「未參加 ${notJoin} 人」，不排座、不出現在座位表。`
+          : '學生名單有、考試名單沒有的人，列為差異，逐筆處理。'}</p>
         {fullyAbsent > 0 && (
           <Alert tone="info">
             有 {fullyAbsent} 人全科缺考：{exam.seatFullyAbsent ? '目前照樣排座。' : '預設不排座、不計領卷份數。'}
@@ -180,32 +187,21 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               onChange={(e) => { const r = updateExam(doc, exam.id, { seatFullyAbsent: (e.target as HTMLInputElement).checked }); if (r.ok) p.onChange(r.doc); }} /> 全科缺考者仍排座</label>
           </Alert>
         )}
-      </div>
-
-      <div class="grid">
-        <div class="card stack"><div class="lab">各班人數（共用學生名單）</div>
-          {perClass.map(({ c, n }) => <div class="row" style="justify-content:space-between" key={c.no}><ClassChip colorIndex={c.colorIndex}>{c.name}</ClassChip><b class="num">{n}</b></div>)}
-          {perClass.length === 0 && <p class="small muted">共用設定還沒有這個部別的班級。</p>}
-          <div class="row" style="justify-content:space-between;border-top:1px solid var(--line);padding-top:8px"><span>合計</span><b class="num" style="font-size:18px">{roster.length}</b></div>
+        {sheets && (
+          <ImportWizard sheets={sheets} exam={exam} classNames={classNames} trackOf={(n) => doc.settings.classes.find((c) => c.division === exam.division && c.no === n)?.track} previous={entries ?? undefined} saved={doc.settings.markMap ?? {}}
+            onCancel={() => setSheets(null)} onDone={adopt} />
+        )}
+        <div class="row" style="justify-content:space-between;gap:10px;border-top:1px solid var(--line);padding-top:12px">
+          <div class="row" style="gap:10px 22px">
+            <span class="label" style="margin:0">各班人數</span>
+            {perClass.map(({ c, n }) => <span class="row" style="gap:6px" key={c.no}><ClassChip colorIndex={c.colorIndex}>{c.name}</ClassChip><b class="num" style="font-size:17px">{n}</b></span>)}
+            {perClass.length === 0 && <span class="small muted">共用設定還沒有這個部別的班級。</span>}
+            <span class="muted">合計 <b class="num">{roster.length}</b></span>
+            {entries && <span class="small muted">考生 {entries.length} 人{exam.participation === 'partial' ? `，未參加 ${notJoin} 人` : ''}{fullyAbsent > 0 ? `，全科缺考 ${fullyAbsent} 人` : ''}</span>}
+          </div>
+          <Button small onClick={p.onToRoster}>查看／編輯{sn}</Button>
         </div>
-        <div class="card stack"><div class="lab">名單比對</div>
-          {!entries && bcctAll
-            ? <p class="small muted">會考全員參加，不需比對；考生 {roster.length} 人，與共用學生名單相同。</p>
-            : !entries
-            ? <Alert tone="warn"><b>尚未比對本次考試名單</b>。排座前要處理完所有差異。</Alert>
-            : diffs.length > 0
-              ? <Alert tone="warn">差異 {diffs.length} 筆，已處理 {resolved} 筆。</Alert>
-              : <Alert tone="ok">與考試名單已比對，沒有未處理的差異。</Alert>}
-          {entries && <p class="small muted">考生 {entries.length} 人{exam.participation === "partial" ? "，未參加 " + notJoin + " 人" : ""}{fullyAbsent > 0 ? "，全科缺考 " + fullyAbsent + " 人" : ""}。</p>}
-        </div>
-      </div>
-
-      <div class="card stack">
-        <div class="row" style="justify-content:space-between">
-          <div><h3>共用學生名單</h3><p class="small muted">這是「共用設定」裡的學生名單（{roster.length} 人），所有模擬考共用；在那裡改了名單，之後的名單比對也會跟著變。</p></div>
-          <Button onClick={p.onToRoster}>查看／編輯共用學生名單</Button>
-        </div>
-        {roster.length === 0 && <Alert tone="warn">共用學生名單是空的，比對時所有考生都會列為差異。請先到「共用設定」匯入學生名單。</Alert>}
+        {roster.length === 0 && <Alert tone="warn">{sn}是空的，比對時所有考生都會列為差異。請先到「共用設定」匯入學生名單。</Alert>}
       </div>
     </section>
   );

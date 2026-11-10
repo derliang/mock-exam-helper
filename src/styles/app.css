@@ -468,3 +468,140 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .roomrow>.btnrow{flex:0 0 auto;margin-left:auto}
 /* 步驟標題卡：說明文字可收縮，「下一步」鈕留在右側（原型稿的位置）；放不下才換行，不再因說明較長就掉到標題下面 */
 .stephead>div:first-child{flex:1 1 260px;min-width:0}
+
+/* ===== 稿 v2.22 實作對齊（包 A：全站外殼與共用樣式）===== */
+/* 第二輪拉皮（D90、DESIGN 10.10；校-01）：層次、主次、回饋 */
+.btn,.icon-btn{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.btn:hover,.icon-btn:hover{box-shadow:var(--shadow-2)}
+.btn:active,.icon-btn:active{transform:translateY(1px);box-shadow:none}
+.btn-primary{box-shadow:var(--shadow-accent)}
+.btn-primary:hover{box-shadow:var(--shadow-accent),0 8px 16px -8px rgba(39,70,144,.45)}
+.btn-primary:active{filter:brightness(.94);box-shadow:none}
+.btn-ghost,.btn-ghost:hover,.btn[disabled],.btn[disabled]:hover{box-shadow:none}
+.btn[disabled]:active{transform:none}
+.btn-danger:hover{box-shadow:var(--shadow-1)}
+.input{box-shadow:var(--shadow-inset);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.input:focus{background:var(--surface);border-color:var(--accent)}
+.seg{box-shadow:var(--shadow-inset)}
+.seg button{transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+.seg button:hover:not([aria-pressed="true"]):not(:disabled){background:var(--line);color:var(--text)}
+.seg button[aria-pressed="true"]{box-shadow:inset 0 -2px 0 rgba(0,0,0,.22)}
+.seg.seg-soft button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.trk{box-shadow:inset 0 1px 2px rgba(0,0,0,.18)}
+.trk::after{box-shadow:0 1px 3px rgba(0,0,0,.35)}
+.sw:hover input:not(:checked)+.trk{background:var(--text-3)}
+.sw:hover input:checked+.trk{filter:brightness(1.12)}
+.fmt>span{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.fmt:hover>span{box-shadow:var(--shadow-2)}
+.step{transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.step:not(.cur):hover .no{border-color:var(--accent);color:var(--accent-ink)}
+.stats{box-shadow:var(--shadow-1)}
+.stats>div{position:relative;padding-top:13px}
+.stats>div::before{content:"";position:absolute;left:14px;top:0;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--accent-line)}
+.stats .bad::before{background:var(--danger)}
+.alert{box-shadow:inset 4px 0 0 var(--bar,var(--line-2));padding-left:18px}
+.a-info{--bar:var(--accent)} .a-warn{--bar:var(--warn-bar)} .a-err{--bar:var(--danger)} .a-ok{--bar:var(--ok-bar)}
+.t th{border-bottom:2px solid var(--line-2)}
+.t tbody tr{transition:background var(--dur) var(--ease)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap){background:rgba(111,104,88,.06)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap):hover{background:var(--accent-soft)}
+.pbar{box-shadow:var(--shadow-bar)}
+.pbar .nav button{transition:background var(--dur) var(--ease)}
+.pbar .nav button[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--accent)}
+.mfade{backdrop-filter:blur(2px)}
+.wrap{background:var(--sunken);border-color:var(--line)}
+
+/* 左側步驟欄（校-05、校-61）：欄寬 208、兩行、目前步驟＝深色中性 */
+.ws{grid-template-columns:208px minmax(0,1fr) 260px}
+.ws.wide{grid-template-columns:208px minmax(0,1fr)}
+@media (max-width:1060px){.ws{grid-template-columns:208px minmax(0,1fr)}}
+@media (max-width:760px){.ws,.ws.wide{grid-template-columns:minmax(0,1fr)}}
+.stepprog{font-size:13px;font-weight:700;color:var(--text-2);padding:4px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.step{grid-template-columns:28px minmax(0,1fr)}
+.step b{display:block;font-weight:700}
+.step small{word-break:keep-all;line-break:strict}
+.step.cur{background:var(--sunken);border-color:var(--line-2);box-shadow:inset 3px 0 0 var(--text),var(--shadow-1)}
+.step.cur .no{background:var(--text);border-color:var(--text);color:var(--surface);box-shadow:0 0 0 3px var(--line-2)}
+.step.done .no{box-shadow:inset 0 0 0 1px var(--ok-bar)}
+.step.stale .no{box-shadow:inset 0 0 0 1px var(--warn-bar)}
+.steps .step.skip{color:var(--text-3)}
+.steps .step.skip .no{border-style:dashed}
+
+/* 常駐摘要列（校-03）：四格藥丸＋待處理逐項 */
+.sumbar{display:grid;gap:10px;padding:10px 14px;margin-bottom:0;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;position:sticky;top:60px;z-index:5;box-shadow:var(--shadow-1)}
+.sumbar.has-iss{position:static}
+.sumbar .sstats{display:flex;flex-wrap:wrap;gap:8px 12px}
+.sumbar .sc{display:flex;align-items:baseline;gap:8px;padding:4px 12px;border-radius:var(--r-sm);background:var(--sunken);min-width:0}
+.sumbar .sl{font-size:13px;color:var(--text-3)}
+.sumbar b{font-family:var(--f-no);font-size:18px;font-variant-numeric:tabular-nums}
+.sumbar .sc.bad,.sumbar .sc.bad b,.sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}
+.sumbar .sc.bad{background:var(--danger-soft)}
+.sumbar .sc.warn{background:var(--warn-soft);box-shadow:inset 0 0 0 1.5px var(--warn-bar)}
+.sumbar .sc.warn b,.sumbar .sc.warn .sl{color:var(--warn-ink)}
+.sumbar .sc.okc em{font-style:normal;font-weight:700;color:var(--ok-ink)}
+.sumbar .sc.dim b{font-size:14px;color:var(--text-3)}
+.sumbar .slist{display:grid;gap:6px}
+.sumbar .si{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 14px;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-left:4px solid var(--danger);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.sumbar .si:hover{background:var(--sunken)}
+.sumbar .si:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sumbar .sstep{font-weight:700;white-space:nowrap}
+.sumbar .sti{display:grid;font-weight:700}
+.sumbar .sti small{font-weight:400;font-size:13px;color:var(--text-3)}
+.sumbar .sn{display:inline-flex;gap:14px;white-space:nowrap}
+.sumbar .sn span{display:inline-flex;align-items:baseline;gap:4px;color:var(--text-3)}
+.sumbar .sgo{color:var(--accent-ink);font-weight:700;white-space:nowrap}
+@media (max-width:760px){.sumbar{position:static}.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
+
+/* 頁頂標題列與復原（校-04、07、11） */
+.pagehead-back{margin-bottom:4px}
+.pagehead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:16px}
+.pagehead h1{font-size:26px}
+.pagehead-acts{margin-left:auto;display:inline-flex;gap:10px;flex-wrap:wrap;align-items:center}
+.stephead{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
+.undowrap{position:relative;display:inline-flex}
+.undowrap .undo-main{border-top-right-radius:0;border-bottom-right-radius:0;max-width:min(60vw,300px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.undowrap .undo-more{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-1px;padding:0 10px;min-width:40px}
+.undomenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:260px;max-width:min(92vw,340px);display:grid;gap:4px;padding:10px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-md);box-shadow:var(--shadow-3)}
+.undomenu button{font:inherit;text-align:left;min-height:38px;padding:0 10px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text);cursor:pointer}
+.undomenu button:hover{background:var(--accent-soft);color:var(--accent-ink)}
+.undomenu button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+
+/* 頁尾（校-10）：連結粗體底線深藍、版本鈕白底方鈕 */
+.pfoot .pf-link{color:var(--accent-ink);font-weight:700}
+.pfoot .pf-ver{background:var(--surface);border-radius:var(--r-sm)}
+
+/* 校-38：標籤紙面白底（紙面不隨深淺色），特殊情形（不考、加考、抽離）整格淡黃底＋深色粗內框；班級靠「班級｜姓名」小字分辨 */
+.lcell{background:#fff;color:#22201B;--cx:#22201B}
+.lcell.sp{background:#FFE08A;box-shadow:inset 0 0 0 .5cqw #22201B}
+.lcell.mk-x .mk{background:#22201B;color:#fff;border-color:#22201B}
+.lcell.mk-add .mk{background:#fff;color:#22201B;border-color:#22201B}
+/* 校-13、14：初始化拖放區較高，外框大米色底、卡片白底 */
+.dropzone{min-height:clamp(280px,48vh,520px);padding:44px 24px}
+
+/* 包 B：學期選項卡、新增考試返回鈕（校-17、20） */
+.termcards{display:flex;gap:10px;flex-wrap:wrap}
+.tcard.term{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;min-height:44px;width:auto}
+.tcard.term strong{font-size:14px;font-family:var(--f-ui)}
+.tcard.term .tick{position:static}
+.pagehead>.btn-ghost{min-height:40px;padding:0 12px}
+
+/* 校-22、24：次別鈕四顆等寬不折行；右側「本次摘要」大字單行 */
+.stats.side-stats{grid-template-columns:1fr}
+.stats.side-stats strong{white-space:nowrap}
+@media (max-width:560px){.field>.seg{width:100%}.field>.seg button{flex:1 1 0;min-width:0;white-space:nowrap;padding:0 6px}}
+
+/* 校-31：步驟③ 狀態檢核——一項一格 */
+.stats.chkgrid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;background:var(--surface)}
+.stats.chkgrid>div.chk{border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.stats>div.chk{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.stats>div.chk .sub{font-size:13px;color:var(--text-3);font-weight:500}
+.stats>div.chk .badge{margin-top:6px}
+.stats>div.chk.bad{background:var(--danger-soft)}
+.stats>div.chk.warnc::before{background:var(--warn-bar)}
+.errnote{color:var(--danger-ink)}
+
+/* 校-49：選用功能列卡 */
+.featrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 18px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.featrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
+.featrow .fi{display:grid;gap:4px;min-width:0}
+@media (max-width:560px){.featrow{grid-template-columns:1fr}}

@@ -7,7 +7,7 @@ import { defaultSemester, newExam, previousExam, schoolYear, suggestExamName, ty
 const TYPES: { kind: ExamKind; level: string; title: string; subj: string; soon?: boolean }[] = [
   { kind: 'gsat', level: '高中部', title: '學測模擬考', subj: '國、英、數（第 3 次起分數 A、數 B）、自然、社會' },
   { kind: 'ast', level: '高中部', title: '分科模擬考', subj: '數學甲、數學乙、物理、化學、生物、歷史、地理、公民與社會；每科都是選考，國英不加考' },
-  { kind: 'bcct', level: '國中部', title: '會考模擬考', subj: '國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗（固定七科），沒有選考' },
+  { kind: 'bcct', level: '國中部', title: '會考模擬考', subj: '國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗（固定七科），不分文理組、沒有選考' },
 ];
 
 /** 新增模擬考整頁三段式：1 選類型、2 基本資料、3 預設設定（沿用上一次同類型） */
@@ -65,10 +65,14 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
               <input id="exam-name" class="input" value={name} aria-invalid={!check.ok} onInput={(e) => { setName(e.currentTarget.value); setEdited(true); }} />
               <span class={check.ok ? 'hint' : 'field-msg'}>{check.ok ? '資料夾名稱會用這個名稱' : check.message}</span></div>
             <div class="field"><label for="exam-term">學期</label>
-              <select id="exam-term" class="input" value={semester} onChange={(e) => { setSemester(e.currentTarget.value as Semester); setSemEdited(true); }}>
-                <option value="first">上學期</option><option value="second">下學期</option>
-              </select>
-              <span class="hint">學年度依今天的日期自動算：{schoolYear(now())} 學年</span></div>
+              <div class="termcards" role="group" aria-label="學期" id="exam-term">
+                {([['first', '上學期'], ['second', '下學期']] as const).map(([v, l]) => (
+                  <button type="button" key={v} class="tcard term" aria-pressed={semester === v} onClick={() => { setSemester(v); setSemEdited(true); }}>
+                    <strong>{l}</strong>{semester === v && <span class="tick badge b-acc">已選</span>}
+                  </button>
+                ))}
+              </div>
+              <span class="hint">學測預設上學期、分科預設下學期（切換類型時自動帶入，仍可自己改）；學年度依今天的日期自動算：{schoolYear(now())} 學年</span></div>
             <div class="field"><span class="label">對象</span>
               <div class="input" style="display:flex;align-items:center">{isJ ? '國三' : '高三'}</div>
               <span class="hint">由類型決定</span></div>
@@ -77,7 +81,7 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
 
         <div class="card stack"><div class="lab">3　預設設定</div>
           {prev
-            ? <Alert tone="info"><b>會帶入「{prev.name}」的設定</b>：教室、{isJ ? '' : '標示與抽離規則、'}參加方式、標籤格式與自訂考科。每一步都能再改，改了不影響舊的模擬考。</Alert>
+            ? <Alert tone="info" noIcon><b>會帶入「{prev.name}」的設定</b>：學生名單、教室、{isJ ? '' : '標示與抽離規則、'}名稱以外的選項。每一步都能再改，改了不影響舊的模擬考。</Alert>
             : <Alert tone="warn">還沒有同類型的模擬考，所有步驟從空白開始。</Alert>}
           {isJ && <Alert tone="info">會考不需要標示與抽離，步驟④會顯示「不需要」。</Alert>}
         </div>

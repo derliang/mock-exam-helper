@@ -36,7 +36,7 @@ export const defaultOptions = (paper: LabelPaper = 'B4'): ExportOptions => ({
   seat: true,
   label: true,
   paper,
-  study: true,
+  study: false, // 稿 v2.7：抽離自習名單預設不勾（校-45）
   reserve: true,
 });
 
@@ -71,10 +71,9 @@ export function buildParts(input: ExportInput, o: ExportOptions): Parts {
   if (o.reserve) {
     const rs = buildSeatPages(withPaper, 'reserve');
     if (rs.length) parts.reserveSeat = rs;
-    if (o.label) {
-      const rl = buildLabelPages(withPaper, 'reserve');
-      if (rl.length) parts.reserveLabel = rl;
-    }
+    // 稿 v2.22（校-46）：預備教室是一個勾選，座位表與標籤一起產生
+    const rl = buildLabelPages(withPaper, 'reserve');
+    if (rl.length) parts.reserveLabel = rl;
   }
   return parts;
 }

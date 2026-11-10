@@ -1,5 +1,5 @@
 import type { ExamConfig, Track } from '../../data';
-import { Alert, Button, Seg, StatsBar, StepHead } from '../components';
+import { Alert, Badge, Button, Seg, StepHead } from '../components';
 import { RoomList } from '../components/RoomList';
 import { classCapacity, reserveCheck } from '../capacity';
 import { newClassRoomIds, roomsMissingTrack } from '../rooms';
@@ -34,16 +34,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="③ 教室設定">用開關選出本次考試的教室，確認座位夠用{senior ? '；高中部的班級要先分好理組、文組' : ''}。</StepHead>
-
-      {/* D56：狀態檢核放頁面上方、隨時看得到；統計列照設計系統「頂部統計列」（D82 修訂） */}
-      <StatsBar items={[
-        { label: '考生', value: hasList ? students : '—' },
-        { label: '座位', value: seats },
-        { label: hasList && seats < students ? '缺位' : '空位', value: hasList ? Math.abs(seats - students) : '—', bad: hasList && seats < students },
-        { label: '班級教室', value: `${allRooms.filter((r) => r.kind === 'class').length} 間` },
-        { label: '預備教室', value: bcct ? '不需要' : `${allRooms.filter((r) => r.kind === 'reserve').length} 間` },
-      ]} />
+      <StepHead title="③ 教室設定" />
 
       <div class="card stack">
         <div><h3>狀態檢核</h3><p class="small muted">座位只能多、不能少；多出來的空位留在最後，座位由前往後連續安排。{senior ? '高中部理組、文組各自計算，預備教室不納入；預備教室座位另計（目前 ' + reserveSeats + '）。' : ''}</p></div>
@@ -51,7 +42,24 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         {noList && (bcct
           ? <Alert tone="info">共用學生名單是空的，沒有考生可檢核；教室座位合計 {seats}。</Alert>
           : <Alert tone="info"><b>尚未匯入考試名單：</b>教室座位合計 {seats}。匯入考試名單後檢核夠不夠。</Alert>)}
-        {lines.map((l) => <Alert key={l.label} tone={l.ok ? 'ok' : 'danger'}>{l.ok ? <><b>{l.label}：</b>{l.detail}</> : l.message}</Alert>)}
+        {/* 稿 v2.22（校-31）：一項一格，上名稱、中大數字（座位數）、下狀態徽章；不足整格淡紅底，格下有說明 */}
+        {lines.length > 0 && (
+          <div class="stats chkgrid">
+            {lines.map((l) => {
+              const extra = l.seats - l.students;
+              return (
+                <div key={l.label} class={`chk${l.ok ? (extra > 0 && hasList ? ' warnc' : '') : ' bad'}`}>
+                  <small>{l.label}座位</small><strong>{l.seats}</strong>
+                  {hasList && <span class="sub">考生 {l.students}</span>}
+                  {hasList && <Badge tone={l.ok ? (extra > 0 ? 'warn' : 'ok') : 'danger'}>{l.ok ? (extra > 0 ? `多 ${extra}` : '剛好') : `不足 ${l.students - l.seats}`}</Badge>}
+                </div>
+              );
+            })}
+          </div>
+        )}
+        <div class="stack" style="gap:6px">
+          {lines.map((l) => <p key={l.label} class={`small${l.ok ? ' muted' : ' errnote'}`}>{l.ok ? <><b>{l.label}：</b>{l.detail}</> : l.message}</p>)}
+        </div>
         {missing.length > 0 && <Alert tone="danger"><b>高中部排座要先指定教室的組別。</b>「{missing.map((r) => r.name).join('、')}」還沒選理組或文組，請在下面該列的「組別」按鈕選一個（預備教室不用選）。</Alert>}
         <Alert tone={reserve.tone}>{reserve.message}</Alert>
       </div>
