@@ -610,3 +610,24 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .featrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
 .featrow .fi{display:grid;gap:4px;min-width:0}
 @media (max-width:560px){.featrow{grid-template-columns:1fr}}
+
+/* 節次與時長（共用設定第六個分頁，稿 v2.22／D94）：照原型稿，一天一欄、科目由上往下 */
+.tt{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
+@media (max-width:700px){.tt{grid-template-columns:1fr}}
+.ttc{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);display:grid;gap:0;overflow:hidden}
+.ttc>.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--sunken);border-bottom:1px solid var(--line);font-weight:800}
+.ttr{display:grid;grid-template-columns:auto 56px minmax(0,1fr) 78px auto;gap:6px 8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
+.ttr.same{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.ttr.dragging{opacity:.4}.ttr.over,.ttc>.end.over{outline:3px solid var(--accent);outline-offset:-3px}
+.ttr .sgrip{cursor:grab;user-select:none;font-size:20px;line-height:1;color:var(--text-3);padding:6px 4px;border-radius:6px;touch-action:none}
+.ttr .sgrip:hover{background:var(--sunken);color:var(--text)}
+.ttr .sn{font-weight:800;color:var(--accent);white-space:nowrap}
+.ttr .input{height:36px;min-height:36px;min-width:0}
+.ttr .dur{display:flex;align-items:center;gap:4px}.ttr .dur .input{width:60px;padding:0 6px;text-align:right}.ttr .dur span{font-size:13px;color:var(--text-2)}
+.ttr .ops{display:flex;gap:2px}.ttr .ops .btn{min-height:36px;min-width:36px;padding:0 8px}
+.ttr .sub{grid-column:2/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:13px;color:var(--text-2)}
+.ttr .sub label{display:flex;align-items:center;gap:6px}.ttr .sub .input{width:120px}
+.ttc>.end{padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media (max-width:480px){.ttr{grid-template-columns:auto 48px minmax(0,1fr) auto}.ttr .dur{grid-column:2/4}.ttr .ops{grid-column:4;grid-row:1}.ttr .sub{grid-column:1/-1}}
+/* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
+.plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
