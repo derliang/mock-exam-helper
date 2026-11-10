@@ -1,3 +1,4 @@
+import { DEFAULT_LABEL_HEADER, DEFAULT_SEAT_HEADER, headerTemplates } from '../header';
 import { syncDiffs } from '../store';
 import { useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
@@ -273,9 +274,7 @@ function LabelNotesField(p: { value: string | undefined; onChange: (v: string | 
   );
 }
 
-/** 稿 v2.22（校-54）表頭範本預設值 */
-export const DEFAULT_SEAT_HEADER = '【{學年}學年第{次別}次{類型}模擬考】座位表';
-export const DEFAULT_LABEL_HEADER = '{學年}學年第{次別}次{類型}模擬考';
+export { DEFAULT_SEAT_HEADER, DEFAULT_LABEL_HEADER };
 
 function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const s = doc.settings;
@@ -287,8 +286,8 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
         <p class="small muted">座位表與標籤的固定表頭文字、預設紙張。</p>
       </div>
       <div class="field"><label for="s-name">學校名稱</label><input id="s-name" class="input" value={s.schoolName} onChange={(e) => set({ schoolName: e.currentTarget.value })} /><span class="hint">印在座位表與標籤表頭</span></div>
-      <div class="field"><label for="s-seat-head">座位表表頭</label><input id="s-seat-head" class="input" value={s.seatHeader ?? DEFAULT_SEAT_HEADER} onChange={(e) => set({ seatHeader: e.currentTarget.value })} /><span class="hint">{'{學年}、{次別}、{類型} 會自動換成這次模擬考的內容'}</span></div>
-      <div class="field"><label for="s-label-head">標籤表頭</label><input id="s-label-head" class="input" value={s.labelHeader ?? DEFAULT_LABEL_HEADER} onChange={(e) => set({ labelHeader: e.currentTarget.value })} /></div>
+      <div class="field"><label for="s-seat-head">座位表表頭</label><input id="s-seat-head" class="input" value={headerTemplates(s).seat} onChange={(e) => set({ seatHeader: e.currentTarget.value })} /><span class="hint">{'{學年}、{次別}、{類型} 會自動換成這次模擬考的內容'}</span></div>
+      <div class="field"><label for="s-label-head">標籤表頭</label><input id="s-label-head" class="input" value={headerTemplates(s).label} onChange={(e) => set({ labelHeader: e.currentTarget.value })} /></div>
       <LabelNotesField value={s.labelNotes} onChange={(v) => set({ labelNotes: v })} />
       <div class="field"><span class="label">預設紙張</span>
         <div class="row">
