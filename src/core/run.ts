@@ -33,7 +33,9 @@ export type RunSeatingResult =
 
 /** 資料版本碼的輸入：只含影響排座結果的資料（不含產生時間） */
 export function seatingVersion(input: RunSeatingInput): string {
-  const { examId, division, classes, classrooms, entries, subjects, markRules, overrides } = input;
+  const { examId, division, classes, entries, subjects, markRules, overrides } = input;
+  // 教室的「部別」（校-33）只決定步驟③列哪些教室，不影響排座；不放進版本碼，否則舊存檔讀檔補上部別後，所有排座結果都會變「過期」
+  const classrooms = input.classrooms.map(({ division: _d, ...rest }) => rest);
   // 只在開啟時才放進版本碼，避免舊存檔的版本碼全部變成「過期」
   return dataVersion({ examId, division, classes, classrooms, entries, subjects, markRules, overrides, ...(input.seatFullyAbsent ? { seatFullyAbsent: true } : {}), ...(input.rosterNames?.length ? { rosterNames: input.rosterNames } : {}) });
 }

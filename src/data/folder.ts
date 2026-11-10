@@ -15,6 +15,7 @@
  */
 import type { DirFS } from './dirfs';
 import { decode, encode } from './envelope';
+import { withRoomDivisions } from './helpers';
 import type { DecodeError } from './envelope';
 import type {
   Division,
@@ -121,7 +122,7 @@ export async function loadDoc(fs: DirFS): Promise<Loaded<Doc>> {
     }
     if (Object.keys(files).length) examFiles[e.id] = files;
   }
-  const doc: Doc = { settings, rosters: { senior, junior }, exams };
+  const doc: Doc = { settings: withRoomDivisions(settings, exams), rosters: { senior, junior }, exams };
   if (Object.keys(examFiles).length) doc.examFiles = examFiles;
   return warnings.length ? { data: doc, warning: warnings.join('；') } : { data: doc };
 }

@@ -1,6 +1,6 @@
 /** 教室編輯的純函式（D56、D69②：座位只多不少；使用者可任意指定哪些座位不排，排座時人由前往後連續坐、跳過不排的座位）。 */
-import type { Classroom, LabelPaper, SeatPos, Track } from '../data';
-import { classroomSeats, seatLabel } from '../data';
+import type { Classroom, Division, LabelPaper, SeatPos, Track } from '../data';
+import { classroomSeats, roomDivision, seatLabel, type RoomDivisionContext } from '../data';
 import { defaultLabelLayout } from '../export/model';
 
 /** 一間教室的座位上限＝一張標籤紙的格數（B4 6×8＝48、A3 7×7＝49，D74） */
@@ -87,13 +87,19 @@ export function checkSeats(classSeats: number, students: number): SeatCheck {
   return { level: 'ok', message: `座位 ${classSeats} 等於考生 ${students}，剛好。` };
 }
 
-export function addRoom(rooms: Classroom[], kind: Classroom['kind']): Classroom[] {
+/** 新增教室：一律標上所屬部別（校-33）；國中部沒有預備教室，要求新增就當沒做（回傳原陣列） */
+export function addRoom(rooms: Classroom[], kind: Classroom['kind'], division: Division = 'senior', ctx?: RoomDivisionContext): Classroom[] {
+  if (kind === 'reserve' && division === 'junior') return rooms;
   let n = rooms.length + 1;
   while (rooms.some((r) => r.id === `room-${n}`)) n++;
   const base = kind === 'class' ? '試場' : '預備教室';
-  const same = rooms.filter((r) => r.kind === kind).length + 1;
-  return [...rooms, { id: `room-${n}`, name: `${base}${same}`, kind, rows: 5, depth: 6, seatCount: 30 }];
+  const same = roomsOfDivision(rooms, division, ctx).filter((r) => r.kind === kind).length + 1;
+  return [...rooms, { id: `room-${n}`, name: `${base}${same}`, kind, rows: 5, depth: 6, seatCount: 30, division }];
 }
+
+/** 屬於某部別的教室（保留原順序）；沒給推斷資料時，沒標部別的教室當高中部 */
+export const roomsOfDivision = (rooms: Classroom[], division: Division, ctx: RoomDivisionContext = { classes: [], exams: [] }): Classroom[] =>
+  rooms.filter((r) => roomDivision(r, ctx) === division);
 
 /** 新增後多出來的班級教室 id（預備教室預設不列入，故不回傳）；步驟③新增時用來預設列入 */
 export const newClassRoomIds = (before: Classroom[], after: Classroom[]): string[] =>
@@ -121,7 +127,7 @@ export function fillDefaultTracks(rooms: Classroom[], classes: { name: string; d
   const byName = new Map(classes.filter((c) => c.division === 'senior' && c.track).map((c) => [c.name, c.track as Track]));
   let changed = false;
   const out = rooms.map((r) => {
-    const t = r.kind === 'class' && !r.track ? byName.get(r.name) : undefined;
+    const t = r.kind === 'class' && !r.track && r.division !== 'junior' ? byName.get(r.name) : undefined;
     if (!t) return r;
     changed = true;
     return { ...r, track: t };
