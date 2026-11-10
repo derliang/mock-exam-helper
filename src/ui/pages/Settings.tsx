@@ -184,16 +184,18 @@ function Classes({ doc, onChange, division }: Props) {
   const run = (r: ReturnType<typeof addClass>) => { if (r.ok) { setErr(''); onChange(r.doc); } else setErr(r.error); };
   return (
     <div class="card stack">
-      <div>
-        <h3>班級資料（{isJ ? '國中部' : '高中部'}）</h3>
-        <p class="small muted">班級名稱、{isJ ? '班級色' : '文理組、班級色'}，所有模擬考共用。</p>
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div>
+          <h3>班級資料（{isJ ? '國中部' : '高中部'}）</h3>
+          <p class="small muted">班級名稱、{isJ ? '班級色' : '文理組、班級色'}，所有模擬考共用。</p>
+        </div>
+        <Button small onClick={() => setAdding(true)}>＋ 新增班級</Button>
       </div>
-      <div class="row"><Button small kind="primary" onClick={() => setAdding(true)}>＋ 新增班級</Button></div>
       {err && <Alert tone="danger">{err}</Alert>}
       {adding && <AddClassModal doc={doc} division={division} onClose={() => setAdding(false)} onAdd={(r) => { run(r); if (r.ok) setAdding(false); }} />}
       <div class="scroll">
         <table class="t compact nw">
-          <thead><tr><th>班級</th><th>名稱</th>{!isJ && <th>文理組</th>}<th>班級色（{CLASS_COLOR_COUNT} 色）</th><th>操作</th></tr></thead>
+          <thead><tr><th>班級</th><th>名稱</th>{!isJ && <th>文理組</th>}<th>班級色（{CLASS_COLOR_COUNT} 色）</th><th></th></tr></thead>
           <tbody>
             {list.map((c) => {
               const clash = colorConflicts(list, c.no, c.colorIndex);
@@ -225,7 +227,7 @@ function Classes({ doc, onChange, division }: Props) {
           </tbody>
         </table>
       </div>
-      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，改色會套用到座位表與標籤。每格另印班級字；兩班同色時只能靠這個字分辨，黑白列印後請核對。班級名稱可改，同一部別不可重名。</p>
+      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。改色會套用到座位表與標籤；班級名稱可改，同一部別不可重名。</p>
     </div>
   );
 }
@@ -269,6 +271,10 @@ function LabelNotesField(p: { value: string | undefined; onChange: (v: string | 
   );
 }
 
+/** 稿 v2.22（校-54）表頭範本預設值 */
+export const DEFAULT_SEAT_HEADER = '【{學年}學年第{次別}次{類型}模擬考】座位表';
+export const DEFAULT_LABEL_HEADER = '{學年}學年第{次別}次{類型}模擬考';
+
 function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const s = doc.settings;
   const set = (patch: Partial<typeof s>) => onChange({ ...doc, settings: { ...s, ...patch } });
@@ -279,7 +285,8 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
         <p class="small muted">座位表與標籤的固定表頭文字、預設紙張。</p>
       </div>
       <div class="field"><label for="s-name">學校名稱</label><input id="s-name" class="input" value={s.schoolName} onChange={(e) => set({ schoolName: e.currentTarget.value })} /><span class="hint">印在座位表與標籤表頭</span></div>
-      <div class="field"><label for="s-head">表頭文字</label><input id="s-head" class="input" value={s.headerText} onChange={(e) => set({ headerText: e.currentTarget.value })} /><span class="hint">座位表與標籤共用的固定表頭</span></div>
+      <div class="field"><label for="s-seat-head">座位表表頭</label><input id="s-seat-head" class="input" value={s.seatHeader ?? DEFAULT_SEAT_HEADER} onChange={(e) => set({ seatHeader: e.currentTarget.value })} /><span class="hint">{'{學年}、{次別}、{類型} 會自動換成這次模擬考的內容'}</span></div>
+      <div class="field"><label for="s-label-head">標籤表頭</label><input id="s-label-head" class="input" value={s.labelHeader ?? DEFAULT_LABEL_HEADER} onChange={(e) => set({ labelHeader: e.currentTarget.value })} /></div>
       <LabelNotesField value={s.labelNotes} onChange={(v) => set({ labelNotes: v })} />
       <div class="field"><span class="label">預設紙張</span>
         <div class="row">

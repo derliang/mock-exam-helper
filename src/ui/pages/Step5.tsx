@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { ExamConfig, SeatingResult } from '../../data';
-import { studentCode } from '../../data';
+import { seatLabel, studentCode } from '../../data';
 import { mixedMarkCodes, overridePurpose } from '../../core/detach';
 import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
@@ -36,6 +36,8 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const [only, setOnly] = useState('');
   const [pullKey, setPullKey] = useState('');
   const [editing, setEditing] = useState<{ code: string; co: string } | null>(null);
+  const [managing, setManaging] = useState(false);
+  const [showPull, setShowPull] = useState(false);
 
   const blockers = seatingBlockers(doc, exam);
   const result = examResult(doc, exam);
@@ -186,7 +188,10 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       </div>
 
       {senior && <div class="card stack">
-        <div><h3>個別覆寫（單人特例）</h3><p class="small muted">保留原教室座位（不是換座位），只把這個人被標示的那幾節考科改到自填地點，不佔預備教室；改了會自動重排並再驗證。在上面的座位表點考生就能設定。</p></div>
+        <div class="btnrow" style="justify-content:space-between">
+          <div><h3>個別覆寫（單人特例）</h3><p class="small muted">保留原教室座位（不是換座位），只把這個人被標示的那幾節考科改到自填地點，不佔預備教室；改了會自動重排並再驗證。在上面的座位表點考生就能設定。</p></div>
+          <Button disabled={stale} onClick={() => setManaging(true)}>管理覆寫</Button>
+        </div>
         {overrides.length === 0
           ? <p class="small muted">目前沒有個別覆寫。</p>
           : overrides.map((o) => (
@@ -199,7 +204,10 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       {senior && (
         <div class="card stack">
-          <div><h3>預備教室與抽離</h3><p class="small muted">標「X」的人這科不考，該節改到自習地點（只出名單）；標「＋」的人這科要考，該節改到預備教室。與座位表同一份資料。</p></div>
+          <div class="btnrow" style="justify-content:space-between">
+            <div><h3>預備教室與抽離</h3><p class="small muted">標「X」的人這科不考，該節改到自習地點（只出名單）；標「＋」的人這科要考，該節改到預備教室。與座位表同一份資料。</p></div>
+            {pull && <Button onClick={() => setShowPull((v) => !v)}>{showPull ? '收合' : '查看'}</Button>}
+          </div>
           {summary.length === 0
             ? <p class="small muted">這次沒有人要抽離。</p>
             : (
@@ -216,7 +224,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                 </table>
               </div>
             )}
-          {pull && pullRoom && pullModel && (
+          {showPull && pull && pullRoom && pullModel && (
             <>
               {pulls.length > 1 && <Seg label="抽離考試座位表" value={pull.key} onChange={setPullKey} options={pulls.map((x) => ({ value: x.key, label: `${x.name}・${rooms.find((r) => r.id === x.roomId)?.name ?? x.roomId}` }))} />}
               <SeatChart
@@ -230,15 +238,23 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         </div>
       )}
 
-            {editing && <OverrideModal doc={doc} exam={exam} result={result} code={editing.code} co={editing.co} name={names.get(editing.code) ?? ''} onClose={() => setEditing(null)} onSave={(d) => { p.onChange(d); setEditing(null); }} />}
+      {managing && (
+        <ManageOverridesModal doc={doc} exam={exam} result={result} names={names} notes={notes}
+          onClose={() => setManaging(false)}
+          onRemove={(code) => p.onChange(afterOverrideChange(removeOverride(doc, exam, code), exam, new Date().toISOString()))}
+          onPick={(code, co) => { setManaging(false); setEditing({ code, co }); }} />
+      )}
+      {editing && <OverrideModal doc={doc} exam={exam} result={result} code={editing.code} co={editing.co} name={names.get(editing.code) ?? ''} onClose={() => setEditing(null)} onSave={(d) => { p.onChange(d); setEditing(null); }} />}
     </section>
   );
 }
 
-function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; code: string; co: string; name: string; onClose: () => void; onSave: (d: Doc) => void }) {
+export function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; code: string; co: string; name: string; onClose: () => void; onSave: (d: Doc) => void }) {
   const cur = examOverrides(p.doc, p.exam).find((o) => o.code === p.code);
   const [place, setPlace] = useState(cur?.location ?? '');
   const [err, setErr] = useState('');
+  /** 沒有被標示科目的考生：只有一個整體用途（稿 v2.22：彈窗對任何考生都是完整表單） */
+  const [one, setOne] = useState<'exam' | 'study'>(cur?.purpose ?? 'study');
   const subj = new Map(p.exam.subjects.map((s) => [s.id, s.name]));
   const marks = p.result.marks.filter((m) => m.code === p.code);
   const now = () => new Date().toISOString();
@@ -248,7 +264,9 @@ function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; c
     Object.fromEntries(marks.map((m) => [m.subjectId, cur ? overridePurpose(cur, m.subjectId, m.mode, mixed) : m.mode === 'extra' ? 'exam' : 'study'] as const)));
   const save = () => {
     const purposes = Object.fromEntries(marks.map((m) => [m.subjectId, purp[m.subjectId] ?? (m.mode === 'extra' ? 'exam' : 'study')] as const));
-    const r = setOverride(p.doc, p.exam, { kind: 'single', code: p.code, location: place, purpose: Object.values(purposes).includes('exam') ? 'exam' : 'study', purposes });
+    const r = setOverride(p.doc, p.exam, marks.length === 0
+      ? { kind: 'single', code: p.code, location: place, purpose: one }
+      : { kind: 'single', code: p.code, location: place, purpose: Object.values(purposes).includes('exam') ? 'exam' : 'study', purposes });
     if (!r.ok) { setErr(`${r.error}：例如「教務處」，會印在座位表與名單上`); return; }
     p.onSave(afterOverrideChange(r.doc, p.exam, now()));
   };
@@ -259,15 +277,21 @@ function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; c
       actions={<>
         {cur && <Button kind="danger" onClick={() => p.onSave(afterOverrideChange(removeOverride(p.doc, p.exam, p.code), p.exam, now()))}>移除覆寫</Button>}
         <Button onClick={p.onClose}>取消</Button>
-        <Button kind="primary" disabled={marks.length === 0} onClick={save}>儲存</Button>
+        <Button kind="primary" onClick={save}>儲存</Button>
       </>}
     >
       <p class="small muted">原座位 {p.co} 不變，只改這個人被標示的那幾節考科要到哪裡。</p>
-      {marks.length === 0
-        ? <Alert tone="info">這位考生每科都在原教室考，沒有要抽離的科目，不需要覆寫。</Alert>
-        : (
+      {(
           <>
             <div class="stack">
+              {marks.length === 0 && (
+                <>
+                  <div class="field"><span class="label">要做什麼</span>
+                    <Seg<'exam' | 'study'> label="類型" value={one} onChange={setOne} options={[{ value: 'study', label: '到他處自習' }, { value: 'exam', label: '到他處考試' }]} />
+                  </div>
+                  <Alert tone="warn">這位考生目前每科都在原教室考，沒有被標示的科目；覆寫會先存下來，等他有被標示的科目才會生效。</Alert>
+                </>
+              )}
               {marks.map((m) => (
                 <div class="row" key={m.subjectId} style="justify-content:space-between">
                   <span>{m.mode === 'absent' ? 'X' : '＋'}{subj.get(m.subjectId)}（{m.mode === 'absent' ? '原本不考' : '原本加考'}）</span>
@@ -287,6 +311,44 @@ function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; c
             </div>
           </>
         )}
+    </Modal>
+  );
+}
+
+/** 管理覆寫：列出全部個別覆寫（可移除），並可輸入考生編號新增一筆 */
+function ManageOverridesModal(p: {
+  doc: Doc; exam: ExamConfig; result: SeatingResult; names: Map<string, string>; notes: Map<string, string>;
+  onClose: () => void; onRemove: (code: string) => void; onPick: (code: string, co: string) => void;
+}) {
+  const [code, setCode] = useState('');
+  const [err, setErr] = useState('');
+  const list = examOverrides(p.doc, p.exam);
+  const classRoomIds = new Set(examRooms(p.doc, p.exam).filter((r) => r.kind === 'class').map((r) => r.id));
+  const add = () => {
+    const c = code.trim();
+    const a = p.result.assignments.find((x) => x.code === c && classRoomIds.has(x.classroomId));
+    if (!a) { setErr('找不到這個考生編號（班級兩碼加座號兩碼，例如 0305），或這位考生沒有座位'); return; }
+    p.onPick(c, seatLabel(a));
+  };
+  return (
+    <Modal title="管理個別覆寫" onClose={p.onClose} actions={<Button kind="primary" onClick={p.onClose}>關閉</Button>}>
+      {list.length === 0
+        ? <p class="small muted">目前沒有個別覆寫。</p>
+        : list.map((o) => (
+          <div class="blk-row" key={o.code}>
+            <span><b>{o.code}</b>　{p.names.get(o.code) ?? ''}　→　{o.location}（{o.purpose === 'exam' ? '考試' : '自習'}）{p.notes.has(o.code) && <>　<Badge tone="warn">{p.notes.get(o.code)}</Badge></>}</span>
+            <Button small onClick={() => p.onRemove(o.code)}>移除</Button>
+          </div>
+        ))}
+      <div class={`field${err ? ' err' : ''}`}>
+        <label for="ovr-code">新增覆寫：考生編號</label>
+        <div class="row">
+          <input id="ovr-code" class="input" value={code} aria-invalid={!!err} onInput={(e) => { setCode((e.target as HTMLInputElement).value); setErr(''); }}
+            onKeyDown={(e) => { if (e.key === 'Enter') add(); }} />
+          <Button onClick={add}>設定</Button>
+        </div>
+        <span class={err ? 'field-msg' : 'hint'}>{err || '也可以在座位表上直接點考生。'}</span>
+      </div>
     </Modal>
   );
 }
