@@ -11,7 +11,7 @@ import { enabledExportItems, useIsEnabled } from '../features';
 import { prepareExport, relevantIssues, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
 import type { Doc } from '../store';
-import { isStale } from '../seating';
+import { isStale, validationChecks } from '../seating';
 import { defaultLabelLayout } from '../../export/model';
 
 type Loaded = { fonts: FontData; has: (ch: string) => boolean };
@@ -191,7 +191,7 @@ export function Step6(p: {
           </Alert>
         </div>
       ))}
-      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>驗證通過：</b>全部檢查符合，可以下載。</Alert></div>}
+      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>驗證通過：</b>{prepared.ok ? validationChecks(p.doc, exam, prepared.input.result).length : 0} 項檢查全部符合，可以下載。</Alert></div>}
 
       <div class="card stack" style="margin-top:12px">
         <div>
