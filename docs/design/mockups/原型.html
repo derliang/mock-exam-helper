@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.22</title>
+<title>模擬考原型 稿 v2.23</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -768,7 +768,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.22・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v1.0.0</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.23・2026-11-10</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -777,7 +777,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
   </div>
 </div>
 <main class="wrap" id="app"></main>
-<footer class="appfoot"><span>模擬考小幫手</span><button type="button" class="btn btn-sm" data-ft="ver" title="關於：版本與建置日期">v0.1.0-beta.1</button><span class="badge b-warn">beta</span><a href="#" data-ft="copy">© 版權所有</a><a href="#" data-ft="priv">隱私權</a></footer>
+<footer class="appfoot"><span>模擬考小幫手</span><button type="button" class="btn btn-sm" data-ft="ver" title="關於：版本與建置日期">v1.0.0</button><a href="#" data-ft="copy">© 版權所有</a><a href="#" data-ft="priv">隱私權</a></footer>
 <div class="toasts" id="toasts" aria-live="polite"></div>
 <div id="modalHost"></div>
 
@@ -1617,7 +1617,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var deptSeg=(tab==='school'||tab==='feat'||tab==='sched')?'':'<div class="row"><span class="label" style="margin:0">部別</span><div class="seg seg-soft" role="group" aria-label="部別">'+['高中部','國中部'].map(function(x){return '<button type="button" data-act="dept" data-v="'+x+'" aria-pressed="'+(dept===x)+'">'+x+'</button>'}).join('')+'</div><span class="small muted">'+(isJ?'國中部：不分文理組，會考科目固定七科':'高中部：每個班級分理組或文組')+'</span></div>';
     var body='';
     if(tab==='stu')body=vRosterTab();
-    else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱" disabled></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td></tr>'}).join('')+'</tbody></table></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱（溫良恭儉勤誠）在原型固定。</p></div>';
+    else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th><th>操作</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱"></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td><td><button type="button" class="btn btn-sm btn-danger" aria-label="刪除'+CNAME[i]+'班">刪除</button></td></tr>'}).join('')+'</tbody></table></div><div><button type="button" class="btn btn-sm">＋ 新增班級</button></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱可改、可新增或刪除（稿 v2.23 補畫，使用者 2026-11-10 裁示保留實作的功能；原型不真的增減）。</p></div>';
     else if(tab==='feat')body=featTab();
     else if(tab==='sched')body=schedTab();
     else if(tab==='school'){var sc=S.school=S.school||{name:'示範高級中學',seat:'【{學年}學年第{次別}次{類型}模擬考】座位表',label:'{學年}學年第{次別}次{類型}模擬考'};var pp=(S.exp&&S.exp.paper)||'B4';
@@ -1688,7 +1688,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     else if(a==='stuedit')openStu(g('id'));
     else if(a==='studel')delStu(g('id'));
     else if(a==='stunew')openStu(null,g('c')===null?undefined:g('c'),g('n'));
-    else if(a==='cmpstart'){setRet();startCmp()}
+    else if(a==='cmpstart'){if(document.querySelector('[data-act="cmpstart"]').textContent.indexOf('再匯入')>=0){showModal('<div class="modal" role="dialog" aria-label="再匯入一次"><h3>再匯入一次？</h3><p class="muted">會重新讀取考試名單並重新比對，目前已選的比對處理會清掉。（稿 v2.23 補畫，使用者 2026-11-10 裁示保留）</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="rimp">再匯入一次</button></div></div>',function(ev){if(ev.target.id==='rimp'){closeModal();setRet();startCmp()}})}else{setRet();startCmp()}}
     else if(a==='cmppick'){S.cmp.pick[+g('i')]=g('v');render()}
     else if(a==='cmpapply')applyCmp();
     else if(a==='backws'){S.screen='ws';S.step=+g('n');render()}
@@ -1803,7 +1803,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
   document.querySelector('.appfoot').addEventListener('click',function(e){var t=e.target.closest('[data-ft]');if(!t)return;e.preventDefault();var k=t.getAttribute('data-ft'),h;
     if(k==='copy')h='<h3>版權</h3><p>© 2026 derliang｜保留所有權利｜限非營利使用</p><p class="small muted">原型說明：實作是站內獨立的版權頁（不連到 GitHub），頁頂有「← 返回」；這裡用視窗示意。</p>';
     else if(k==='priv')h='<h3>隱私權</h3><p>學生名單與座位結果只存在你的電腦，本網站不會把它們上傳到網路。</p><p class="small muted">原型說明：實作是站內獨立的隱私權頁，頁頂有「← 返回」；這裡用視窗示意。</p>';
-    else h='<h3>關於</h3><p>模擬考小幫手　v0.1.0-beta.1（預發布）</p><p class="small muted">版本號與頁首品牌區是同一來源（package.json），建置時注入；建置日期用台北時間。</p>';
+    else h='<h3>關於</h3><p>模擬考小幫手　v1.0.0</p><p class="small muted">版本號與頁首品牌區是同一來源（package.json），建置時注入；建置日期用台北時間。</p>';
     showModal('<div class="modal" role="dialog" aria-label="'+(k==='copy'?'版權':k==='priv'?'隱私權':'關於')+'" style="width:min(100%,460px)">'+h+'<div class="acts"><button class="btn" data-mclose>← 返回</button></div></div>',function(){})});
   render();
 })();
