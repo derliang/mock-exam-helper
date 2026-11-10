@@ -149,6 +149,8 @@ export interface ExamConfig {
   participation: Participation;
   /** D79：全科缺考者仍排座（預設不排） */
   seatFullyAbsent?: boolean;
+  /** 預備教室排座方式（D94-4）：peer＝① 同學優先（沒設＝預設）、proctor＝② 監考優先 */
+  reserveSeatMode?: 'peer' | 'proctor';
   subjects: Subject[];
   markRules: MarkRule[];
   /** 本次勾選的教室 id（D65） */

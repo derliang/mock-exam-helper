@@ -20,6 +20,7 @@ import {
   type RunSeatingInput,
   type DetachResult,
 } from '../core';
+import { examSubjectPeriods } from '../core/periods';
 import type { Doc, Result } from './store';
 import { roomsMissingTrack } from './rooms';
 
@@ -160,9 +161,14 @@ export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeat
     overrides: examOverrides(doc, exam),
     ...(exam.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
     ...(rosterNameDiffs(doc, exam).length ? { rosterNames: rosterNameDiffs(doc, exam) } : {}),
+    periods: examSubjectPeriods(exam, doc.settings),
+    reserveMode: reserveModeOf(exam),
     now,
   };
 }
+
+/** 預備教室排座方式（D94-4）：沒設＝① 同學優先 */
+export const reserveModeOf = (exam: ExamConfig): 'peer' | 'proctor' => exam.reserveSeatMode ?? 'peer';
 
 /** 排座前必須先處理的事（擋下並說明，D25） */
 export function seatingBlockers(doc: Doc, exam: ExamConfig): Blocker[] {
@@ -281,6 +287,8 @@ export function detachPreview(doc: Doc, exam: ExamConfig): DetachResult {
     overrides: examOverrides(doc, exam),
     reserveRooms: examRooms(doc, exam).filter((r) => r.kind === 'reserve'),
     classes: examClasses(doc, exam),
+    periods: examSubjectPeriods(exam, doc.settings),
+    mode: reserveModeOf(exam),
   });
 }
 

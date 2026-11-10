@@ -40,6 +40,6 @@ export type ReserveCheck = { tone: 'ok' | 'warn' | 'info'; message: string };
 export function reserveCheck(doc: Doc, exam: ExamConfig): ReserveCheck {
   if (exam.kind === 'bcct') return { tone: 'info', message: '會考沒有抽離，不需要預備教室。' };
   const r = detachPreview(doc, exam);
-  if (r.ok) return { tone: 'ok', message: '預備教室容量夠用：每一科的抽離考試與自習都排得下。' };
+  if (r.ok) return { tone: 'ok', message: '預備教室容量夠用（同一節各科的抽離人數加總再比容量）：每一節的抽離考試與自習都排得下。' };
   return { tone: 'warn', message: `預備教室座位不足：${r.errors[0] ?? ''}。請增加預備教室。` };
 }

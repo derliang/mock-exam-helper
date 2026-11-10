@@ -162,7 +162,8 @@ describe('姓名來源不同步的保險（缺陷 F-1 回歸）', () => {
     expect(x).toBeTruthy();
     const input = { ...x.input, students: [] };
     for (const p of buildSeatPages(input)) for (const c of p.cells.values()) expect(c.name, c.code).not.toBe('');
-    for (const p of buildLabelPages(input)) for (const c of p.cells) expect(c.name, c.code).not.toBe('');
+    // 預備教室合併標籤（D94-5）只印節次＋科目＋班座號、不印姓名，不在此檢查
+    for (const p of buildLabelPages(input)) for (const c of p.cells) if (!c.periodLines) expect(c.name, c.code).not.toBe('');
     for (const r of buildDetachList(input).rows) expect(r.name, r.code).not.toBe('');
   });
 });
