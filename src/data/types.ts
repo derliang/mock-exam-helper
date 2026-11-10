@@ -71,6 +71,12 @@ export interface Classroom {
   disabled?: string[];
   /** 高中部班級教室所屬組別；國中部、預備教室不設（D4/D10） */
   track?: Track;
+  /**
+   * 教室所屬部別（稿 v2.22 校-33）：步驟③只列這次考試部別的教室，設定頁教室清單依部別切換。
+   * 舊存檔沒有這個欄位：讀檔時由 `withRoomDivisions` 依既有資訊推斷補上（不改其他欄位、不丟資料）；
+   * 沒補到的地方一律用 `roomDivision` 現算，所以沒有這個欄位也不會壞。預備教室只屬於高中部。
+   */
+  division?: Division;
 }
 
 /** 座位座標：排－深位，皆 1 起 */
@@ -254,6 +260,10 @@ export interface Settings {
   schoolName: string;
   /** 座位表與標籤的固定表頭文字 */
   headerText: string;
+  /** 座位表表頭範本（稿 v2.22，校-54）：可用 {學年}{次別}{類型} 占位符；沒有這個欄位＝預設範本 */
+  seatHeader?: string;
+  /** 標籤表頭範本（同上） */
+  labelHeader?: string;
   defaultLabelPaper: LabelPaper;
   /** 標籤下方注意事項框的文字（每行一句，**粗體**）；沒有這個欄位（舊存檔）＝預設文字，空字串＝不印 */
   labelNotes?: string;

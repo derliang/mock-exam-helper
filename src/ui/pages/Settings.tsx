@@ -4,7 +4,7 @@ import type { Division, LabelPaper, Student, Track } from '../../data';
 import { DEFAULT_LABEL_NOTES, LABEL_NOTE_MAX_CHARS, LABEL_NOTE_MAX_LINES, noteLineLength, studentCode } from '../../data';
 import { Alert, Badge, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg, Switch } from '../components';
 import { confirmCopy } from '../flow';
-import { RoomList } from '../components/RoomList';
+import { RoomTable } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
 import { RosterIO } from './RosterIO';
 import { ScheduleTab } from './Schedule';
@@ -26,7 +26,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
       <div class="utabs" role="group" aria-label="設定項目" style="margin:12px 0">
         {TABS.map((t) => <button type="button" key={t.value} aria-pressed={tab === t.value} onClick={() => setTab(t.value)}>{t.label}</button>)}
       </div>
-      {tab !== 'school' && tab !== 'rooms' && tab !== 'sched' && tab !== 'features' && (
+      {tab !== 'school' && tab !== 'sched' && tab !== 'features' && (
         <div class="row" style="margin-bottom:12px">
           <span class="label" style="margin:0">部別</span>
           <div class="seg seg-soft" role="group" aria-label="部別">
@@ -40,12 +40,23 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
       {tab === 'school' && <School {...p} />}
       {tab === 'sched' && <ScheduleTab doc={p.doc} onChange={p.onChange} />}
       {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}
-      {tab === 'rooms' && <div class="card stack"><div><h3>教室清單</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡選用，座位表在這裡也能編輯。</p></div><RoomList classes={p.doc.settings.classes} inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} /></div>}
+      {tab === 'rooms' && <Rooms doc={p.doc} onChange={p.onChange} division={division} />}
     </section>
   );
 }
 
 type Props = { doc: Doc; onChange: (d: Doc) => void; division: Division };
+
+/** 教室清單（稿 v2.22 校-43）：依部別切換，表格呈現，整列可點展開座位表 */
+function Rooms({ doc, onChange, division }: Props) {
+  return (
+    <div class="card stack">
+      <div><h3>教室清單（{division === 'junior' ? '國中部' : '高中部'}）</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡用開關選出並自動帶入上次的選擇，可修改。座位表在這裡也能編輯，和模擬考 ③ 是同一個編輯畫面。</p></div>
+      <RoomTable division={division} classes={doc.settings.classes} exams={doc.exams} inUse={(id) => doc.exams.some((e) => e.classroomIds.includes(id))} rooms={doc.settings.classrooms} paper={doc.settings.defaultLabelPaper}
+        onChange={(classrooms) => onChange({ ...doc, settings: { ...doc.settings, classrooms } })} />
+    </div>
+  );
+}
 
 function Roster({ doc, onChange, division }: Props) {
   const [q, setQ] = useState('');
@@ -175,16 +186,18 @@ function Classes({ doc, onChange, division }: Props) {
   const run = (r: ReturnType<typeof addClass>) => { if (r.ok) { setErr(''); onChange(r.doc); } else setErr(r.error); };
   return (
     <div class="card stack">
-      <div>
-        <h3>班級資料（{isJ ? '國中部' : '高中部'}）</h3>
-        <p class="small muted">班級名稱、{isJ ? '班級色' : '文理組、班級色'}，所有模擬考共用。</p>
+      <div class="row" style="justify-content:space-between;align-items:flex-start">
+        <div>
+          <h3>班級資料（{isJ ? '國中部' : '高中部'}）</h3>
+          <p class="small muted">班級名稱、{isJ ? '班級色' : '文理組、班級色'}，所有模擬考共用。</p>
+        </div>
+        <Button small onClick={() => setAdding(true)}>＋ 新增班級</Button>
       </div>
-      <div class="row"><Button small kind="primary" onClick={() => setAdding(true)}>＋ 新增班級</Button></div>
       {err && <Alert tone="danger">{err}</Alert>}
       {adding && <AddClassModal doc={doc} division={division} onClose={() => setAdding(false)} onAdd={(r) => { run(r); if (r.ok) setAdding(false); }} />}
       <div class="scroll">
         <table class="t compact nw">
-          <thead><tr><th>班級</th><th>名稱</th>{!isJ && <th>文理組</th>}<th>班級色（{CLASS_COLOR_COUNT} 色）</th><th>操作</th></tr></thead>
+          <thead><tr><th>班級</th><th>名稱</th>{!isJ && <th>文理組</th>}<th>班級色（{CLASS_COLOR_COUNT} 色）</th><th></th></tr></thead>
           <tbody>
             {list.map((c) => {
               const clash = colorConflicts(list, c.no, c.colorIndex);
@@ -216,7 +229,7 @@ function Classes({ doc, onChange, division }: Props) {
           </tbody>
         </table>
       </div>
-      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，改色會套用到座位表與標籤。每格另印班級字；兩班同色時只能靠這個字分辨，黑白列印後請核對。班級名稱可改，同一部別不可重名。</p>
+      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。改色會套用到座位表與標籤；班級名稱可改，同一部別不可重名。</p>
     </div>
   );
 }
@@ -260,6 +273,10 @@ function LabelNotesField(p: { value: string | undefined; onChange: (v: string | 
   );
 }
 
+/** 稿 v2.22（校-54）表頭範本預設值 */
+export const DEFAULT_SEAT_HEADER = '【{學年}學年第{次別}次{類型}模擬考】座位表';
+export const DEFAULT_LABEL_HEADER = '{學年}學年第{次別}次{類型}模擬考';
+
 function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const s = doc.settings;
   const set = (patch: Partial<typeof s>) => onChange({ ...doc, settings: { ...s, ...patch } });
@@ -270,7 +287,8 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
         <p class="small muted">座位表與標籤的固定表頭文字、預設紙張。</p>
       </div>
       <div class="field"><label for="s-name">學校名稱</label><input id="s-name" class="input" value={s.schoolName} onChange={(e) => set({ schoolName: e.currentTarget.value })} /><span class="hint">印在座位表與標籤表頭</span></div>
-      <div class="field"><label for="s-head">表頭文字</label><input id="s-head" class="input" value={s.headerText} onChange={(e) => set({ headerText: e.currentTarget.value })} /><span class="hint">座位表與標籤共用的固定表頭</span></div>
+      <div class="field"><label for="s-seat-head">座位表表頭</label><input id="s-seat-head" class="input" value={s.seatHeader ?? DEFAULT_SEAT_HEADER} onChange={(e) => set({ seatHeader: e.currentTarget.value })} /><span class="hint">{'{學年}、{次別}、{類型} 會自動換成這次模擬考的內容'}</span></div>
+      <div class="field"><label for="s-label-head">標籤表頭</label><input id="s-label-head" class="input" value={s.labelHeader ?? DEFAULT_LABEL_HEADER} onChange={(e) => set({ labelHeader: e.currentTarget.value })} /></div>
       <LabelNotesField value={s.labelNotes} onChange={(v) => set({ labelNotes: v })} />
       <div class="field"><span class="label">預設紙張</span>
         <div class="row">

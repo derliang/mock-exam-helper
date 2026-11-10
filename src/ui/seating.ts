@@ -188,7 +188,8 @@ export function seatingBlockers(doc: Doc, exam: ExamConfig): Blocker[] {
 /** 過期（D22）：有結果，但名單或設定在排座後改過 */
 export function isStale(doc: Doc, exam: ExamConfig): boolean {
   const r = examResult(doc, exam);
-  return !!r && r.dataVersion !== seatingVersion(seatingInputOf(doc, exam, r.generatedAt));
+  // 舊存檔沒有排座簽章（dataVersion）就無從比對，視為未過期
+  return !!r && !!r.dataVersion && r.dataVersion !== seatingVersion(seatingInputOf(doc, exam, r.generatedAt));
 }
 
 function withFiles(doc: Doc, examId: string, patch: Partial<NonNullable<Doc['examFiles']>[string]>): Doc {

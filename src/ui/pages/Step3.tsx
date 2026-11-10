@@ -89,7 +89,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       <div class="card stack">
         <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；{senior ? '預備教室座位另計，不計入班級教室合計。' : ''}教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>
-        <RoomList junior={!senior} classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
+        <RoomList junior={!senior} division={exam.division} exams={doc.exams} classes={doc.settings.classes} rooms={rooms} paper={doc.settings.defaultLabelPaper} onChange={setRooms} selected={exam.classroomIds} onSelect={setIds} />
       </div>
     </section>
   );

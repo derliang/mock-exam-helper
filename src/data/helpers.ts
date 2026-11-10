@@ -1,4 +1,4 @@
-import type { Classroom, SeatPos, StudentCode } from './types';
+import type { Classroom, Division, ExamConfig, Settings, SeatPos, StudentCode } from './types';
 
 /** 學生編號：第 1 班 1 號＝0101，第 5 班 35 號＝0535 */
 export function studentCode(classNo: number, seatNo: number): StudentCode {
@@ -47,4 +47,38 @@ export function classroomSeats(c: Classroom): SeatPos[] {
 /** 不排的座位數 */
 export function emptySeatCount(c: Classroom): number {
   return c.rows * c.depth - c.seatCount;
+}
+
+/** 推斷教室部別要看的既有資訊：班級資料（名稱對得上哪個部別）與各次考試選用了哪些教室 */
+export interface RoomDivisionContext {
+  classes: { name: string; division?: string }[];
+  exams: Pick<ExamConfig, 'division' | 'classroomIds'>[];
+}
+
+/**
+ * 教室所屬部別（校-33）。有明確 `division` 就用它；舊資料沒有時依序推斷，推不出來就當高中部：
+ * ① 預備教室（國中部會考沒有抽離）→ 高中；② 有指定文理組 → 高中；
+ * ③ 名稱只對得上國中部班級（高中部沒有同名班）→ 國中，只對得上高中部班級 → 高中；
+ * ④ 只被會考（國中部）模擬考選用、沒被任何高中部模擬考選用 → 國中；⑤ 其餘 → 高中。
+ */
+export function roomDivision(r: Classroom, ctx: RoomDivisionContext): Division {
+  if (r.division) return r.division;
+  if (r.kind === 'reserve' || r.track) return 'senior';
+  const inSenior = ctx.classes.some((c) => c.division === 'senior' && c.name === r.name);
+  const inJunior = ctx.classes.some((c) => c.division === 'junior' && c.name === r.name);
+  if (inJunior && !inSenior) return 'junior';
+  if (inSenior && !inJunior) return 'senior';
+  const used = ctx.exams.filter((e) => e.classroomIds.includes(r.id));
+  if (used.length > 0 && used.every((e) => e.division === 'junior')) return 'junior';
+  return 'senior';
+}
+
+/**
+ * 讀檔遷移：替沒有 `division` 的舊教室補上推斷出來的部別。只加欄位，不動其他資料；
+ * 已有 `division` 的原樣保留（所以重複執行結果相同），沒有任何變動時回傳原物件。
+ */
+export function withRoomDivisions(settings: Settings, exams: Pick<ExamConfig, 'division' | 'classroomIds'>[]): Settings {
+  if (settings.classrooms.every((r) => r.division)) return settings;
+  const ctx: RoomDivisionContext = { classes: settings.classes, exams };
+  return { ...settings, classrooms: settings.classrooms.map((r) => (r.division ? r : { ...r, division: roomDivision(r, ctx) })) };
 }

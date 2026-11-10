@@ -165,7 +165,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         {err && <Alert tone="danger">{err}</Alert>}
         <div class="row" style="gap:12px;justify-content:space-between">
           <div class="row" style="gap:10px">
-            <Badge>Excel（.xlsx）</Badge>
+            <Badge>考試名單.xlsx</Badge>
             <span class="muted small">{entries ? `已匯入 ${entries.length} 筆` : bcctAll ? `不需匯入（全員 ${roster.length} 人）` : '尚未匯入'}</span>
             {entries && diffs.length > 0 && (
               <ConfirmButton kind="default" small undoable copy={confirmCopy.reimportList(entries.length)} onConfirm={() => input.current?.click()}>重新匯入</ConfirmButton>
@@ -178,7 +178,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           </div>
         </div>
         <p class="small muted">{exam.participation === 'partial'
-          ? `沒報名的人不算差異，只在統計列顯示「未參加 ${notJoin} 人」，不排座、不出現在座位表。`
+          ? '沒報名的人不算差異，不排座、不出現在座位表。'
           : '學生名單有、考試名單沒有的人，列為差異，逐筆處理。'}</p>
         {fullyAbsent > 0 && (
           <Alert tone="info">

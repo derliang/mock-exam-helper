@@ -33,8 +33,8 @@ const juniorClasses: ClassInfo[] = ['一', '二', '三'].map((n, i) => ({
   no: i + 1, name: `${n}年級示範班`, division: 'junior', colorIndex: i + 1,
 }));
 const rooms: Classroom[] = [
-  { id: 'r1', name: '第一試場', kind: 'class', rows: 6, depth: 6, seatCount: 36, track: 'science' },
-  { id: 'r2', name: '預備教室', kind: 'reserve', rows: 3, depth: 4, seatCount: 12 },
+  { id: 'r1', name: '第一試場', kind: 'class', rows: 6, depth: 6, seatCount: 36, track: 'science', division: 'senior' },
+  { id: 'r2', name: '預備教室', kind: 'reserve', rows: 3, depth: 4, seatCount: 12, division: 'senior' },
 ];
 const demo = (classNo: number, list: string[]): Student[] => list.map((name, i) => ({ classNo, seatNo: i + 1, name }));
 

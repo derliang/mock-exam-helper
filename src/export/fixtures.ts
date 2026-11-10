@@ -9,9 +9,9 @@ export function makeFixture(opts: { labelCols?: number; labelRows?: number; pape
     { no: 3, name: '恭', division: 'senior' as const, track: 'science' as const, colorIndex: 3 },
   ];
   const classrooms: Classroom[] = [
-    { id: 'r1', name: '甲教室', kind: 'class', rows: 4, depth: 5, seatCount: 18 },
-    { id: 'r2', name: '乙教室', kind: 'class', rows: 4, depth: 5, seatCount: 12 },
-    { id: 'rv', name: '預備教室', kind: 'reserve', rows: 2, depth: 3, seatCount: 6 },
+    { id: 'r1', name: '甲教室', kind: 'class', rows: 4, depth: 5, seatCount: 18, division: 'senior' },
+    { id: 'r2', name: '乙教室', kind: 'class', rows: 4, depth: 5, seatCount: 12, division: 'senior' },
+    { id: 'rv', name: '預備教室', kind: 'reserve', rows: 2, depth: 3, seatCount: 6, division: 'senior' },
   ];
   const settings: Settings = {
     schoolName: '測試學校',
