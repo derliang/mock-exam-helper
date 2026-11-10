@@ -631,3 +631,17 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 @media (max-width:480px){.ttr{grid-template-columns:auto 48px minmax(0,1fr) auto}.ttr .dur{grid-column:2/4}.ttr .ops{grid-column:4;grid-row:1}.ttr .sub{grid-column:1/-1}}
 /* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
 .plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+
+/* 步驟③「預備教室排座與標籤」卡（稿 v2.22，D94-4、D94-5）：照原型稿 */
+/* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
+.plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.plbl{border:2px solid #222;border-radius:6px;background:#fff;color:#111;padding:10px 12px;display:grid;gap:6px;font-family:var(--font-body,inherit)}
+.plbl .plh{font-weight:800;font-size:15px;border-bottom:1.5px solid #222;padding-bottom:4px;display:flex;justify-content:space-between;gap:8px}
+.plbl .pl{font-size:20px;font-weight:800;line-height:1.25;display:flex;gap:10px;align-items:baseline}
+.plbl .pl small{font-size:14px;font-weight:700;min-width:72px}
+.plbl.sp{background:#FFE08A}
+.pmode{display:grid;gap:8px}
+.psec{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
+.sh{font-size:17px;margin:0}
+.pmode .opt{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.pmode .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}

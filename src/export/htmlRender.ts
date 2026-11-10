@@ -4,7 +4,7 @@
  * 座位表與標籤的樣式照設計系統成品頁「座位表與標籤」稿件（docs/design/mockups/設計系統.html #paper）：
  * 改這裡的版面要同步改稿件，反之亦然。
  */
-import { footerText, groupMarks, labelBoxMm, labelGrid, PAPER_MM, SEAT_PAGE, seatGeometry, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
+import { footerText, groupMarks, labelBoxMm, labelGrid, PAPER_MM, periodLineFontPt, SEAT_PAGE, seatGeometry, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
 
 export interface HtmlOptions {
   generatedAt: string;
@@ -30,6 +30,12 @@ function marksHtml(c: CellModel): string {
 function cellHtml(c: CellModel | undefined, w: number, h: number, mode: 'seat' | 'detach' | 'label'): string {
   const size = `width:${mm(w)};height:${mm(h)}`;
   if (!c) return `<div class="pp-c pp-e" style="${size}"></div>`;
+  if (c.periodLines) {
+    // 預備教室合併標籤（D94-5）：每節一行、同字級，印節次＋科目＋班座號
+    const pt = periodLineFontPt(c.periodLines, w - 3, h - 5);
+    const ls = c.periodLines.map((l) => `<span class="pp-pll" style="font-size:${pt}pt"><small style="font-size:${+(pt * 0.7).toFixed(1)}pt">${esc(l.head)}</small>${esc(l.text)}</span>`).join('');
+    return `<div class="pp-c pp-pl" style="${size};background:#fff"><i class="pp-co">${esc(c.coord)}</i><span class="pp-pls">${ls}</span></div>`;
+  }
   const marked = c.marks.length > 0;
   const bg = mode === 'label' ? (marked ? '#FFE08A' : '#fff') : mode === 'detach' ? DETACH.bg : `#${c.colorBg}`;
   const em = mode === 'label' ? '#22201B' : mode === 'detach' ? DETACH.fg : `#${c.colorFg}`;
@@ -124,6 +130,9 @@ footer { font-size: 8pt; color: #555; text-align: right; margin-top: 3mm }
 .pp .pp-c{position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.4mm;border-right:.35mm solid var(--cut);border-bottom:.35mm solid var(--cut);text-align:center}
 .pp.pp-seat .pp-c{border-right-width:.3mm;border-bottom-width:.3mm}
 .pp .pp-co{position:absolute;right:1.1mm;top:.8mm;font-style:normal;font-weight:700;color:#4A463A;font-size:6.5pt;line-height:1;font-variant-numeric:tabular-nums}
+.pp .pp-pls{display:grid;gap:.6mm;justify-items:start;width:100%;padding:3.5mm 1.5mm 0}
+.pp .pp-pll{font-weight:800;line-height:1.3;white-space:nowrap;color:#22201B}
+.pp .pp-pll small{font-weight:700;margin-right:1.6mm}
 .pp .pp-no{font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:.02em;line-height:1}
 .pp .pp-nm{font-weight:500;line-height:1.15;white-space:nowrap}
 .pp .pp-nm em{font-style:normal;font-weight:700;margin-right:1.2mm;padding-right:1.2mm;border-right:.3mm solid currentColor}

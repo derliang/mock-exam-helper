@@ -115,3 +115,33 @@ export function validateSeating(input: ValidationInput): string[] {
   }
   return errors;
 }
+
+/**
+ * 預備教室「同學優先」（模式 1）的同班遞增檢查（D94-4：對 D3 的例外，只警告、不擋）。
+ * occupants 是同一組節次在預備教室裡的人；回傳像「預備教室「備一」第 2 排的「勤班」座號沒有照由小到大排（07 號在 05 號前面）」。
+ */
+export function reserveOrderWarnings(
+  rooms: readonly Classroom[],
+  classes: readonly ClassInfo[],
+  occupants: readonly { code: string; roomId: string; seat: { row: number; depth: number } }[],
+): string[] {
+  const roomIdx = new Map(rooms.map((r, i) => [r.id, i]));
+  const order = new Map(rooms.map((r) => [r.id, new Map(classroomSeats(r).map((s, i) => [seatLabel(s), i]))]));
+  const list = occupants
+    .map((o) => ({ ...o, p: parseStudentCode(o.code), ri: roomIdx.get(o.roomId) ?? 0, ord: order.get(o.roomId)?.get(seatLabel(o.seat)) ?? 0 }))
+    .filter((o) => o.p)
+    .sort((a, b) => a.ri - b.ri || a.ord - b.ord);
+  const name = new Map(classes.map((c) => [c.no, c.name]));
+  const last = new Map<number, number>();
+  const out: string[] = [];
+  const pad = (n: number) => String(n).padStart(2, '0');
+  for (const o of list) {
+    const { classNo, seatNo } = o.p!;
+    const prev = last.get(classNo);
+    if (prev !== undefined && prev >= seatNo) {
+      out.push(`預備教室「${rooms[o.ri]?.name ?? o.roomId}」第 ${o.seat.row} 排的「${name.get(classNo) ?? classNo}班」座號沒有照由小到大排（${pad(prev)} 號在 ${pad(seatNo)} 號前面）`);
+    }
+    last.set(classNo, seatNo);
+  }
+  return out;
+}

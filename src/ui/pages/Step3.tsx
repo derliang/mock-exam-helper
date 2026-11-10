@@ -1,6 +1,7 @@
 import type { ExamConfig, Track } from '../../data';
 import { Alert, Badge, Button, Seg, StepHead } from '../components';
 import { RoomList } from '../components/RoomList';
+import { PrepCard } from './PrepCard';
 import { classCapacity, reserveCheck } from '../capacity';
 import { newClassRoomIds, roomsMissingTrack } from '../rooms';
 import { examEntries, examRooms, seatableEntries } from '../seating';
@@ -83,6 +84,8 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           </>
         ) : <Alert tone="info">會考不分文理組，所有班級打散到所有教室。</Alert>}
       </div>
+
+      {senior && <PrepCard doc={doc} exam={exam} onChange={p.onChange} />}
 
       <div class="card stack">
         <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；{senior ? '預備教室座位另計，不計入班級教室合計。' : ''}教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>

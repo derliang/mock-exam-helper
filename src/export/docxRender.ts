@@ -32,6 +32,7 @@ import {
   groupMarks,
   labelBoxMm,
   labelGrid,
+  periodLineFontPt,
   mmToTwip,
   PAPER_MM,
   SEAT_PAGE,
@@ -279,6 +280,27 @@ function cellParas(
   ];
 }
 
+/** 預備教室合併標籤格（D94-5）：右上座標，下面每節一行、同字級（節次＋科目＋班座號） */
+function periodParas(c: CellModel, w: number, h: number, coordPt: number, mode: BoldMode): Paragraph[] {
+  const lines = c.periodLines ?? [];
+  const top = 4.5;
+  const pt = periodLineFontPt(lines, w - 3, h - top - 1.5);
+  const lh = pt * 0.3528 * 1.3;
+  return [
+    line([run2(c.coord, { size: coordPt, bold: true, color: '4A463A' }, mode)], { h: top, align: AlignmentType.RIGHT, right: 0.6 }),
+    ...lines.map((l) =>
+      line(
+        [
+          run2(l.head, { size: Math.round(pt * 7) / 10, bold: true, color: INK }, mode),
+          run2(' ', { size: Math.round(pt * 7) / 10 }, mode),
+          run2(l.text, { size: pt, bold: true, color: INK }, mode),
+        ],
+        { h: lh, align: AlignmentType.LEFT, left: 0.6 },
+      ),
+    ),
+  ];
+}
+
 function pageFooter(opts: DocxOptions): Footer {
   return new Footer({
     children: [line([run2(footerText(opts.generatedAt, opts.dataVersion), { size: 9.5, color: GRAY }, 'separate-family')], { h: 4.6 })],
@@ -477,7 +499,7 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
           margins: { top: 0, bottom: 0, left: tw(1), right: tw(1) },
           shading: m ? { type: ShadingType.CLEAR, fill: marked ? 'FFE08A' : 'FFFFFF', color: 'auto' } : HATCH_FILL,
           borders: { top: b, bottom: b, left: b, right: b },
-          children: m ? cellParas(m, g, INK, mode) : hatchParas(box.w - 2.1, box.h - 1.4),
+          children: m ? (m.periodLines ? periodParas(m, box.w - 2, box.h, g.coordPt, mode) : cellParas(m, g, INK, mode)) : hatchParas(box.w - 2.1, box.h - 1.4),
         }),
       );
     }
