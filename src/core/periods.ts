@@ -85,18 +85,33 @@ export function withSchedule<T extends Pick<Settings, 'schedules'>>(settings: T,
 export interface NumberedRow extends PeriodRow {
   day: number;
   index: number;
-  /** 第幾節（1 起） */
+  /** 第幾節（1 起，整張表累計；同節判斷與抽離容量用） */
   period: number;
+  /** 當天的第幾個時段（1 起，每天重新編號；畫面與標籤顯示用） */
+  slot: number;
 }
+
+const ZH = ['零', '一', '二', '三', '四', '五', '六', '七', '八', '九', '十'];
+const zh = (n: number): string => ZH[n] ?? String(n);
+/** 時段名稱：時段一、時段二…（每天各自從時段一開始，使用者 2026-11-10） */
+export const slotName = (slot: number): string => `時段${zh(slot)}`;
+/** 第一天、第二天…（0 起的天別索引） */
+export const dayName = (day: number): string => `第${zh(day + 1)}天`;
 
 /** 依順序編節次：每列一節，勾「與上一科同節」就沿用上一列的節次（可跨天；整張表的第一列不能同節） */
 export function numberRows(t: PeriodTable): NumberedRow[] {
   const out: NumberedRow[] = [];
   let p = 0;
-  t.days.forEach((day, di) => day.forEach((row, i) => {
-    if (!(row.samePrev && out.length)) p++;
-    out.push({ ...row, day: di, index: i, period: p });
-  }));
+  t.days.forEach((day, di) => {
+    let slot = 0;
+    let lastP = -1;
+    day.forEach((row, i) => {
+      if (!(row.samePrev && out.length)) p++;
+      if (p !== lastP) slot++;
+      lastP = p;
+      out.push({ ...row, day: di, index: i, period: p, slot });
+    });
+  });
   return out;
 }
 
@@ -106,6 +121,9 @@ const norm = (s: string) => s.replace(/\s+/g, '');
 export interface SubjectPeriod {
   period: number;
   label: string;
+  /** 天別（0 起）與當天時段（1 起）；沒有節次表的科目為 undefined */
+  day?: number;
+  slot?: number;
 }
 
 /**
@@ -121,7 +139,7 @@ export function subjectPeriods(subjects: readonly Subject[], table: PeriodTable)
     const id = row.subjectId && ids.has(row.subjectId) ? row.subjectId : byName.get(norm(row.name));
     if (!id) continue;
     const list = out.get(id) ?? [];
-    if (!list.some((x) => x.period === row.period)) list.push({ period: row.period, label: row.name });
+    if (!list.some((x) => x.period === row.period)) list.push({ period: row.period, label: row.name, day: row.day, slot: row.slot });
     out.set(id, list);
   }
   let next = rows.reduce((m, x) => Math.max(m, x.period), 0);

@@ -20,7 +20,7 @@ import {
   type Student,
 } from '../data';
 import { detachRoomCounts, roomStats, specialOf, type RoomStats } from '../core/stats';
-import { examSubjectPeriods } from '../core/periods';
+import { dayName, examSubjectPeriods, slotName } from '../core/periods';
 import { classColor } from './colors';
 
 export interface ExportInput {
@@ -383,7 +383,7 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
       const who = `${ctx.classes.get(p.classNo)?.name ?? p.classNo} ${String(p.seatNo).padStart(2, '0')}`;
       for (const sp of periods.get(d.subjectId) ?? [{ period: 0, label: ctx.subjectName.get(d.subjectId) ?? d.subjectId }]) {
         if (cell.lines.some((l) => l.period === sp.period && l.text.endsWith(who))) continue;
-        cell.lines.push({ period: sp.period, head: sp.period ? `第 ${sp.period} 節` : '', text: `${sp.label}　${who}` });
+        cell.lines.push({ period: sp.period, head: sp.slot ? `${dayName(sp.day ?? 0)} ${slotName(sp.slot)}` : '', text: `${sp.label}　${who}` });
       }
     }
     const order = [...input.exam.classroomIds, ...byRoom.keys()];
