@@ -1,5 +1,5 @@
 import { launchChrome, Browser } from './cdp.mjs';
-const PORT = 5517, SCR = process.argv[2];
+const PORT = Number(process.env.SHOT_PORT) || 5517, SCR = process.argv[2];
 export const SEED = `(async()=>{
   const [{emptyDoc,withDefaults},{newExam,updateExam},{reseat,seatingBlockers},{saveDoc},{createHandleFS}] = await Promise.all([
     import('/src/ui/repository.ts'),import('/src/ui/store.ts'),import('/src/ui/seating.ts'),import('/src/data/folder.ts'),import('/src/data/dirfs.ts')]);
