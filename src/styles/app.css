@@ -221,6 +221,9 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:var(-
 .rw{display:grid;gap:8px}
 .roomrow{cursor:pointer}
 .roomrow input,.roomrow .stepper{cursor:auto}
+.t tr.rowtap{cursor:pointer}
+.t tr.rowtap.open{background:var(--accent-soft)}
+.t tr.rowtap .input{cursor:text}.t tr.rowtap .btn{cursor:pointer}
 .roomedit{display:grid;gap:12px;padding:14px;border:1px solid var(--accent-line);border-radius:var(--r-md);background:var(--surface)}
 .roomedit h4{margin:0;font-family:var(--f-head);font-size:14px}
 .prev .pgrid .pc{width:100%;height:32px}
@@ -304,6 +307,8 @@ section>header p{color:var(--text-2);max-width:72ch}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pagehead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
 .pagehead h1,.pagehead h2{margin-right:auto}
+/* 稿 v2.22（校-20）：頁首的返回鈕比內文連結大：高 40、左右 16，不加底線 */
+.pagehead>.btn-ghost{min-height:40px;padding:0 16px;text-decoration:none}
 .proto-note{margin:14px 0 0}
 #app{padding-block:18px 80px}
 .center-card{max-width:min(100%,clamp(620px,60vw,900px));margin:32px auto 0;display:grid;gap:18px}
