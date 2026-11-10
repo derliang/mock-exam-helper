@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.23</title>
+<title>模擬考原型 稿 v2.24</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -768,7 +768,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v1.0.0</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.23・2026-11-10</span>
+  <span class="brand">模擬考小幫手<span class="ver">v1.0.0</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.24・2026-11-10</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -1535,12 +1535,12 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       note:'順序與時長同正式會考。會考不需要抽離，節次與時長只用在標籤與日程顯示。'}};
   function schGet(t){S.sch=S.sch||{};if(!S.sch[t]){S.sch[t]={days:SCH_DEF[t].days.map(function(d){return d.map(function(r){return{n:r[0],dur:r[1],same:false,time:''}})})}}return S.sch[t]}
   function schedTab(){
-    var T=S.schT||'g12',d=SCH_DEF[T],D2=schGet(T),sec=0;
+    var T=S.schT||'g12',d=SCH_DEF[T],D2=schGet(T),sec=0,NUMS=['','一','二','三','四','五','六','七','八','九','十'];
     var cols=D2.days.map(function(day,di){
-      var rows=day.map(function(r,i){
+      sec=0;var rows=day.map(function(r,i){
         if(!(r.same&&(di>0||i>0)))sec++;
         var tag=(r.n==='國綜'||r.n==='國寫')?'<span class="badge b-acc">國文：整個一起標</span>':(r.n==='英聽'&&T==='g12'?'<span class="badge">英聽固定排第一天最後一節</span>':'');
-        return '<div class="ttr'+(r.same?' same':'')+'" data-sdrop="'+di+','+i+'"><span class="sgrip" draggable="true" data-sdrag="'+di+','+i+'" title="拖拉改順序" aria-hidden="true">⠿</span><span class="sn">第 '+sec+' 節</span><input class="input" data-scf="n" data-sd="'+di+'" data-sci="'+i+'" value="'+esc(r.n)+'" aria-label="科目名稱"><span class="dur"><input class="input" type="number" min="1" data-scf="dur" data-sd="'+di+'" data-sci="'+i+'" value="'+(r.dur||'')+'" aria-label="時長（分鐘）"><span>分</span></span>'+
+        return '<div class="ttr'+(r.same?' same':'')+'" data-sdrop="'+di+','+i+'"><span class="sgrip" draggable="true" data-sdrag="'+di+','+i+'" title="拖拉改順序" aria-hidden="true">⠿</span><span class="sn">時段'+(NUMS[sec]||sec)+'</span><input class="input" data-scf="n" data-sd="'+di+'" data-sci="'+i+'" value="'+esc(r.n)+'" aria-label="科目名稱"><span class="dur"><input class="input" type="number" min="1" data-scf="dur" data-sd="'+di+'" data-sci="'+i+'" value="'+(r.dur||'')+'" aria-label="時長（分鐘）"><span>分</span></span>'+
           '<span class="ops"><button class="btn btn-sm btn-ghost" data-act="scmv" data-d="'+di+'" data-i="'+i+'" data-dir="-1" aria-label="上移">↑</button><button class="btn btn-sm btn-ghost" data-act="scmv" data-d="'+di+'" data-i="'+i+'" data-dir="1" aria-label="下移">↓</button><button class="btn btn-sm btn-danger" data-act="scdel" data-d="'+di+'" data-i="'+i+'" aria-label="刪除'+esc(r.n)+'">×</button></span>'+
           '<span class="sub"><label><input type="checkbox" data-scs data-sd="'+di+'" data-sci="'+i+'"'+(r.same?' checked':'')+(di===0&&i===0?' disabled':'')+'>與上一科同節</label><label>開始時間（選填）<input class="input" type="time" data-sct data-sd="'+di+'" data-sci="'+i+'" value="'+esc(r.time||'')+'"></label>'+tag+'</span></div>'}).join('');
       return '<div class="ttc"><div class="hd"><span>第 '+(di===0?'一':'二')+' 天</span><span class="small muted">'+day.length+' 科</span></div>'+rows+'<div class="end" data-sdrop="'+di+',end"><button class="btn btn-sm" data-act="scadd" data-d="'+di+'">＋ 新增一科</button></div></div>'}).join('');
@@ -1558,9 +1558,9 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       (m===1?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>範例警告（模式 ① 才會出現）：</b>預備教室「備一」第 2 排的「勤班」座號沒有照由小到大排（07 號在 05 號前面）。這是為了讓同一個人每節都坐同一格，不影響下載。<span class="small muted">想要嚴格遞增，請改選「監考優先」。</span></span><button class="btn btn-sm" data-act="pmode" data-v="2">改成監考優先</button></div>':'')+'</div><div class="psec">'+lblSection()+'</div></div>'}
   function lblSection(){
     return '<div class="stack"><div><h4 class="sh">合併標籤（範例）</h4><p class="small muted">預備教室每個座位一張。同一個座位在不同節由不同人使用時，各節列在同一張，只貼一次；每節一行、同字級，印「節次＋科目＋班座號」，不印時間。抽離自習不排座位、不印標籤，只出名單。</p></div><div class="plbls">'+
-      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第 5 節</small><span>歷史　勤 07</span></div></div>'+
-      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第 1 節</small><span>物理　勇 12</span></div><div class="pl"><small>第 7 節</small><span>數乙　勇 12</span></div></div>'+
-      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第 2 節</small><span>化學　誠 03</span></div><div class="pl"><small>第 6 節</small><span>地理　勤 21</span></div></div></div>'+
+      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第二天 時段一</small><span>歷史　勤 07</span></div></div>'+
+      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第一天 時段一</small><span>物理　勇 12</span></div><div class="pl"><small>第二天 時段三</small><span>數乙　勇 12</span></div></div>'+
+      '<div class="plbl"><div class="plh"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第一天 時段二</small><span>化學　誠 03</span></div><div class="pl"><small>第二天 時段二</small><span>地理　勤 21</span></div></div></div>'+
       '<p class="small muted">第 2 張：同一個人（勇班 12 號）跨節坐同一格。第 3 張：兩個不同的人共用同一格。</p></div>'}
   /* ---------- 步驟③：分科教室使用情形（程式依這次的報名情況自動決定；使用者 2026-11-09 更正，D95） ---------- */
   function astUseCard(d){
@@ -1617,7 +1617,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var deptSeg=(tab==='school'||tab==='feat'||tab==='sched')?'':'<div class="row"><span class="label" style="margin:0">部別</span><div class="seg seg-soft" role="group" aria-label="部別">'+['高中部','國中部'].map(function(x){return '<button type="button" data-act="dept" data-v="'+x+'" aria-pressed="'+(dept===x)+'">'+x+'</button>'}).join('')+'</div><span class="small muted">'+(isJ?'國中部：不分文理組，會考科目固定七科':'高中部：每個班級分理組或文組')+'</span></div>';
     var body='';
     if(tab==='stu')body=vRosterTab();
-    else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th><th>操作</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱"></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td><td><button type="button" class="btn btn-sm btn-danger" aria-label="刪除'+CNAME[i]+'班">刪除</button></td></tr>'}).join('')+'</tbody></table></div><div><button type="button" class="btn btn-sm">＋ 新增班級</button></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱可改、可新增或刪除（稿 v2.23 補畫，使用者 2026-11-10 裁示保留實作的功能；原型不真的增減）。</p></div>';
+    else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th><th>操作</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱"></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td><td><button type="button" class="btn btn-sm btn-danger" aria-label="刪除'+CNAME[i]+'班">刪除</button></td></tr>'}).join('')+'</tbody></table></div><div><button type="button" class="btn btn-sm">＋ 新增班級</button></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱可改、可新增或刪除（稿 v2.24 補畫，使用者 2026-11-10 裁示保留實作的功能；原型不真的增減）。</p></div>';
     else if(tab==='feat')body=featTab();
     else if(tab==='sched')body=schedTab();
     else if(tab==='school'){var sc=S.school=S.school||{name:'示範高級中學',seat:'【{學年}學年第{次別}次{類型}模擬考】座位表',label:'{學年}學年第{次別}次{類型}模擬考'};var pp=(S.exp&&S.exp.paper)||'B4';
@@ -1688,7 +1688,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     else if(a==='stuedit')openStu(g('id'));
     else if(a==='studel')delStu(g('id'));
     else if(a==='stunew')openStu(null,g('c')===null?undefined:g('c'),g('n'));
-    else if(a==='cmpstart'){if(document.querySelector('[data-act="cmpstart"]').textContent.indexOf('再匯入')>=0){showModal('<div class="modal" role="dialog" aria-label="再匯入一次"><h3>再匯入一次？</h3><p class="muted">會重新讀取考試名單並重新比對，目前已選的比對處理會清掉。（稿 v2.23 補畫，使用者 2026-11-10 裁示保留）</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="rimp">再匯入一次</button></div></div>',function(ev){if(ev.target.id==='rimp'){closeModal();setRet();startCmp()}})}else{setRet();startCmp()}}
+    else if(a==='cmpstart'){if(document.querySelector('[data-act="cmpstart"]').textContent.indexOf('再匯入')>=0){showModal('<div class="modal" role="dialog" aria-label="再匯入一次"><h3>再匯入一次？</h3><p class="muted">會重新讀取考試名單並重新比對，目前已選的比對處理會清掉。（稿 v2.24 補畫，使用者 2026-11-10 裁示保留）</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="rimp">再匯入一次</button></div></div>',function(ev){if(ev.target.id==='rimp'){closeModal();setRet();startCmp()}})}else{setRet();startCmp()}}
     else if(a==='cmppick'){S.cmp.pick[+g('i')]=g('v');render()}
     else if(a==='cmpapply')applyCmp();
     else if(a==='backws'){S.screen='ws';S.step=+g('n');render()}
