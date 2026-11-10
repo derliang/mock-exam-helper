@@ -85,7 +85,31 @@ export interface SeatPos {
   depth: number;
 }
 
-/** 科目（D52：考科表自動帶入、可增刪改，不用節次） */
+/**
+ * 節次表的一列（D94；共用設定「節次與時長」）：像學校的模擬考科目表，一天一欄、科目由上往下。
+ * 節次編號依順序自動算，samePrev＝與上一科同節（同時進行）。學測國文是兩列（國綜、國寫）指向同一個科目 id
+ * 「chinese」：標示與抽離整個一起（一個標示涵蓋兩節）。
+ */
+export interface PeriodRow {
+  /** 顯示名稱（印在預備教室標籤上），例 國綜 */
+  name: string;
+  /** 對應考科表的科目 id；沒設就用名稱比對考科表 */
+  subjectId?: string;
+  /** 時長（分鐘），選填，只做參考 */
+  minutes?: number;
+  /** 與上一科同節 */
+  samePrev?: boolean;
+  /** 開始時間 HH:MM，選填，不印在標籤上 */
+  start?: string;
+}
+export interface PeriodTable {
+  /** 一天一欄，目前畫面是兩天 */
+  days: PeriodRow[][];
+}
+/** 節次表的種類：學測第 1、2 次／第 3、4 次、分科、會考 */
+export type ScheduleKey = 'g12' | 'g34' | 'ast' | 'bcct';
+
+/** 科目（D52：考科表自動帶入、可增刪改；節次由共用設定的節次表決定，D94） */
 export interface Subject {
   id: string;
   name: string;
@@ -131,10 +155,10 @@ export interface ExamConfig {
   participation: Participation;
   /** D79：全科缺考者仍排座（預設不排） */
   seatFullyAbsent?: boolean;
+  /** 預備教室排座方式（D94-4）：peer＝① 同學優先（沒設＝預設）、proctor＝② 監考優先 */
+  reserveSeatMode?: 'peer' | 'proctor';
   subjects: Subject[];
   markRules: MarkRule[];
-  /** 預備教室排座方式；沒設＝同學優先 */
-  reserveMode?: ReserveMode;
   /** 本次勾選的教室 id（D65） */
   classroomIds: string[];
   labelLayout: LabelLayout;
@@ -236,6 +260,10 @@ export interface Settings {
   schoolName: string;
   /** 座位表與標籤的固定表頭文字 */
   headerText: string;
+  /** 座位表表頭範本（稿 v2.22，校-54）：可用 {學年}{次別}{類型} 占位符；沒有這個欄位＝預設範本 */
+  seatHeader?: string;
+  /** 標籤表頭範本（同上） */
+  labelHeader?: string;
   defaultLabelPaper: LabelPaper;
   /** 標籤下方注意事項框的文字（每行一句，**粗體**）；沒有這個欄位（舊存檔）＝預設文字，空字串＝不印 */
   labelNotes?: string;
@@ -246,23 +274,9 @@ export interface Settings {
   markMap?: Record<string, string>;
   /** 選用功能開關（D75）：功能 id → 是否開啟；沒有這個欄位或沒寫的功能一律視為關 */
   features?: Record<string, boolean>;
-  /** 節次表（校-55）：key＝gsat12／gsat34／ast／bcct；沒有就用內建預設（見 core/period.ts） */
-  schedules?: Record<string, ScheduleEntry[]>;
+  /** 節次與時長（D94）：只存使用者改過的種類；沒有這個欄位（舊存檔）或沒寫的種類＝內建預設 */
+  schedules?: Partial<Record<ScheduleKey, PeriodTable>>;
 }
-
-/** 節次表的一列：依順序排；day 是第幾天；same＝與上一科同節（預設不同節，一節一科） */
-export interface ScheduleEntry {
-  subjectId: string;
-  day: 1 | 2;
-  same?: boolean;
-  /** 時長（分鐘），選填，只當資料；標籤不印時間 */
-  dur?: number;
-  /** 開始時間 HH:MM，選填，標籤不印 */
-  time?: string;
-}
-
-/** 預備教室排座方式（校-56）：student＝同學優先（預設）、invigilator＝監考優先 */
-export type ReserveMode = 'student' | 'invigilator';
 
 /** 磁碟檔案外殼：版本與損壞偵測用（D21） */
 export interface FileEnvelope<T> {

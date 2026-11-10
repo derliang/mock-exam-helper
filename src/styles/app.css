@@ -307,6 +307,8 @@ section>header p{color:var(--text-2);max-width:72ch}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pagehead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
 .pagehead h1,.pagehead h2{margin-right:auto}
+/* 稿 v2.22（校-20）：頁首的返回鈕比內文連結大：高 40、左右 16，不加底線 */
+.pagehead>.btn-ghost{min-height:40px;padding:0 16px;text-decoration:none}
 .proto-note{margin:14px 0 0}
 #app{padding-block:18px 80px}
 .center-card{max-width:min(100%,clamp(620px,60vw,900px));margin:32px auto 0;display:grid;gap:18px}
@@ -586,7 +588,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .tcard.term{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;min-height:44px;width:auto}
 .tcard.term strong{font-size:14px;font-family:var(--f-ui)}
 .tcard.term .tick{position:static}
-.pagehead>.btn-ghost{min-height:40px;min-width:135px;padding:0 12px}
+.pagehead>.btn-ghost{min-height:40px;padding:0 12px}
 
 /* 校-22、24：次別鈕四顆等寬不折行；右側「本次摘要」大字單行 */
 .stats.side-stats{grid-template-columns:1fr}
@@ -609,24 +611,37 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .featrow .fi{display:grid;gap:4px;min-width:0}
 @media (max-width:560px){.featrow{grid-template-columns:1fr}}
 
-/* 節次與時長（校-55）、預備教室排座與標籤（校-56）：稿 v2.18／v2.19 */
+/* 節次與時長（共用設定第六個分頁，稿 v2.22／D94）：照原型稿，一天一欄、科目由上往下 */
 .tt{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;align-items:start}
 @media (max-width:700px){.tt{grid-template-columns:1fr}}
-.ttc{display:grid;gap:8px}
-.ttc .hd{display:flex;justify-content:space-between;font-weight:700}
-.ttr{display:grid;grid-template-columns:auto 1fr auto;gap:6px 10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
-.ttr.same{border-style:dashed}
-.ttr .sn{font-weight:700;color:var(--text-2)}
-.ttr .dur{display:inline-flex;gap:4px;align-items:center}.ttr .dur .input{width:72px}
-.ttr .ops{grid-column:1/-1;display:flex;gap:6px;flex-wrap:wrap}
-.ttr .sub{grid-column:1/-1;display:flex;gap:12px;flex-wrap:wrap;align-items:center;font-size:14px}
-.psec{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
-.sh{font-size:17px;margin:0}
-.pmode{display:grid;gap:8px}
-.pmode .opt{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
-.pmode .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
-.plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:10px}
-.plbl{background:#fff;color:#22201B;border:1px solid var(--line-2);border-radius:var(--r-md);padding:8px 10px;display:grid;gap:4px}
+.ttc{border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);display:grid;gap:0;overflow:hidden}
+.ttc>.hd{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 12px;background:var(--sunken);border-bottom:1px solid var(--line);font-weight:800}
+.ttr{display:grid;grid-template-columns:auto 56px minmax(0,1fr) 78px auto;gap:6px 8px;align-items:center;padding:8px 10px;border-bottom:1px solid var(--line);background:var(--surface)}
+.ttr.same{background:var(--accent-soft);border-left:4px solid var(--accent)}
+.ttr.dragging{opacity:.4}.ttr.over,.ttc>.end.over{outline:3px solid var(--accent);outline-offset:-3px}
+.ttr .sgrip{cursor:grab;user-select:none;font-size:20px;line-height:1;color:var(--text-3);padding:6px 4px;border-radius:6px;touch-action:none}
+.ttr .sgrip:hover{background:var(--sunken);color:var(--text)}
+.ttr .sn{font-weight:800;color:var(--accent);white-space:nowrap}
+.ttr .input{height:36px;min-height:36px;min-width:0}
+.ttr .dur{display:flex;align-items:center;gap:4px}.ttr .dur .input{width:60px;padding:0 6px;text-align:right}.ttr .dur span{font-size:13px;color:var(--text-2)}
+.ttr .ops{display:flex;gap:2px}.ttr .ops .btn{min-height:36px;min-width:36px;padding:0 8px}
+.ttr .sub{grid-column:2/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:13px;color:var(--text-2)}
+.ttr .sub label{display:flex;align-items:center;gap:6px}.ttr .sub .input{width:120px}
+.ttc>.end{padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+@media (max-width:480px){.ttr{grid-template-columns:auto 48px minmax(0,1fr) auto}.ttr .dur{grid-column:2/4}.ttr .ops{grid-column:4;grid-row:1}.ttr .sub{grid-column:1/-1}}
+/* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
+.plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+
+/* 步驟③「預備教室排座與標籤」卡（稿 v2.22，D94-4、D94-5）：照原型稿 */
+/* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
+.plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
+.plbl{border:2px solid #222;border-radius:6px;background:#fff;color:#111;padding:10px 12px;display:grid;gap:6px;font-family:var(--font-body,inherit)}
 .plbl .plh{font-weight:800;font-size:15px;border-bottom:1.5px solid #222;padding-bottom:4px;display:flex;justify-content:space-between;gap:8px}
 .plbl .pl{font-size:20px;font-weight:800;line-height:1.25;display:flex;gap:10px;align-items:baseline}
 .plbl .pl small{font-size:14px;font-weight:700;min-width:72px}
+.plbl.sp{background:#FFE08A}
+.pmode{display:grid;gap:8px}
+.psec{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
+.sh{font-size:17px;margin:0}
+.pmode .opt{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
+.pmode .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}

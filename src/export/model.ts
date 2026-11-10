@@ -19,8 +19,8 @@ import {
   type Settings,
   type Student,
 } from '../data';
-import { examPeriods } from '../core/period';
 import { detachRoomCounts, roomStats, specialOf, type RoomStats } from '../core/stats';
+import { examSubjectPeriods } from '../core/periods';
 import { classColor } from './colors';
 
 export interface ExportInput {
@@ -48,6 +48,11 @@ export interface CellModel {
   tags: { kind: 'absent' | 'extra'; text: string }[];
   /** 同一批標示拆成「小標＋科目」，列印頁把同小標的科目合併成一個標示（例：X 數B、社會） */
   marks: { kind: 'absent' | 'extra' | 'detach'; head: string; subject: string }[];
+  /**
+   * 預備教室合併標籤（D94-5）：每個座位一張，各節一行、同字級，印「節次＋科目＋班座號」，不印時間與姓名。
+   * 有這個欄位的格子只印座標與這幾行。
+   */
+  periodLines?: { head: string; text: string }[];
 }
 export interface StatsModel {
   perClass: { className: string; count: number }[];
@@ -158,6 +163,8 @@ interface Ctx {
   entries: Map<string, ExamEntry>;
   input: ExportInput;
 }
+const parseCode = (code: string) => ({ classNo: Number(code.slice(0, 2)), seatNo: Number(code.slice(2)) });
+
 function ctxOf(input: ExportInput): Ctx {
   return {
     students: new Map(input.students.map((s) => [studentCode(s.classNo, s.seatNo), s])),
@@ -361,41 +368,51 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
     });
   }
   if (scope !== 'class') {
-    // 預備教室標籤（校-56 合併標籤）：每間教室一張紙、每個座位一張標籤；各節使用者列在同一張（每節一行，印節次＋科目、不印時間）
-    const periods = examPeriods(input.settings, input.exam);
-    const byRoom = new Map<string, typeof input.result.detaches>();
+    // 預備教室合併標籤（D94-5）：每間預備教室一張紙、每個座位一張標籤；同一座位各節的使用者列在同一張，每節一行
+    const periods = examSubjectPeriods(input.exam, input.settings);
+    type MergedCell = { seat: { row: number; depth: number }; lines: { period: number; head: string; text: string }[] };
+    const byRoom = new Map<string, Map<string, MergedCell>>();
     for (const d of input.result.detaches) {
       if (d.purpose !== 'exam' || !d.seat) continue;
-      byRoom.set(d.roomId, [...(byRoom.get(d.roomId) ?? []), d]);
+      const seats = byRoom.get(d.roomId) ?? new Map<string, MergedCell>();
+      byRoom.set(d.roomId, seats);
+      const k = seatLabel(d.seat);
+      const cell: MergedCell = seats.get(k) ?? { seat: d.seat, lines: [] };
+      seats.set(k, cell);
+      const p = parseCode(d.code);
+      const who = `${ctx.classes.get(p.classNo)?.name ?? p.classNo} ${String(p.seatNo).padStart(2, '0')}`;
+      for (const sp of periods.get(d.subjectId) ?? [{ period: 0, label: ctx.subjectName.get(d.subjectId) ?? d.subjectId }]) {
+        if (cell.lines.some((l) => l.period === sp.period && l.text.endsWith(who))) continue;
+        cell.lines.push({ period: sp.period, head: sp.period ? `第 ${sp.period} 節` : '', text: `${sp.label}　${who}` });
+      }
     }
-    for (const [roomId, ds] of byRoom) {
+    const order = [...input.exam.classroomIds, ...byRoom.keys()];
+    for (const roomId of [...new Set(order)]) {
+      const seats = byRoom.get(roomId);
       const room = input.settings.classrooms.find((c) => c.id === roomId);
-      if (!room) continue;
-      checkLabelBounds(room.name, ds.map((d) => d.seat!), layout);
-      const bySeat = new Map<string, typeof ds>();
-      for (const d of ds) bySeat.set(`${d.seat!.row}-${d.seat!.depth}`, [...(bySeat.get(`${d.seat!.row}-${d.seat!.depth}`) ?? []), d]);
-      const cells = [...bySeat.values()]
-        .sort((x, y) => x[0]!.seat!.row - y[0]!.seat!.row || x[0]!.seat!.depth - y[0]!.seat!.depth)
-        .map((users) => {
-          const sorted = [...users].sort((x, y) => (periods.get(x.subjectId) ?? 0) - (periods.get(y.subjectId) ?? 0));
-          const first = sorted[0]!;
-          const c = makeCell(first.code, first.seat!, ctx);
-          c.marks = sorted.map((u) => {
-            const sname = ctx.subjectName.get(u.subjectId) ?? u.subjectId;
-            const who = u.code === first.code ? '' : `（${u.code} ${ctx.students.get(u.code)?.name ?? ''}）`;
-            return { kind: 'detach' as const, head: `第${periods.get(u.subjectId) ?? '?'}節`, subject: `${sname}${who}` };
-          });
-          c.tags = c.marks.map((m) => ({ kind: 'extra' as const, text: `${m.head} ${m.subject}` }));
-          return c;
-        });
+      if (!seats || !room) continue;
+      const list = [...seats.values()].sort((a, b) => a.seat.row - b.seat.row || a.seat.depth - b.seat.depth);
+      checkLabelBounds(room.name, list.map((x) => x.seat), layout);
       pages.push({
         kind: 'label',
-        title: `${input.exam.name}　${room.name}　預備教室`,
+        title: `${input.exam.name}　${room.name}　抽離考試`,
         examName: input.exam.name,
-        roomName: `${room.name}　預備教室`,
+        roomName: `${room.name}　抽離考試`,
         layout,
         notes: labelNoteLines(input.settings.labelNotes),
-        cells,
+        cells: list.map((x) => ({
+          coord: seatLabel(x.seat),
+          seat: { row: x.seat.row, depth: x.seat.depth },
+          code: '',
+          classLabel: '',
+          name: '',
+          colorBg: 'FFFFFF',
+          colorLine: '222222',
+          colorFg: '22201B',
+          tags: [],
+          marks: [],
+          periodLines: x.lines.sort((a, b) => a.period - b.period).map(({ head, text }) => ({ head, text })),
+        })),
       });
     }
   }
@@ -527,4 +544,20 @@ export function labelBoxMm(layout: LabelLayout, margin: number, noteLines = 3): 
   const fit = Math.floor(((paper.h - margin - labelReserveMm(layout.paper, noteLines)) / layout.rows) * 10) / 10;
   const h = Math.min(35, base.h, fit);
   return { w, h, padX: Math.max(margin, +((paper.w - layout.cols * w) / 2).toFixed(2)) };
+}
+
+/** 估字寬（em）：中日韓全形 1、其他 0.55 */
+const emWidth = (t: string): number => [...t].reduce((w, ch) => w + (/[\u2E80-\uFFFF]/.test(ch) ? 1 : 0.55), 0);
+
+/**
+ * 合併標籤每一行的字級（pt）：同一張標籤所有行同字級（D94-5），依格子高度與最長一行的寬度取能放下的最大值。
+ * 節次小標用 0.7 倍字級。cellW、cellH 為格子內可用的寬高（mm）。
+ */
+export function periodLineFontPt(lines: readonly { head: string; text: string }[], cellW: number, cellH: number): number {
+  if (!lines.length) return 12;
+  const PT = 0.3528;
+  const byH = cellH / lines.length / 1.35 / PT;
+  const widest = Math.max(...lines.map((l) => emWidth(l.head) * 0.7 + 0.6 + emWidth(l.text)));
+  const byW = cellW / widest / PT;
+  return Math.max(6, Math.min(26, Math.floor(Math.min(byH, byW) * 2) / 2));
 }

@@ -68,7 +68,6 @@ describe('真實版面結構回歸（寫死的計數）', () => {
             ])
           : [{ subjectId: 'sci', mode: 'mark-absent' as const }],
         overrides: [{ kind: 'single' as const, code: '0101', location: '教務處', purpose: 'exam' as const }],
-        reserveMode: 'invigilator' as const,
         now: '2026-11-08T08:00:00Z',
       };
       const r = runSeating(input);
@@ -148,7 +147,6 @@ describe.skipIf(!HAS_LOCAL)('本機真實檔案：只斷言結構與計數（不
       subjects,
       markRules: [],
       overrides: [],
-      reserveMode: 'invigilator' as const,
       now: '2026-11-08T08:00:00Z',
     };
     const r = runSeating(input);

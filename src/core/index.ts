@@ -7,4 +7,4 @@ export * from './detach';
 export * from './stats';
 export * from './version';
 export * from './run';
-export * from './period';
+export * from './periods';

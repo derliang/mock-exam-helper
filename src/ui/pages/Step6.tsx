@@ -10,8 +10,8 @@ import { Alert, Badge, Button, FormatPick, Seg, StepHead } from '../components';
 import { enabledExportItems, useIsEnabled } from '../features';
 import { prepareExport, relevantIssues, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
-import { isStale } from '../seating';
 import type { Doc } from '../store';
+import { isStale, validationChecks } from '../seating';
 import { defaultLabelLayout } from '../../export/model';
 
 type Loaded = { fonts: FontData; has: (ch: string) => boolean };
@@ -112,12 +112,14 @@ export function Step6(p: {
   // 選用功能多出的匯出項（D75）：功能關閉時完全不出現
   const extras = enabledExportItems({ settings: p.doc.settings, examKind: exam.kind });
   const chosenExtras = extras.filter((x) => extraOn[x.key]);
+  const extraRank = (id: string) => { const i = ['pickup-list', 'attendance-sheet', 'print-alignment'].indexOf(id); return i < 0 ? 99 : i; };
+  const orderedExtras = [...extras].sort((a, b) => extraRank(a.featureId) - extraRank(b.featureId));
   const mainNone = !o.seat && !o.label && !o.study && !o.reserve;
   const diffs = p.unresolvedDiffs ?? unresolvedDiffsOf(p.doc, exam);
   const prepared = useMemo(() => prepareExport(p.doc, exam), [p.doc, exam]);
-  // 校-64：排座結果過期（名單或設定在排座後改過）→ 琥珀橫幅、下載停用
+  // 校-64：名單或設定在排座後改過＝過期；⑤ 沒傳進來就自己算（排座簽章＝result.dataVersion，舊資料沒有簽章視為未過期）
   const stale = p.stale ?? isStale(p.doc, exam);
-  const otherErrors = prepared.ok ? [] : prepared.errors.filter((e) => !e.startsWith('排座已過期'));
+  const shownErrors = prepared.ok ? [] : prepared.errors.filter((e) => !(stale && e.startsWith('排座已過期')));
   const loader = p.loadFonts ?? (async () => (await import('../../export/fontLoader')).loadFonts());
 
   // 字集檢查要字型字集；先用「全部通過」，載入後再重算（使用者按匯出前就會載入）
@@ -165,18 +167,19 @@ export function Step6(p: {
     <section>
       <StepHead title="⑥ 下載">下載座位表、標籤與名單；要列印請開下載的檔案。</StepHead>
       {stale && (
-        <div style="margin-top:12px"><Alert tone="warn" action={<Button small kind="primary" onClick={() => p.onGoStep(5)}>重新排座</Button>}>
-          <b>過期　排座結果過期，下載已停用。</b>名單或設定在排座之後改過，請先重新排座。
-        </Alert></div>
+        <div class="stale-banner" role="status" style="margin-top:12px">
+          <Badge tone="warn">過期</Badge>排座結果過期，下載已停用。
+          <Button small kind="primary" onClick={() => p.onGoStep(5)}>重新排座</Button>
+        </div>
       )}
-      {!prepared.ok && otherErrors.length > 0 && (
+      {shownErrors.length > 0 && (
         <div style="margin-top:12px"><Alert tone="danger">
           <b>還不能下載：</b>
-          <ul>{otherErrors.map((e) => <li key={e}>{e}</li>)}</ul>
+          <ul>{shownErrors.map((e) => <li key={e}>{e}</li>)}</ul>
           <div class="row" style="margin-top:8px">
-            {prepared.errors.some((e) => e.startsWith('缺考試名單')) && <Button small kind="primary" onClick={() => p.onGoStep(2)}>去 ② 匯入考試名單</Button>}
-            {prepared.errors.some((e) => e.startsWith('缺排座結果') || e.startsWith('排座已過期') || e.startsWith('排座驗證未通過')) && <Button small kind="primary" onClick={() => p.onGoStep(5)}>回 ⑤ 排座</Button>}
-            {prepared.errors.some((e) => e.startsWith('缺教室')) && <Button small kind="primary" onClick={() => p.onGoStep(3)}>去 ③ 勾選教室</Button>}
+            {shownErrors.some((e) => e.startsWith('缺考試名單')) && <Button small kind="primary" onClick={() => p.onGoStep(2)}>去 ② 匯入考試名單</Button>}
+            {shownErrors.some((e) => e.startsWith('缺排座結果') || e.startsWith('排座已過期') || e.startsWith('排座驗證未通過')) && <Button small kind="primary" onClick={() => p.onGoStep(5)}>回 ⑤ 排座</Button>}
+            {shownErrors.some((e) => e.startsWith('缺教室')) && <Button small kind="primary" onClick={() => p.onGoStep(3)}>去 ③ 勾選教室</Button>}
           </div>
         </Alert></div>
       )}
@@ -188,7 +191,7 @@ export function Step6(p: {
           </Alert>
         </div>
       ))}
-      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>驗證通過：</b>全部檢查符合，可以下載。</Alert></div>}
+      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>驗證通過：</b>{prepared.ok ? validationChecks(p.doc, exam, prepared.input.result).length : 0} 項檢查全部符合，可以下載。</Alert></div>}
 
       <div class="card stack" style="margin-top:12px">
         <div>
@@ -200,6 +203,13 @@ export function Step6(p: {
         </div>
         <div class="stack">
           {ck('seat', '座位表（A4）', '合併成一個檔案，每間班級教室一頁；每頁附該教室的考生統計')}
+          {/* 稿 v2.22（校-47）：選用項穿插在核心項之間——座位表、領卷清單、出缺席記錄表、對位測試頁、標籤 */}
+          {orderedExtras.map((x) => (
+            <label key={x.key} class="check" style="align-items:flex-start">
+              <input type="checkbox" checked={!!extraOn[x.key]} onChange={(e) => { setExtraOn((m) => ({ ...m, [x.key]: e.currentTarget.checked })); setResults(null); }} />
+              <span><b>{x.title}</b><br /><span class="small muted">{x.sub}</span></span>
+            </label>
+          ))}
           {ck('label', '標籤', '合併成一個檔案，每間班級教室一張紙；標籤格大小固定，白底' + (junior ? '' : '；不考、加考、抽離的標籤用淡黃底'))}
           <div class="field" style="margin-left:30px">
             <span class="label">標籤紙張（只有標籤可選；座位表與名單固定 A4）</span>
@@ -209,17 +219,6 @@ export function Step6(p: {
           {!junior && ck('study', '抽離自習名單（A4）', '合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')}
           {!junior && ck('reserve', `預備教室的座位表（A4）與標籤（${o.paper}）`, '抽離考試，每節科目各自排；座位表、標籤各合併成一個檔案')}
         </div>
-        {extras.length > 0 && (
-          <div class="stack">
-            <span class="label">選用功能的輸出</span>
-            {extras.map((x) => (
-              <label key={x.key} class="check" style="align-items:flex-start">
-                <input type="checkbox" checked={!!extraOn[x.key]} onChange={(e) => { setExtraOn((m) => ({ ...m, [x.key]: e.currentTarget.checked })); setResults(null); }} />
-                <span><b>{x.title}</b><br /><span class="small muted">{x.sub}</span></span>
-              </label>
-            ))}
-          </div>
-        )}
         <div class="row" style="justify-content:space-between">
           <span class="muted">{o.format === 'pdf' ? '將開啟' : '將下載'} <b class="num">{(o.format === 'pdf' && files.length ? 1 : files.length) + chosenExtras.length}</b> {o.format === 'pdf' ? '個列印頁' : '個檔案'}</span>
           <button type="button" class="btn btn-primary btn-lg" disabled={blocked || busy || (files.length === 0 && chosenExtras.length === 0)} onClick={go}>

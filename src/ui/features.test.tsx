@@ -96,15 +96,15 @@ describe('選用功能：註冊表接入（用假功能驗證）', () => {
     } finally { dispose(); }
   });
 
-  it('匯出頁：功能關閉時看不到「選用功能的輸出」與該項；開啟後才出現', () => {
+  it('匯出頁：功能關閉時看不到該項；開啟後才出現', () => {
     const dispose = registerFeature(TEST_DEF.id, ui, TEST_DEF);
     try {
       const off = renderToString(<Step6 doc={docOf()} exam={docOf().exams[0]!} onGoStep={() => {}} />);
-      expect(off).not.toContain('選用功能的輸出');
       expect(off).not.toContain('測試匯出項');
       const d = docOf({ [TEST_DEF.id]: true });
       const on = renderToString(<Step6 doc={d} exam={d.exams[0]!} onGoStep={() => {}} />);
-      expect(on).toContain('選用功能的輸出');
+      expect(on.indexOf('測試匯出項')).toBeGreaterThan(on.indexOf('座位表（A4）'));
+      expect(on.indexOf('測試匯出項')).toBeLessThan(on.indexOf('>標籤<'));
       expect(on).toContain('測試匯出項');
     } finally { dispose(); }
   });

@@ -10,7 +10,6 @@ import {
   roomStats,
   specialOf,
   runSeating,
-  examPeriods,
   fullyAbsentCodes,
   entryTracks,
   seatingVersion,
@@ -21,6 +20,7 @@ import {
   type RunSeatingInput,
   type DetachResult,
 } from '../core';
+import { examSubjectPeriods } from '../core/periods';
 import type { Doc, Result } from './store';
 import { roomsMissingTrack } from './rooms';
 
@@ -159,13 +159,16 @@ export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeat
     subjects: exam.subjects,
     markRules: effectiveMarkRules(doc, exam).rules,
     overrides: examOverrides(doc, exam),
-    periods: examPeriods(doc.settings, exam),
-    ...(exam.reserveMode ? { reserveMode: exam.reserveMode } : {}),
     ...(exam.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
     ...(rosterNameDiffs(doc, exam).length ? { rosterNames: rosterNameDiffs(doc, exam) } : {}),
+    periods: examSubjectPeriods(exam, doc.settings),
+    reserveMode: reserveModeOf(exam),
     now,
   };
 }
+
+/** 預備教室排座方式（D94-4）：沒設＝① 同學優先 */
+export const reserveModeOf = (exam: ExamConfig): 'peer' | 'proctor' => exam.reserveSeatMode ?? 'peer';
 
 /** 排座前必須先處理的事（擋下並說明，D25） */
 export function seatingBlockers(doc: Doc, exam: ExamConfig): Blocker[] {
@@ -185,7 +188,8 @@ export function seatingBlockers(doc: Doc, exam: ExamConfig): Blocker[] {
 /** 過期（D22）：有結果，但名單或設定在排座後改過 */
 export function isStale(doc: Doc, exam: ExamConfig): boolean {
   const r = examResult(doc, exam);
-  return !!r && r.dataVersion !== seatingVersion(seatingInputOf(doc, exam, r.generatedAt));
+  // 舊存檔沒有排座簽章（dataVersion）就無從比對，視為未過期
+  return !!r && !!r.dataVersion && r.dataVersion !== seatingVersion(seatingInputOf(doc, exam, r.generatedAt));
 }
 
 function withFiles(doc: Doc, examId: string, patch: Partial<NonNullable<Doc['examFiles']>[string]>): Doc {
@@ -284,8 +288,8 @@ export function detachPreview(doc: Doc, exam: ExamConfig): DetachResult {
     overrides: examOverrides(doc, exam),
     reserveRooms: examRooms(doc, exam).filter((r) => r.kind === 'reserve'),
     classes: examClasses(doc, exam),
-    periods: examPeriods(doc.settings, exam),
-    ...(exam.reserveMode ? { reserveMode: exam.reserveMode } : {}),
+    periods: examSubjectPeriods(exam, doc.settings),
+    mode: reserveModeOf(exam),
   });
 }
 

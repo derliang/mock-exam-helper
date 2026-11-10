@@ -136,7 +136,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
       const expected = new Map<string, number>();
       const bump = (n: string) => n && expected.set(n, (expected.get(n) ?? 0) + 1);
       for (const p of seat) for (const c of p.cells.values()) bump(c.name);
-      for (const p of label) for (const c of p.cells) { bump(c.name); for (const m of c.marks) { const w = /（\d{4} (.+)）/.exec(m.subject); if (w) bump(w[1]!); } } // 合併標籤共用座位：後面節次的人印在標示行
+      for (const p of label) for (const c of p.cells) bump(c.name);
       for (const r of list.rows) bump(r.name);
 
       const docx = await docxText(await renderDocx({ seat, label, list }, { fonts, ...meta }));
@@ -162,7 +162,8 @@ describe('姓名來源不同步的保險（缺陷 F-1 回歸）', () => {
     expect(x).toBeTruthy();
     const input = { ...x.input, students: [] };
     for (const p of buildSeatPages(input)) for (const c of p.cells.values()) expect(c.name, c.code).not.toBe('');
-    for (const p of buildLabelPages(input)) for (const c of p.cells) expect(c.name, c.code).not.toBe('');
+    // 預備教室合併標籤（D94-5）只印節次＋科目＋班座號、不印姓名，不在此檢查
+    for (const p of buildLabelPages(input)) for (const c of p.cells) if (!c.periodLines) expect(c.name, c.code).not.toBe('');
     for (const r of buildDetachList(input).rows) expect(r.name, r.code).not.toBe('');
   });
 });

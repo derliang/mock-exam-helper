@@ -1,6 +1,7 @@
 import type { ExamConfig, Track } from '../../data';
 import { Alert, Badge, Button, Seg, StepHead } from '../components';
 import { RoomList } from '../components/RoomList';
+import { PrepCard } from './PrepCard';
 import { classCapacity, reserveCheck } from '../capacity';
 import { newClassRoomIds, roomsMissingTrack } from '../rooms';
 import { examEntries, examRooms, seatableEntries } from '../seating';
@@ -84,33 +85,7 @@ export function Step3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         ) : <Alert tone="info">會考不分文理組，所有班級打散到所有教室。</Alert>}
       </div>
 
-
-      {senior && (
-        <div class="card stack">
-          <div><h3>預備教室排座與標籤</h3><p class="small muted">加考的同學去預備教室時，座位怎麼排，以及標籤長什麼樣子。</p></div>
-          <div class="stack" style="gap:8px">
-            <div><h4 class="sh">排座方式</h4><p class="small muted">兩種都可以選，預設「同學優先」。</p></div>
-            <div class="pmode" role="group" aria-label="預備教室排座方式">
-              {([['student', '① 同學優先（預設）', '同一個人每一節盡量坐同一個座位，方便貼標籤；同班照編號由前往後排。預備教室放不下時，才讓不同節的人共用座位（退回監考優先的排法）。'],
-                ['invigilator', '② 監考優先', '每一節各自排，同班坐在一起、座號一定由小到大，方便監考；同學不保證每節同一個座位。']] as const).map(([v, t, d]) => (
-                <button type="button" class="opt" key={v} aria-pressed={(exam.reserveMode ?? 'student') === v}
-                  onClick={() => { const r = updateExam(doc, exam.id, { reserveMode: v }); if (r.ok) p.onChange(r.doc); }}>
-                  <b>{t}</b><span class="small muted">{d}</span>
-                </button>
-              ))}
-            </div>
-          </div>
-          <div class="psec">
-            <div><h4 class="sh">合併標籤（範例）</h4><p class="small muted">預備教室每個座位一張。同一個座位在不同節由不同人使用時，各節列在同一張，只貼一次；每節一行，印「節次＋科目」，不印時間。抽離自習不排座位、不印標籤，只出名單。節次依共用設定「節次與時長」。同一節各科的抽離人數會加總，再和預備教室座位比。</p></div>
-            <div class="plbls">
-              <div class="plbl"><div class="plh"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第 5 節</small><span>歷史</span></div></div>
-              <div class="plbl"><div class="plh"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第 1 節</small><span>物理</span></div><div class="pl"><small>第 7 節</small><span>數乙</span></div></div>
-              <div class="plbl"><div class="plh"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第 2 節</small><span>化學</span></div><div class="pl"><small>第 6 節</small><span>地理（另一位同學）</span></div></div>
-            </div>
-            <p class="small muted">第 2 張：同一個人跨節坐同一格。第 3 張：兩個不同的人共用同一格。</p>
-          </div>
-        </div>
-      )}
+      {senior && <PrepCard doc={doc} exam={exam} onChange={p.onChange} />}
 
       <div class="card stack">
         <div class="row" style="justify-content:space-between"><div><h3>教室與座位</h3><p class="small muted">打開開關就列入本次考試；{senior ? '預備教室座位另計，不計入班級教室合計。' : ''}教室清單是所有模擬考共用的：修改教室會影響其他使用這間教室的模擬考。</p></div>{p.onToRooms && <Button onClick={p.onToRooms}>到共用設定看教室清單</Button>}</div>

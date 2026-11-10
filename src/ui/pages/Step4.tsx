@@ -132,7 +132,6 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       <div class="card stack">
         <div><h3>抽離人數</h3><p class="small muted">標示一變，這裡立即重算。抽離考試的人依序排進 ③ 勾選的預備教室；抽離自習只出名單。</p></div>
-        {exam.kind === 'gsat' && <p class="small muted">國文標示整個一起：國綜、國寫兩節一起抽離（節次見共用設定「節次與時長」）。</p>}
         {!preview.ok
           ? (
             <Alert tone="danger" action={<Button onClick={() => p.onStep(3)}>前往 ③ 教室設定</Button>}>
@@ -161,6 +160,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               </table>
             </div>
           )}
+        {exam.kind === 'gsat' && <p class="small muted">國文標示整個一起：國綜、國寫兩節一起抽離（節次見共用設定「節次與時長」）。</p>}
         <div class="row"><Button onClick={() => p.onStep(5)}>查看預備教室與抽離</Button></div>
       </div>
     </section>
