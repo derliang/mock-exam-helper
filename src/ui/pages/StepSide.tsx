@@ -67,7 +67,7 @@ function Side4(p: { doc: Doc; exam: ExamConfig }) {
                 <div class="lsheet-one" style={`width:${(x.w * 2.4).toFixed(1)}px;height:${(x.h * 2.4).toFixed(1)}px`}>
                   <div class="lprev-cell" style={`width:${sheetW(x.w).toFixed(1)}px;height:${((x.h / 8) * 2.4).toFixed(1)}px`}>
                     {stu && cls && (
-                      <div class={`lcell${mark ? (mark.startsWith('X') ? ' mk-x' : ' mk-add') : ''}`} style={`background:var(--c${cls.colorIndex}-bg);--cx:var(--c${cls.colorIndex}-ink)`}>
+                      <div class={`lcell${mark ? (mark.startsWith('X') ? ' mk-x sp' : ' mk-add sp') : ''}`}>
                         <span class="co">1-1</span>
                         <span class="no">{code}</span>
                         <span class="nm"><span class="tag-c">{cls.name[0]}</span>{stu.name}</span>
