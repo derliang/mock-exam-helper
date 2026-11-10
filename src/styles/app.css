@@ -304,6 +304,8 @@ section>header p{color:var(--text-2);max-width:72ch}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .pagehead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:20px}
 .pagehead h1,.pagehead h2{margin-right:auto}
+/* 稿 v2.22（校-20）：頁首的返回鈕比內文連結大：高 40、左右 16，不加底線 */
+.pagehead>.btn-ghost{min-height:40px;padding:0 16px;text-decoration:none}
 .proto-note{margin:14px 0 0}
 #app{padding-block:18px 80px}
 .center-card{max-width:min(100%,clamp(620px,60vw,900px));margin:32px auto 0;display:grid;gap:18px}
