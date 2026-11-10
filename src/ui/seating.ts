@@ -10,6 +10,7 @@ import {
   roomStats,
   specialOf,
   runSeating,
+  examPeriods,
   fullyAbsentCodes,
   entryTracks,
   seatingVersion,
@@ -158,6 +159,8 @@ export function seatingInputOf(doc: Doc, exam: ExamConfig, now: string): RunSeat
     subjects: exam.subjects,
     markRules: effectiveMarkRules(doc, exam).rules,
     overrides: examOverrides(doc, exam),
+    periods: examPeriods(doc.settings, exam),
+    ...(exam.reserveMode ? { reserveMode: exam.reserveMode } : {}),
     ...(exam.seatFullyAbsent ? { seatFullyAbsent: true } : {}),
     ...(rosterNameDiffs(doc, exam).length ? { rosterNames: rosterNameDiffs(doc, exam) } : {}),
     now,
@@ -281,6 +284,8 @@ export function detachPreview(doc: Doc, exam: ExamConfig): DetachResult {
     overrides: examOverrides(doc, exam),
     reserveRooms: examRooms(doc, exam).filter((r) => r.kind === 'reserve'),
     classes: examClasses(doc, exam),
+    periods: examPeriods(doc.settings, exam),
+    ...(exam.reserveMode ? { reserveMode: exam.reserveMode } : {}),
   });
 }
 

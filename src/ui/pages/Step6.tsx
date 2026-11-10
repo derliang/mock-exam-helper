@@ -10,6 +10,7 @@ import { Alert, Badge, Button, FormatPick, Seg, StepHead } from '../components';
 import { enabledExportItems, useIsEnabled } from '../features';
 import { prepareExport, relevantIssues, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
+import { isStale } from '../seating';
 import type { Doc } from '../store';
 import { defaultLabelLayout } from '../../export/model';
 
@@ -114,13 +115,16 @@ export function Step6(p: {
   const mainNone = !o.seat && !o.label && !o.study && !o.reserve;
   const diffs = p.unresolvedDiffs ?? unresolvedDiffsOf(p.doc, exam);
   const prepared = useMemo(() => prepareExport(p.doc, exam), [p.doc, exam]);
+  // 校-64：排座結果過期（名單或設定在排座後改過）→ 琥珀橫幅、下載停用
+  const stale = p.stale ?? isStale(p.doc, exam);
+  const otherErrors = prepared.ok ? [] : prepared.errors.filter((e) => !e.startsWith('排座已過期'));
   const loader = p.loadFonts ?? (async () => (await import('../../export/fontLoader')).loadFonts());
 
   // 字集檢查要字型字集；先用「全部通過」，載入後再重算（使用者按匯出前就會載入）
   const has = fontState?.has ?? (() => true);
   // 「至少選一項」：核心項目全不選但有勾選用文件時算有選；畫面與按下去用同一條件
   const relevant = (list: ReturnType<typeof preflight>) => relevantIssues(list, mainNone, chosenExtras.length);
-  const issues = relevant(prepared.ok ? preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, has) : []);
+  const issues = relevant(prepared.ok ? preflight(prepared.input, o, { stale, unresolvedDiffs: diffs }, has) : []);
   const blocked = !prepared.ok || issues.some((i) => i.level === 'block');
   const files = prepared.ok && !blocked && !mainNone ? planFiles(prepared.input, o) : [];
 
@@ -132,7 +136,7 @@ export function Step6(p: {
       const env = fontState ?? (await loader());
       setFontState(env);
       // 載入字型後字集檢查可能出現新警告：有新的擋下項目就停
-      const again = relevant(preflight(prepared.input, o, { stale: p.stale, unresolvedDiffs: diffs }, env.has));
+      const again = relevant(preflight(prepared.input, o, { stale, unresolvedDiffs: diffs }, env.has));
       const hit = again.filter((i) => i.level === 'block');
       if (hit.length) { setErr(`無法下載：${hit.map((i) => i.text).join('；')}`); return; }
       const out = mainNone ? [] : await runExport(prepared.input, o, { fonts: env.fonts });
@@ -160,10 +164,15 @@ export function Step6(p: {
   return (
     <section>
       <StepHead title="⑥ 下載">下載座位表、標籤與名單；要列印請開下載的檔案。</StepHead>
-      {!prepared.ok && (
+      {stale && (
+        <div style="margin-top:12px"><Alert tone="warn" action={<Button small kind="primary" onClick={() => p.onGoStep(5)}>重新排座</Button>}>
+          <b>過期　排座結果過期，下載已停用。</b>名單或設定在排座之後改過，請先重新排座。
+        </Alert></div>
+      )}
+      {!prepared.ok && otherErrors.length > 0 && (
         <div style="margin-top:12px"><Alert tone="danger">
           <b>還不能下載：</b>
-          <ul>{prepared.errors.map((e) => <li key={e}>{e}</li>)}</ul>
+          <ul>{otherErrors.map((e) => <li key={e}>{e}</li>)}</ul>
           <div class="row" style="margin-top:8px">
             {prepared.errors.some((e) => e.startsWith('缺考試名單')) && <Button small kind="primary" onClick={() => p.onGoStep(2)}>去 ② 匯入考試名單</Button>}
             {prepared.errors.some((e) => e.startsWith('缺排座結果') || e.startsWith('排座已過期') || e.startsWith('排座驗證未通過')) && <Button small kind="primary" onClick={() => p.onGoStep(5)}>回 ⑤ 排座</Button>}
@@ -214,7 +223,7 @@ export function Step6(p: {
         <div class="row" style="justify-content:space-between">
           <span class="muted">{o.format === 'pdf' ? '將開啟' : '將下載'} <b class="num">{(o.format === 'pdf' && files.length ? 1 : files.length) + chosenExtras.length}</b> {o.format === 'pdf' ? '個列印頁' : '個檔案'}</span>
           <button type="button" class="btn btn-primary btn-lg" disabled={blocked || busy || (files.length === 0 && chosenExtras.length === 0)} onClick={go}>
-            {busy ? '產生中…' : p.stale ? '需先重新排座' : o.format === 'word' ? '下載 Word' : '開啟列印頁（存成 PDF）'}
+            {busy ? '產生中…' : stale ? '排座過期，先重新排座' : o.format === 'word' ? '下載 Word' : '開啟列印頁（存成 PDF）'}
           </button>
         </div>
         <p class="small muted">要列印時，請開啟下載的 Word 檔（或另存的 PDF）再列印，本程式不直接列印。頁尾印有產生時間與資料版本碼，可事後核對表是否對應現在的名單與設定。</p>

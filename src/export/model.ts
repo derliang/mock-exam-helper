@@ -19,6 +19,7 @@ import {
   type Settings,
   type Student,
 } from '../data';
+import { examPeriods } from '../core/period';
 import { detachRoomCounts, roomStats, specialOf, type RoomStats } from '../core/stats';
 import { classColor } from './colors';
 
@@ -360,32 +361,41 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
     });
   }
   if (scope !== 'class') {
-    // 預備教室標籤：抽離考試，每間每科一張紙（座位順序同預備教室座位表）
-    const groups = new Map<string, typeof input.result.detaches>();
+    // 預備教室標籤（校-56 合併標籤）：每間教室一張紙、每個座位一張標籤；各節使用者列在同一張（每節一行，印節次＋科目、不印時間）
+    const periods = examPeriods(input.settings, input.exam);
+    const byRoom = new Map<string, typeof input.result.detaches>();
     for (const d of input.result.detaches) {
       if (d.purpose !== 'exam' || !d.seat) continue;
-      const k = `${d.roomId}|${d.subjectId}`;
-      groups.set(k, [...(groups.get(k) ?? []), d]);
+      byRoom.set(d.roomId, [...(byRoom.get(d.roomId) ?? []), d]);
     }
-    for (const [k, ds] of groups) {
-      const [roomId, subjectId] = k.split('|') as [string, string];
+    for (const [roomId, ds] of byRoom) {
       const room = input.settings.classrooms.find((c) => c.id === roomId);
       if (!room) continue;
       checkLabelBounds(room.name, ds.map((d) => d.seat!), layout);
-      const sname = ctx.subjectName.get(subjectId) ?? subjectId;
-      const sorted = [...ds].sort((a, b) => a.seat!.row - b.seat!.row || a.seat!.depth - b.seat!.depth);
+      const bySeat = new Map<string, typeof ds>();
+      for (const d of ds) bySeat.set(`${d.seat!.row}-${d.seat!.depth}`, [...(bySeat.get(`${d.seat!.row}-${d.seat!.depth}`) ?? []), d]);
+      const cells = [...bySeat.values()]
+        .sort((x, y) => x[0]!.seat!.row - y[0]!.seat!.row || x[0]!.seat!.depth - y[0]!.seat!.depth)
+        .map((users) => {
+          const sorted = [...users].sort((x, y) => (periods.get(x.subjectId) ?? 0) - (periods.get(y.subjectId) ?? 0));
+          const first = sorted[0]!;
+          const c = makeCell(first.code, first.seat!, ctx);
+          c.marks = sorted.map((u) => {
+            const sname = ctx.subjectName.get(u.subjectId) ?? u.subjectId;
+            const who = u.code === first.code ? '' : `（${u.code} ${ctx.students.get(u.code)?.name ?? ''}）`;
+            return { kind: 'detach' as const, head: `第${periods.get(u.subjectId) ?? '?'}節`, subject: `${sname}${who}` };
+          });
+          c.tags = c.marks.map((m) => ({ kind: 'extra' as const, text: `${m.head} ${m.subject}` }));
+          return c;
+        });
       pages.push({
         kind: 'label',
-        title: `${input.exam.name}　${room.name}　抽離考試（${sname}）`,
+        title: `${input.exam.name}　${room.name}　預備教室`,
         examName: input.exam.name,
-        roomName: `${room.name}　抽離考試（${sname}）`,
+        roomName: `${room.name}　預備教室`,
         layout,
         notes: labelNoteLines(input.settings.labelNotes),
-        cells: sorted.map((d) => {
-          const c = makeCell(d.code, d.seat!, ctx);
-          detachMark(c, sname);
-          return c;
-        }),
+        cells,
       });
     }
   }

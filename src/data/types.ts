@@ -133,6 +133,8 @@ export interface ExamConfig {
   seatFullyAbsent?: boolean;
   subjects: Subject[];
   markRules: MarkRule[];
+  /** 預備教室排座方式；沒設＝同學優先 */
+  reserveMode?: ReserveMode;
   /** 本次勾選的教室 id（D65） */
   classroomIds: string[];
   labelLayout: LabelLayout;
@@ -244,7 +246,23 @@ export interface Settings {
   markMap?: Record<string, string>;
   /** 選用功能開關（D75）：功能 id → 是否開啟；沒有這個欄位或沒寫的功能一律視為關 */
   features?: Record<string, boolean>;
+  /** 節次表（校-55）：key＝gsat12／gsat34／ast／bcct；沒有就用內建預設（見 core/period.ts） */
+  schedules?: Record<string, ScheduleEntry[]>;
 }
+
+/** 節次表的一列：依順序排；day 是第幾天；same＝與上一科同節（預設不同節，一節一科） */
+export interface ScheduleEntry {
+  subjectId: string;
+  day: 1 | 2;
+  same?: boolean;
+  /** 時長（分鐘），選填，只當資料；標籤不印時間 */
+  dur?: number;
+  /** 開始時間 HH:MM，選填，標籤不印 */
+  time?: string;
+}
+
+/** 預備教室排座方式（校-56）：student＝同學優先（預設）、invigilator＝監考優先 */
+export type ReserveMode = 'student' | 'invigilator';
 
 /** 磁碟檔案外殼：版本與損壞偵測用（D21） */
 export interface FileEnvelope<T> {

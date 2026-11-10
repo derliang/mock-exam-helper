@@ -136,7 +136,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
       const expected = new Map<string, number>();
       const bump = (n: string) => n && expected.set(n, (expected.get(n) ?? 0) + 1);
       for (const p of seat) for (const c of p.cells.values()) bump(c.name);
-      for (const p of label) for (const c of p.cells) bump(c.name);
+      for (const p of label) for (const c of p.cells) { bump(c.name); for (const m of c.marks) { const w = /（\d{4} (.+)）/.exec(m.subject); if (w) bump(w[1]!); } } // 合併標籤共用座位：後面節次的人印在標示行
       for (const r of list.rows) bump(r.name);
 
       const docx = await docxText(await renderDocx({ seat, label, list }, { fonts, ...meta }));

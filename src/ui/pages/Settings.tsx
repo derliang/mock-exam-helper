@@ -7,13 +7,14 @@ import { confirmCopy } from '../flow';
 import { RoomTable } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
 import { RosterIO } from './RosterIO';
+import { SchedulePanel } from './SchedulePanel';
 import { allFeatures, withFeature } from '../features';
 import { addClass, addStudent, nextClassNo, validateClassName, classUsage, removeClass, removeStudent, renameClass, searchStudents, setClassColor, setClassTrack, updateStudent, type Doc } from '../store';
 
-type Tab = 'roster' | 'classes' | 'school' | 'rooms' | 'features';
+type Tab = 'roster' | 'classes' | 'school' | 'rooms' | 'features' | 'schedule';
 const TABS: { value: Tab; label: string }[] = [
   { value: 'roster', label: '學生名單' }, { value: 'classes', label: '班級資料' },
-  { value: 'school', label: '學校與表頭' }, { value: 'rooms', label: '教室清單' }, { value: 'features', label: '選用功能' },
+  { value: 'school', label: '學校與表頭' }, { value: 'rooms', label: '教室清單' }, { value: 'features', label: '選用功能' }, { value: 'schedule', label: '節次與時長' },
 ];
 
 /** 設定頁（D61）：部別切換（UI-07/08）；改動都走 onChange，由 App 記入復原 */
@@ -25,7 +26,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
       <div class="utabs" role="group" aria-label="設定項目" style="margin:12px 0">
         {TABS.map((t) => <button type="button" key={t.value} aria-pressed={tab === t.value} onClick={() => setTab(t.value)}>{t.label}</button>)}
       </div>
-      {tab !== 'school' && tab !== 'features' && (
+      {tab !== 'school' && tab !== 'features' && tab !== 'schedule' && (
         <div class="row" style="margin-bottom:12px">
           <span class="label" style="margin:0">部別</span>
           <div class="seg seg-soft" role="group" aria-label="部別">
@@ -37,6 +38,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
       {tab === 'roster' && <Roster {...p} onChange={(d) => p.onChange(syncDiffs(d))} division={division} />}
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
+      {tab === 'schedule' && <SchedulePanel doc={p.doc} onChange={p.onChange} />}
       {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}
       {tab === 'rooms' && <Rooms doc={p.doc} onChange={p.onChange} division={division} />}
     </section>

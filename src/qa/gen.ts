@@ -112,5 +112,5 @@ export function genCase(rng: Rng, o: GenOptions = {}): RunSeatingInput {
     if (overrides.some((x) => x.code === code)) continue;
     overrides.push({ kind: 'single', code, location: '教務處', purpose: rng.pick(['exam', 'study'] as const) });
   }
-  return { examId: 'E1', division, classes, classrooms, entries, subjects, markRules, overrides, now: '2026-11-08T08:00:00Z' };
+  return { examId: 'E1', division, classes, classrooms, entries, subjects, markRules, overrides, reserveMode: 'invigilator', now: '2026-11-08T08:00:00Z' };
 }

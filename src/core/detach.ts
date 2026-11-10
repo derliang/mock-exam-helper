@@ -24,6 +24,10 @@ export interface DetachInput {
   /** 本次可用的預備教室（依清單順序） */
   reserveRooms: readonly Classroom[];
   classes: readonly ClassInfo[];
+  /** 科目 id → 節次（校-55）；沒給＝每科各自一節。同一節的抽離人數要加總比教室容量 */
+  periods?: ReadonlyMap<string, number>;
+  /** 預備教室排座方式（校-56）；沒給＝同學優先 */
+  reserveMode?: 'student' | 'invigilator';
 }
 
 export type DetachResult =
@@ -75,6 +79,9 @@ export function allocateDetaches(input: DetachInput): DetachResult {
   const overrideOf = new Map(input.overrides.map((o) => [o.code, o]));
   const mixed = mixedMarkCodes(input.marks);
 
+  // 第一輪：每科的抽離考試／抽離自習名單
+  const plan: { subject: Subject; exam: StudentCode[]; study: StudentCode[]; period: number }[] = [];
+  let solo = 1000; // 沒給節次表的科目各自一節（與以前逐科算相同）
   for (const subject of input.subjects) {
     const exam: StudentCode[] = [];
     const study: StudentCode[] = [];
@@ -89,8 +96,35 @@ export function allocateDetaches(input: DetachInput): DetachResult {
     if (!exam.length && !study.length) continue;
     exam.sort(byClassSeat);
     study.sort(byClassSeat);
+    plan.push({ subject, exam, study, period: input.periods?.get(subject.id) ?? solo++ });
+  }
 
-    const examRooms = takeRooms(input.reserveRooms, 0, exam.length);
+  // 同學優先（校-56 模式①）：同一人跨節加考盡量同一個座位。把所有加考的人一次排好，各節用同一份座位；
+  // 放不下（或排出來不合規則）就退回逐科排（模式②做法，不同節共用座位）。
+  let fixed: Map<StudentCode, { roomId: string; seat: { row: number; depth: number } }> | null = null;
+  let fixedEnd = 0;
+  const examPlans = plan.filter((x) => x.exam.length);
+  if (input.reserveMode !== 'invigilator' && examPlans.length >= 2) {
+    const union = [...new Set(examPlans.flatMap((x) => x.exam))].sort(byClassSeat);
+    const rooms = takeRooms(input.reserveRooms, 0, union.length);
+    if (rooms) {
+      const perPeriodStudy = new Map<number, number>();
+      for (const x of plan) perPeriodStudy.set(x.period, (perPeriodStudy.get(x.period) ?? 0) + x.study.length);
+      const needStudy = Math.max(0, ...perPeriodStudy.values());
+      const studyOk = needStudy === 0 || takeRooms(input.reserveRooms, rooms.end, needStudy) !== null;
+      const r = studyOk ? seatGroup(rooms.rooms, union) : null;
+      if (r && r.ok && !validateSeating({ classrooms: rooms.rooms, classes: input.classes, codes: union, assignments: r.assignments, checkTrack: false, roomKind: 'reserve' }).length) {
+        fixed = new Map(r.assignments.map((a) => [a.code, { roomId: a.classroomId, seat: { row: a.row, depth: a.depth } }]));
+        fixedEnd = rooms.end;
+      }
+    }
+  }
+
+  // 同一節的各科要用不同教室：教室游標依節次累計
+  const cursor = new Map<number, number>();
+  for (const { subject, exam, study, period } of plan) {
+    const start = cursor.get(period) ?? fixedEnd;
+    const examRooms = fixed ? { rooms: [] as Classroom[], end: start } : takeRooms(input.reserveRooms, start, exam.length);
     if (!examRooms) {
       errors.push(`${subject.name}：預備教室座位不足以容納抽離考試 ${exam.length} 人`);
       continue;
@@ -101,7 +135,12 @@ export function allocateDetaches(input: DetachInput): DetachResult {
       continue;
     }
 
-    if (exam.length) {
+    if (exam.length && fixed) {
+      for (const code of exam) {
+        const f = fixed.get(code)!;
+        detaches.push({ code, subjectId: subject.id, purpose: 'exam', roomId: f.roomId, seat: { ...f.seat } });
+      }
+    } else if (exam.length) {
       const r = seatGroup(examRooms.rooms, exam);
       if (!r.ok) {
         errors.push(`${subject.name}抽離考試：${r.error}`);
@@ -131,6 +170,7 @@ export function allocateDetaches(input: DetachInput): DetachResult {
       }
       i += room.seatCount;
     }
+    cursor.set(period, studyRooms.end);
   }
   if (errors.length) return { ok: false, errors };
   return { ok: true, detaches, special };
