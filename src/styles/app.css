@@ -589,3 +589,13 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .stats.side-stats{grid-template-columns:1fr}
 .stats.side-stats strong{white-space:nowrap}
 @media (max-width:560px){.field>.seg{width:100%}.field>.seg button{flex:1 1 0;min-width:0;white-space:nowrap;padding:0 6px}}
+
+/* 校-31：步驟③ 狀態檢核——一項一格 */
+.stats.chkgrid{grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:0;background:var(--surface)}
+.stats.chkgrid>div.chk{border-right:1px solid var(--line);border-bottom:1px solid var(--line);margin:0 -1px -1px 0}
+.stats>div.chk{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.stats>div.chk .sub{font-size:13px;color:var(--text-3);font-weight:500}
+.stats>div.chk .badge{margin-top:6px}
+.stats>div.chk.bad{background:var(--danger-soft)}
+.stats>div.chk.warnc::before{background:var(--warn-bar)}
+.errnote{color:var(--danger-ink)}

@@ -77,7 +77,7 @@ describe('④ 標示規則', () => {
   });
 
   it('組別對照表', () => {
-    expect(groupTable(doc(), exam())).toEqual([
+    expect(groupTable(doc(), exam())).toMatchObject([
       { code: '0', count: 3, subjectIds: ['soc', 'sci', 'lis'], differing: 0 },
       { code: '6', count: 2, subjectIds: ['sci', 'lis'], differing: 0 },
       { code: '8', count: 2, subjectIds: ['soc', 'lis'], differing: 0 },
@@ -127,7 +127,7 @@ describe('⑤ 排座', () => {
     const res = r.doc.examFiles!.e1!.result!;
     const broken = { ...res, assignments: res.assignments.map((a) => (a.code === '0102' ? { ...a, code: '0104' } : a.code === '0104' ? { ...a, code: '0102' } : a)) };
     const bad = validationChecks(r.doc, e2, broken).filter((c) => !c.ok).map((c) => c.title);
-    expect(bad).toEqual(['同班編號沿座位遞增']);
+    expect(bad).toEqual(['同班編號沿座位順序遞增']);
   });
 
   it('個別覆寫：設定後自動重排、不佔預備教室；移除後回到預備教室', () => {

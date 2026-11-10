@@ -16,10 +16,11 @@ function markText(r: MarkRow): string {
   return r.state === 'undecided' ? '待選擇' : '不用標';
 }
 
+/** 狀態徽章三種（稿 v2.22，校-36）：已採用系統建議（可改）綠／已鎖定藍／接近一半琥珀 */
 function StateBadge(p: { r: MarkRow }) {
-  if (p.r.state === 'undecided') return <Badge tone="warn">待選擇</Badge>;
-  if (p.r.state === 'locked') return <Badge tone="info">已手動指定</Badge>;
-  return <Badge tone="ok">系統建議（可改）</Badge>;
+  if (p.r.state === 'undecided') return <Badge tone="warn">接近一半</Badge>;
+  if (p.r.state === 'locked') return <Badge tone="info">已鎖定</Badge>;
+  return <Badge tone="ok">已採用系統建議（可改）</Badge>;
 }
 
 /** ④ 標示與抽離規則（DESIGN 10.4、原型 v4）：組別對照表 → 各科標示（接近一半由使用者選並鎖定，D12）→ 抽離人數 */
@@ -37,7 +38,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (examEntries(doc, exam).length === 0) {
     return (
       <section class="stack">
-        <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
+        <StepHead title="④ 標示與抽離規則" />
         <Alert tone="info" action={<Button onClick={() => p.onStep(2)}>前往 ② 考試名單</Button>}>
           <b>還沒有考試名單。</b>這一步要依考試名單算出每組每科考與不考的人數，請先到 ② 匯入大考中心的考生名單。
         </Alert>
@@ -61,7 +62,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
+      <StepHead title="④ 標示與抽離規則" />
       {undecided
         ? <Alert tone="warn"><b>有 {undecided} 項接近一半的科目要你選。</b>選完才能排座；程式不替你決定要標哪一邊。</Alert>
         : (
@@ -73,13 +74,13 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         )}
 
       <div class="card stack">
-        <div><h3>組別對照表</h3><p class="small muted">依考試名單的組別代碼統計人數與考科。</p></div>
+        <div><h3>組別對照表</h3><p class="small muted">組別代碼對應考科；第 {(exam.round ?? 1) >= 3 ? '3、4' : '1、2'} 次的對照（跟 ① 的次別連動）。</p></div>
         <div class="scroll">
           <table class="t compact">
-            <thead><tr><th>組別代碼</th><th>考科</th><th>人數</th></tr></thead>
+            <thead><tr><th>組別代碼</th><th>考科</th><th>理組人數</th><th>文組人數</th></tr></thead>
             <tbody>
               {groups.map((g) => (
-                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} />{g.differing > 0 && <><br /><Badge tone="warn">{g.differing} 人考科不同</Badge> <span class="small muted">（上列為人數最多的組合）</span></>}</td><td class="n">{g.count}</td></tr>
+                <tr key={g.code}><td><b>{g.code}</b></td><td><NoBreakList items={g.subjectIds.map((id) => subjName.get(id) ?? id)} />{g.differing > 0 && <><br /><Badge tone="warn">{g.differing} 人考科不同</Badge> <span class="small muted">（上列為人數最多的組合）</span></>}</td><td class="n">{g.science}</td><td class="n">{g.liberal}</td></tr>
               ))}
             </tbody>
           </table>
@@ -89,7 +90,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <div class="card stack">
         <div>
           <h3>各科標示（標少數）</h3>
-          <p class="small muted">標「X」的人這科不考，該節改到自習地點；標「＋」的人這科要考，該節改到預備教室。英聽不標示。{allSame > 0 && `全組都考或都不考的 ${allSame} 項不用標示，未列出。`}</p>
+          <p class="small muted">標示只由組別決定，與特殊生需求無關；被標「X」的人抽離自習，被標「＋」的人抽離考試。英聽不標示。{allSame > 0 && `全組都考或都不考的 ${allSame} 項不用標示，未列出。`}</p>
         </div>
         {shown.length === 0
           ? <Alert tone="ok">每一組每一科都是全考或全不考，不用標示，也沒有人要抽離。</Alert>
@@ -111,7 +112,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         {rows.filter((r) => r.nearHalf).map((r) => (
           <div class="stack" style="gap:8px" key={`near-${r.track}/${r.subjectId}`}>
             <Alert tone={r.state === 'undecided' ? 'warn' : 'info'}>
-              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊；選完會固定你的選擇，之後可改回自動判斷。
+              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊，選完會鎖定，不由程式替你決定。{r.state === 'locked' && r.mode && <><br />已鎖定：標「{r.mode === 'mark-absent' ? 'X' : '＋'}{r.subjectName}」。</>}
             </Alert>
             <div class="btnrow">
               <Seg<MarkMode | ''>
@@ -123,7 +124,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                   { value: 'mark-extra', label: `標「＋${r.subjectName}」考的 ${r.taking} 人` },
                 ]}
               />
-              {r.state === 'locked' && <Button kind="ghost" small onClick={() => choose(r, undefined)}>改回自動判斷</Button>}
+              {r.state === 'locked' && <Button kind="ghost" small onClick={() => choose(r, undefined)}>解除鎖定</Button>}
             </div>
           </div>
         ))}
@@ -137,14 +138,12 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               <b>抽離排不下：</b>{preview.errors.join('；')}。<br />請到 ③ 多勾一間預備教室、加大預備教室的座位，或回上面改標示的方式。
             </Alert>
           )
-          : !preview.detaches.length && !preview.special.length
-            ? <p class="small muted">依目前的標示，沒有人要抽離。</p>
-            : (
+          : (
             <div class="scroll">
               <table class="t compact">
-                <thead><tr><th>科目</th><th>抽離考試</th><th>抽離自習</th><th>單人特例</th></tr></thead>
+                <thead><tr><th>科目</th><th>抽離考試</th><th>抽離自習</th>{preview.special.length > 0 && <th>單人特例</th>}</tr></thead>
                 <tbody>
-                  {exam.subjects.filter((s) => preview.detaches.some((d) => d.subjectId === s.id) || preview.special.some((d) => d.subjectId === s.id)).map((s) => {
+                  {exam.subjects.map((s) => {
                     const ex = preview.detaches.filter((d) => d.subjectId === s.id && d.purpose === 'exam');
                     const st = preview.detaches.filter((d) => d.subjectId === s.id && d.purpose === 'study').length;
                     const sp = preview.special.filter((d) => d.subjectId === s.id).length;
@@ -153,7 +152,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                       <tr key={s.id}>
                         <td><b>{s.name}</b></td>
                         <td>{ex.length} 人{where.length > 0 && <span class="muted small">（{where.join('、')}）</span>}</td>
-                        <td>{st} 人</td><td>{sp ? `${sp} 人` : '—'}</td>
+                        <td>{st} 人</td>{preview.special.length > 0 && <td>{sp ? `${sp} 人` : '—'}</td>}
                       </tr>
                     );
                   })}
@@ -161,6 +160,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               </table>
             </div>
           )}
+        <div class="row"><Button onClick={() => p.onStep(5)}>查看預備教室與抽離</Button></div>
       </div>
     </section>
   );

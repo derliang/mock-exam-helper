@@ -118,7 +118,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       {room && model && (
         <div class="card stack">
           <div class="btnrow" style="justify-content:space-between">
-            <div><h3>座位表預覽</h3><p class="small muted">班級底色；橫排（左右）與深位（前後），講臺在下方。{senior && !stale && '點任一位考生可設定個別覆寫（只改指定考科的去處，不是換座位）。'}</p></div>
+            <div><h3>座位表預覽</h3><p class="small muted">班級色；橫排（左右）與深位（前後）；點任一格可做個別覆寫。</p></div>
             <ConfirmButton kind="default" copy={confirmCopy.reseat(overrides.length)} onConfirm={run}>重新排座</ConfirmButton>
           </div>
           {classRooms.length > 1 && (
@@ -139,7 +139,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           <p class="small muted">不開放拖曳換座位：會破壞「同班編號沿座位遞增」的規則。{senior && '「個別覆寫」不是換座位，只改指定考科的去處。'}</p>
           {stat && (
             <div>
-              <div class="lab">座位表統計（這間教室）</div>
+              <div class="lab">座位表統計</div>
               <div class="scroll">
                 <table class="t compact">
                   <thead><tr><th>項目</th>{stat.classes.map((c) => <th key={c.no}>{c.name}</th>)}<th>合計</th></tr></thead>
@@ -153,8 +153,8 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       <div class="card stack">
         <div class="btnrow" style="justify-content:space-between">
-          <div><h3>驗證</h3><p class="small muted">全部通過後才能下載。</p></div>
-          {checks ? <Badge tone={allPass ? 'ok' : 'danger'}>{pass}／{checks.length} 項通過</Badge> : <Badge tone="warn">待重新排座</Badge>}
+          <div><h3>驗證</h3><p class="small muted">任何一項不通過不能下載。</p></div>
+          {checks ? <Badge tone={allPass ? 'ok' : 'danger'}>{allPass ? '通過' : `${pass}／${checks.length} 項通過`}</Badge> : <Badge tone="warn">待重排</Badge>}
         </div>
         {checks
           ? checks.map((c) => <Alert key={c.title} tone={c.ok ? 'ok' : 'danger'}><b>{c.title}</b>　{c.detail}</Alert>)
