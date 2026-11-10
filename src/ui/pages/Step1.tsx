@@ -31,7 +31,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="① 考試設定">名稱、學期、次別與考科表；考科表決定 ② 名單比對的科目與 ⑥ 下載檔的標題。</StepHead>
+      <StepHead title="① 考試設定">類型、次別、考科</StepHead>
 
       <div class="card stack">
         <div><h3>基本資料</h3><p class="small muted">類型建立後不可更改。</p></div>

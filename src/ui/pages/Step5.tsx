@@ -47,7 +47,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (blockers.length) {
     return (
       <section class="stack">
-        <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
+        <StepHead title="⑤ 排座與預覽">班級色、驗證、統計</StepHead>
         <div class="card stack">
           <Alert tone="danger"><b>還不能排座：</b>下面的事項要先處理完，系統不會輸出不合規則的結果。</Alert>
           {blockers.map((b) => (
@@ -62,7 +62,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (!result) {
     return (
       <section class="stack">
-        <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
+        <StepHead title="⑤ 排座與預覽">班級色、驗證、統計</StepHead>
         <div class="card stack">
           <Alert tone="info"><b>還沒有排座。</b>名單、教室與標示都已就緒。按「開始排座」後，程式依班級輪流把每一排排給下一班，空位只留在最後；排完自動驗證。</Alert>
           {err && <SeatError errors={err} onStep={p.onStep} />}
@@ -98,7 +98,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
+      <StepHead title="⑤ 排座與預覽">班級色、驗證、統計</StepHead>
       <StatsBar items={[
         { label: '考生', value: seatableEntries(doc, exam).length },
         { label: '座位', value: seats },

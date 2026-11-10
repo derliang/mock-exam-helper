@@ -155,7 +155,7 @@ export function Step6(p: {
 
   return (
     <section>
-      <StepHead title="⑥ 下載">下載座位表、標籤與名單；要列印請開下載的檔案。</StepHead>
+      <StepHead title="⑥ 下載">Word、PDF</StepHead>
       {!prepared.ok && (
         <div style="margin-top:12px"><Alert tone="danger">
           <b>還不能下載：</b>

@@ -99,7 +99,7 @@ code{font-family:ui-monospace,Consolas,monospace;font-size:13px;background:var(-
 @media (max-width:760px){.shell{grid-template-columns:1fr}}
 .shell>div{border:1.5px dashed var(--line-2);border-radius:var(--r-md);padding:10px;background:var(--sunken);font-size:13px;color:var(--text-3);font-weight:700}
 .steps{display:grid;gap:4px;list-style:none;margin:0;padding:0}
-.step{display:grid;grid-template-columns:28px 1fr auto;gap:10px;align-items:center;padding:8px 10px;border-radius:var(--r-md);border:1px solid transparent;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%;min-height:44px}
+.step{display:grid;grid-template-columns:28px 1fr;gap:10px;align-items:center;padding:8px 10px;border-radius:var(--r-md);border:1px solid transparent;background:transparent;color:var(--text);font:inherit;text-align:left;cursor:pointer;width:100%;min-height:44px}
 .step:hover{background:var(--sunken)}
 .step .no{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:13px;border:1.5px solid var(--line-2);background:var(--surface);color:var(--text-2)}
 .step small{display:block;color:var(--text-3);font-size:13px;line-height:1.3}
@@ -281,8 +281,6 @@ section>header p{color:var(--text-2);max-width:72ch}
 .pbar{position:sticky;top:0;z-index:40;background:var(--surface);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding-inline:max(16px,env(safe-area-inset-left,0px))}
 /* 導覽列內容與頁面主體同寬並置中：視窗再寬，導覽列也不會被拉到左右兩端 */
 .pbar-in{max-width:1160px;margin:0 auto;padding:8px 0;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
-.pbar-sub{border-top:1px dashed var(--line);padding:6px 0 8px;display:flex;gap:8px;align-items:center}
-.pbar-sub .cur-exam{font-size:13px;font-weight:700;color:var(--text-3);white-space:nowrap;max-width:14em;overflow:hidden;text-overflow:ellipsis}
 .pbar .brand{font-family:var(--f-head);font-weight:700;white-space:nowrap;margin-right:8px}
 .pbar .nav{display:flex;gap:4px;overflow-x:auto;min-width:0;scrollbar-width:thin}
 .pbar .nav button{font:inherit;font-weight:500;font-size:14px;white-space:nowrap;min-height:36px;padding:0 12px;border-radius:var(--r-sm);border:1px solid transparent;background:transparent;color:var(--text-2);cursor:pointer}
@@ -401,12 +399,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 #app>.wrap{width:100%;margin-bottom:24px}
 .pfoot{margin-top:auto;display:flex;flex-wrap:wrap;gap:4px 14px;align-items:center;justify-content:center;padding:14px 0 max(20px,env(safe-area-inset-bottom,0px));border-top:1px solid var(--line);color:var(--text-3);font-size:13px;line-height:1.5}
 .pfoot .pf-name{font-family:var(--f-head);font-weight:700;color:var(--text-2)}
-.pfoot .pf-ver{font:inherit;font-weight:700;min-height:32px;padding:0 10px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2);cursor:pointer;display:inline-flex;align-items:center;gap:6px;transition:background .15s,border-color .15s}
-.pfoot .pf-ver:hover{background:var(--accent-soft);border-color:var(--accent-line);color:var(--accent-ink)}
-.pfoot .pf-ver:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .pfoot .pf-pre{font-size:13px;padding:0 6px;border-radius:99px;background:var(--warn-soft);color:var(--warn-ink);border:1px solid var(--warn-line)}
-.pfoot .pf-link{font:inherit;color:inherit;background:none;border:0;padding:4px 6px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
-.pfoot .pf-link:hover{color:var(--accent-ink)}
+.pfoot .pf-link{font:inherit;font-weight:700;color:var(--accent-ink);background:none;border:0;padding:4px 6px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.pfoot .pf-link:hover{color:var(--accent)}
 .pfoot .pf-link:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .pf-about{display:grid;grid-template-columns:auto 1fr;gap:6px 14px;margin:0 0 10px}
 .pf-about dt{color:var(--text-3);font-weight:700}
@@ -420,16 +415,38 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .cell[role="button"]{cursor:pointer}
 .blk-row{display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap;border-bottom:1px solid var(--line);padding-bottom:8px}
 
-/* ── 引路（施工G，DESIGN 10.7） ── */
-.stepcount{font-size:13px;font-weight:700;color:var(--text-2);margin:0 0 8px}
-.sumbar{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;padding:8px 14px;margin-bottom:20px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;position:sticky;top:60px;z-index:5}
+/* ── 引路（施工G，DESIGN 10.7；常駐摘要列依稿 v2.15） ── */
+.stepprog{font-size:13px;font-weight:700;color:var(--text-2);padding:4px 10px 10px;border-bottom:1px solid var(--line);margin-bottom:8px}
+.sumbar{display:grid;gap:10px;padding:10px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);font-size:14px;position:sticky;top:60px;z-index:5;box-shadow:var(--shadow-1)}
+.sumbar.has-iss{position:static}
+.sumbar .sstats{display:flex;flex-wrap:wrap;gap:8px 12px}
+.sumbar .sc{display:flex;align-items:baseline;gap:8px;padding:4px 12px;border-radius:var(--r-sm);background:var(--sunken);min-width:0}
+.sumbar .sl{font-size:13px;color:var(--text-3)}
 .sumbar b{font-family:var(--f-no);font-size:18px;font-variant-numeric:tabular-nums}
-.sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}
-.sumbar .ok{color:var(--ok-ink);font-weight:700}
-.sumbar .warnbtn{margin-left:auto;display:inline-flex;gap:4px;align-items:center;min-height:36px;padding:4px 12px;border:1.5px solid var(--warn-bar);border-radius:var(--r-sm);background:var(--warn-soft);color:var(--warn-ink);font:inherit;font-weight:700;cursor:pointer;text-align:left}
-.sumbar .warnbtn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sumbar .sc.bad,.sumbar .sc.bad b,.sumbar .bad,.sumbar .bad b{color:var(--danger-ink)}
+.sumbar .sc.bad{background:var(--danger-soft)}
+.sumbar .sc.warn{background:var(--warn-soft);box-shadow:inset 0 0 0 1.5px var(--warn-bar)}.sumbar .sc.warn b,.sumbar .sc.warn .sl{color:var(--warn-ink)}
+.sumbar .sc.okc em{font-style:normal;font-weight:700;color:var(--ok-ink)}.sumbar .sc.dim b{font-size:14px;color:var(--text-3)}
+.sumbar .slist{display:grid;gap:6px}
+.sumbar .si{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 14px;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-left:4px solid var(--danger);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.sumbar .si.todo{border-left-color:var(--warn-bar)}
+.sumbar .si:hover{background:var(--sunken)}.sumbar .si:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.sumbar .sstep{font-weight:700;white-space:nowrap}
+.sumbar .sti{display:grid;font-weight:700}.sumbar .sti small{font-weight:400;font-size:13px;color:var(--text-3)}
+.sumbar .sn{display:inline-flex;gap:14px;white-space:nowrap}.sumbar .sn span{display:inline-flex;align-items:baseline;gap:4px;color:var(--text-3)}
+.sumbar .sgo{color:var(--accent-ink);font-weight:700;white-space:nowrap}
+@media (max-width:760px){.sumbar{position:static}.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
+/* 復原鈕組（稿 v2.15）：主鈕＋緊貼的 ▾，選單在下方 */
+.undowrap{position:relative;display:inline-flex}
+.undowrap .undo-main{border-top-right-radius:0;border-bottom-right-radius:0;max-width:min(60vw,300px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.undowrap .undo-more{border-top-left-radius:0;border-bottom-left-radius:0;margin-left:-1px;padding:0 10px;min-width:40px}
+.undomenu{position:absolute;right:0;top:calc(100% + 6px);z-index:30;min-width:260px;max-width:min(92vw,340px);display:grid;gap:4px;padding:10px;background:var(--surface);border:1px solid var(--line-2);border-radius:var(--r-md);box-shadow:var(--shadow-3)}
+.undomenu button{font:inherit;text-align:left;min-height:38px;padding:0 10px;border:0;border-radius:var(--r-sm);background:transparent;color:var(--text);cursor:pointer}
+.undomenu button:hover{background:var(--accent-soft);color:var(--accent-ink)}
+.undomenu button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.pagebar{margin-bottom:4px}
+.pagehead .pagetitle{min-width:0;overflow-wrap:anywhere}
 .stepnext{display:grid;gap:10px}
-.topbar{margin-bottom:16px}
 .empty{display:grid;gap:8px;justify-items:start;padding:20px;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--surface)}
 .empty strong{font-family:var(--f-head);font-size:18px}
 .empty p{margin:0}
@@ -468,3 +485,79 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .roomrow>.btnrow{flex:0 0 auto;margin-left:auto}
 /* 步驟標題卡：說明文字可收縮，「下一步」鈕留在右側（原型稿的位置）；放不下才換行，不再因說明較長就掉到標題下面 */
 .stephead>div:first-child{flex:1 1 260px;min-width:0}
+
+/* ===== 第二輪拉皮（稿 v2.15）：只改外觀——層次、主次、回饋。不動結構、欄數、內容、字級 ===== */
+/* 層次：頁面底 < 卡片（shadow-1）< 懸停／展開（shadow-2）< 對話框、提示（shadow-3）。主要動作才用 shadow-accent */
+.btn,.icon-btn{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease),transform var(--dur) var(--ease)}
+.btn:hover,.icon-btn:hover{box-shadow:var(--shadow-2)}
+.btn:active,.icon-btn:active{transform:translateY(1px);box-shadow:none}
+.btn-primary{box-shadow:var(--shadow-accent)}
+.btn-primary:hover{box-shadow:var(--shadow-accent),0 8px 16px -8px rgba(39,70,144,.45)}
+.btn-primary:active{filter:brightness(.94);box-shadow:none}
+.btn-ghost,.btn-ghost:hover,.btn[disabled],.btn[disabled]:hover{box-shadow:none}
+.btn[disabled]:active{transform:none}
+.btn-danger:hover{box-shadow:var(--shadow-1)}
+
+/* 輸入：凹陷底＋聚焦轉成表面色 */
+.input{box-shadow:var(--shadow-inset);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+.input:focus{background:var(--surface);border-color:var(--accent)}
+
+/* 分段鈕、開關、格式鈕 */
+.seg{box-shadow:var(--shadow-inset)}
+.seg button{transition:background var(--dur) var(--ease),color var(--dur) var(--ease)}
+.seg button:hover:not([aria-pressed="true"]):not(:disabled){background:var(--line);color:var(--text)}
+.seg button[aria-pressed="true"]{box-shadow:inset 0 -2px 0 rgba(0,0,0,.22)}
+.seg.seg-soft button[aria-pressed="true"]{box-shadow:inset 0 0 0 1.5px var(--accent)}
+.trk{box-shadow:inset 0 1px 2px rgba(0,0,0,.18)}
+.trk::after{box-shadow:0 1px 3px rgba(0,0,0,.35);transition:transform var(--dur) var(--ease)}
+.sw:hover input:not(:checked)+.trk{background:var(--text-3)}
+.sw:hover input:checked+.trk{filter:brightness(1.12)}
+.fmt span{box-shadow:var(--shadow-1);transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.fmt:hover span{box-shadow:var(--shadow-2)}
+.fmt.w input:checked+span{box-shadow:0 0 0 1px var(--fmt-word),var(--shadow-1)}
+.fmt.p input:checked+span{box-shadow:0 0 0 1px var(--fmt-pdf),var(--shadow-1)}
+.fmt.x input:checked+span{box-shadow:0 0 0 1px var(--fmt-xls),var(--shadow-1)}
+
+/* 步驟導覽：目前位置加左側色條與立體環，已完成／過期用細環 */
+.step{transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.step.cur{box-shadow:inset 3px 0 0 var(--accent),var(--shadow-1)}
+.step.cur .no{box-shadow:0 0 0 3px var(--accent-line)}
+.step.done .no{box-shadow:inset 0 0 0 1px var(--ok-bar)}
+.step.stale .no{box-shadow:inset 0 0 0 1px var(--warn-bar)}
+.step:not(.cur):hover .no{border-color:var(--accent);color:var(--accent-ink)}
+
+/* 統計列：每格頂端一小段色條，異常格用警示色；整體浮起一層 */
+.stats{box-shadow:var(--shadow-1)}
+.stats>div{position:relative;padding-top:13px}
+.stats>div::before{content:"";position:absolute;left:14px;top:0;width:22px;height:3px;border-radius:0 0 3px 3px;background:var(--accent-line)}
+.stats .bad::before{background:var(--danger)}
+
+/* 提示條：左側 4px 色條表達語氣，不再只靠底色 */
+.alert{box-shadow:inset 4px 0 0 var(--bar,var(--line-2));padding-left:18px}
+.a-info{--bar:var(--accent)} .a-warn{--bar:var(--warn-bar)} .a-err{--bar:var(--danger)} .a-ok{--bar:var(--ok-bar)}
+
+/* 表格：表頭加粗底線、列懸停有過渡 */
+.t th{border-bottom:2px solid var(--line-2)}
+.t tbody tr{transition:background var(--dur) var(--ease)}
+
+/* 可點的卡片：懸停浮起、選中有外環 */
+.exam,.tcard,.roomrow{transition:box-shadow var(--dur) var(--ease),border-color var(--dur) var(--ease),transform var(--dur) var(--ease),background var(--dur) var(--ease)}
+.exam:hover{box-shadow:var(--shadow-2);border-color:var(--line-2)}
+.tcard:hover:not(:disabled){box-shadow:var(--shadow-2);transform:translateY(-1px)}
+.tcard[aria-pressed="true"]{box-shadow:0 0 0 1px var(--accent),var(--shadow-2)}
+.roomrow:hover{border-color:var(--line-2);box-shadow:var(--shadow-1)}
+.roomrow.on{box-shadow:inset 3px 0 0 var(--accent)}
+.fakepick button{transition:background var(--dur) var(--ease)}
+.dropzone{transition:background var(--dur) var(--ease),border-color var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.dropzone:hover,.dropzone.over{box-shadow:var(--shadow-2)}
+
+/* 頁首列與對話框 */
+.pbar{box-shadow:var(--shadow-bar)}
+.pbar .nav button{transition:background var(--dur) var(--ease)}
+.pbar .nav button[aria-current="true"]{box-shadow:inset 0 -2px 0 var(--accent)}
+.mfade{backdrop-filter:blur(2px)}
+.utabs button{transition:color var(--dur) var(--ease),border-color var(--dur) var(--ease)}
+/* 層次補強：外框底改用凹陷色，卡片（surface）才浮得起來；表格隔列淡底方便橫向對讀 */
+.wrap{background:var(--sunken);border-color:var(--line)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap){background:rgba(111,104,88,.06)}
+.t tbody tr:nth-child(even):not(.editrow):not(.gap):hover{background:var(--accent-soft)}

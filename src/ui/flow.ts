@@ -18,7 +18,20 @@ export interface FlowIssue {
   fix: string;
   /** block＝擋下後面的步驟；warn＝提醒 */
   level: 'block' | 'warn';
+  /** 摘要列逐項的標題（不含步驟圈號；由 text 去掉開頭的圈號得到） */
+  title?: string;
+  /** 標題下的小字說明 */
+  sub?: string;
+  /** 數量類問題：需要／可用／缺少（摘要列右側三欄；沒有就不畫） */
+  need?: number;
+  have?: number;
+  lack?: number;
+  /** 只是「這一步還沒做完」，不是出了問題：摘要列排在真問題之後、用琥珀色 */
+  todo?: boolean;
 }
+
+/** 各步驟的一句小字（步驟欄與步驟標題卡共用，稿 v2.15） */
+export const STEP_NOTES = ['類型、次別、考科', '匯入、比對、參加者', '橫排、深位、預備教室', '組別對照表', '班級色、驗證、統計', 'Word、PDF'] as const;
 
 export interface FlowStep { no: StepNo; name: string; state: StepState; note?: string }
 
@@ -41,7 +54,7 @@ const STEPS: StepNo[] = [1, 2, 3, 4, 5, 6];
 /** 算出目前考試的整體流程狀態；current 是正在看的步驟（顯示成「目前」） */
 export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   const issues: FlowIssue[] = [];
-  const add = (i: FlowIssue) => issues.push(i);
+  const add = (i: FlowIssue) => issues.push({ ...i, title: i.title ?? i.text.replace(/^[①②③④⑤⑥]s*/, '') });
 
   const students = seatableEntries(doc, exam).length;
   const rooms = examRooms(doc, exam);
@@ -62,7 +75,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   const classRooms = rooms.filter((r) => r.kind === 'class');
   if (classRooms.length === 0) add({ step: 3, text: '③ 還沒有選班級教室', fix: '去 ③ 勾選教室', level: 'block' });
   else if (students > 0 && checkSeats(classSeats, students).level === 'block') {
-    add({ step: 3, text: `③ 座位 ${classSeats} 少於考生 ${students}，還差 ${students - classSeats} 個`, fix: '去 ③ 增加座位', level: 'block' });
+    add({ step: 3, text: `③ 座位 ${classSeats} 少於考生 ${students}，還差 ${students - classSeats} 個`, title: '班級教室座位不足', sub: '座位不能比考生少', need: students, have: classSeats, lack: students - classSeats, fix: '去 ③ 增加座位', level: 'block' });
   }
   const noTrack = roomsMissingTrack(classRooms, exam.division);
   if (noTrack.length) add({ step: 3, text: `③ 班級教室「${noTrack.map((r) => r.name).join('、')}」還沒指定理組／文組，排座時分不出誰坐哪間`, fix: '去 ③ 指定理組／文組', level: 'block' });
@@ -78,7 +91,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   const stale = !!result && isStale(doc, exam);
   let s5: StepState = 'todo';
   if (!result) {
-    add({ step: 5, text: '⑤ 還沒有排座結果', fix: '去 ⑤ 開始排座', level: 'block' });
+    add({ step: 5, text: '⑤ 還沒有排座結果', fix: '去 ⑤ 開始排座', level: 'block', todo: true });
   } else if (stale) {
     s5 = 'stale';
     add({ step: 5, text: '⑤ 名單或設定在排座後改過，需要重新排座', fix: '去 ⑤ 重新排座', level: 'block' });
@@ -93,8 +106,17 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
     no,
     name: STEP_NAMES[no - 1]!,
     state: no === current ? 'cur' : no === 4 && !needsMarks(exam) ? 'skip' : done[no],
-    ...(no === 4 && !needsMarks(exam) ? { note: '會考不需要' } : {}),
+    // 會考的 ④ 不需要：小字改寫成不含「組別」字樣（國中部不顯示高中部專屬內容）
+    note: no === 4 && !needsMarks(exam) ? '會考沒有選考' : STEP_NOTES[no - 1]!,
   }));
+  // 尚未完成的步驟也算待處理（稿 v2.13）：①～④ 沒做完、又沒有更具體的問題可講時，補一項「尚未完成」，排在真問題之後
+  for (const no of [1, 2, 3, 4] as StepNo[]) {
+    if (no === 4 && !needsMarks(exam)) continue;
+    if (done[no] !== 'done' && !issues.some((i) => i.step === no)) {
+      add({ step: no, text: `${'①②③④'[no - 1]} ${STEP_NAMES[no - 1]}尚未完成`, title: `${STEP_NAMES[no - 1]}尚未完成`, fix: '前往處理', level: 'warn', todo: true });
+    }
+  }
+  issues.sort((a, b) => Number(!!a.todo) - Number(!!b.todo) || (a.todo ? a.step - b.step : 0));
   return { steps, issues, summary: { students, seats: classSeats, spare, warnings: issues.length } };
 }
 
@@ -111,8 +133,10 @@ export type NextAction =
 /** 「下一步」按鈕：不擋人；前置有問題只標示缺什麼並給一鍵跳轉（擋下的只有 ⑤ 排座與 ⑥ 下載本身，D47） */
 export function nextAction(flow: Flow, current: StepNo): NextAction {
   if (current >= 6) return { kind: 'none' };
-  const to = (current + 1) as StepNo;
-  const label = `下一步：${'①②③④⑤⑥'[to - 1]} ${STEP_NAMES[to - 1]}`;
+  // 會考沒有 ④（標「不需要」）：③ 的下一步直接是 ⑤（稿 v2.15）
+  let to = (current + 1) as StepNo;
+  if (flow.steps.find((s) => s.no === to)?.state === 'skip' && to < 6) to = (to + 1) as StepNo;
+  const label = `完成此步，前往 ${'①②③④⑤⑥'[to - 1]} ${STEP_NAMES[to - 1]}`;
   // 前面的步驟（含目前這步）還有 block 問題就標示；進 ⑥ 時 ⑤ 本身也要完成
   const need = prerequisites(flow, to);
   const first = need[0];

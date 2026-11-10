@@ -45,7 +45,7 @@ describe('會考不匯入名單：考生＝共用學生名單', () => {
     expect(flow.summary.students).toBe(10);
     expect(examProgress(doc, exam).cells[1]).toBe('d');
     const bar = renderToString(<SummaryBar flow={flow} onGo={noop} />);
-    expect(bar).toContain('考生 <b>10</b>');
+    expect(bar).toContain('<span class="sl">考生</span><b>10</b>');
     expect(bar).not.toContain('尚未匯入考試名單');
   });
   it('③ 狀態檢核：考生 10、座位 12、空位 2、夠用；會考不需要預備教室', () => {

@@ -29,7 +29,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (!needsMarks(exam)) {
     return (
       <section class="stack">
-        <StepHead title="④ 標示與抽離規則" />
+        <StepHead title="④ 標示與抽離規則">會考沒有選考</StepHead>
         <Alert tone="info"><b>會考不需要這一步。</b>國中部每科都考，沒有選考，所以沒有標示，也沒有抽離。直接前往排座。</Alert>
       </section>
     );
@@ -37,7 +37,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (examEntries(doc, exam).length === 0) {
     return (
       <section class="stack">
-        <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
+        <StepHead title="④ 標示與抽離規則">組別對照表</StepHead>
         <Alert tone="info" action={<Button onClick={() => p.onStep(2)}>前往 ② 考試名單</Button>}>
           <b>還沒有考試名單。</b>這一步要依考試名單算出每組每科考與不考的人數，請先到 ② 匯入大考中心的考生名單。
         </Alert>
@@ -61,7 +61,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="④ 標示與抽離規則">依組別代碼決定誰考哪一科；接近一半的科目要你選標哪邊。</StepHead>
+      <StepHead title="④ 標示與抽離規則">組別對照表</StepHead>
       {undecided
         ? <Alert tone="warn"><b>有 {undecided} 項接近一半的科目要你選。</b>選完才能排座；程式不替你決定要標哪一邊。</Alert>
         : (

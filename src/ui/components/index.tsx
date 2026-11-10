@@ -3,6 +3,7 @@ import { createContext, type ComponentChildren, type JSX } from 'preact';
 import { useContext, useEffect, useState } from 'preact/hooks';
 import { classColorVars } from '../colors';
 import { UNDO_HINT, type ConfirmCopy, type Flow, type NextAction } from '../flow';
+import { STEP_NAMES } from '../nav';
 import type { StepNo } from '../seating';
 
 type BtnKind = 'primary' | 'danger' | 'ghost' | 'default';
@@ -25,13 +26,16 @@ export function Seg<T extends string>(p: { value: T; options: { value: T; label:
   );
 }
 
+/** 語氣名稱 → 樣式表類別：danger 的類別叫 err（.a-err／.b-err），其餘同名 */
+export const toneClass = (t: 'ok' | 'warn' | 'danger' | 'info'): string => (t === 'danger' ? 'err' : t);
+
 export function Badge(p: { tone?: 'ok' | 'warn' | 'danger' | 'info'; children: ComponentChildren }) {
-  return <span class={`badge${p.tone ? ` b-${p.tone}` : ''}`}>{p.children}</span>;
+  return <span class={`badge${p.tone ? ` b-${toneClass(p.tone)}` : ''}`}>{p.children}</span>;
 }
 
 export function Alert(p: { tone?: 'ok' | 'warn' | 'danger' | 'info'; children: ComponentChildren; action?: ComponentChildren }) {
   return (
-    <div class={`alert${p.tone ? ` a-${p.tone}` : ''}`} role={p.tone === 'danger' ? 'alert' : 'status'}>
+    <div class={`alert${p.tone ? ` a-${toneClass(p.tone)}` : ''}`} role={p.tone === 'danger' ? 'alert' : 'status'}>
       <span aria-hidden="true">{p.tone === 'danger' ? '⛔' : p.tone === 'warn' ? '⚠' : p.tone === 'ok' ? '✓' : 'ℹ'}</span>
       <div>{p.children}</div>
       {p.action}
@@ -86,57 +90,66 @@ export function Modal(p: { title: string; onClose: () => void; children: Compone
 
 export type StepState = 'cur' | 'done' | 'stale' | 'todo' | 'skip';
 
-/** 步驟導覽（四種狀態，可自由跳步，D47） */
+/** 步驟導覽（四種狀態，可自由跳步，D47）：外包一張卡，上方「第 N／6 步　已完成 K 步」，每步兩行（名稱＋狀態・說明） */
 export function StepNav(p: { steps: { no: number; name: string; state: StepState; note?: string }[]; onGo: (no: number) => void }) {
-  const mark: Record<StepState, string> = { cur: '目前', done: '已完成', stale: '過期', todo: '未完成', skip: '不需要' };
+  const tag: Partial<Record<StepState, string>> = { done: '已完成', stale: '過期', skip: '不需要' };
+  const icon = (s: { no: number; state: StepState }) => (s.state === 'done' ? '✓' : s.state === 'stale' ? '!' : s.no);
   const cur = p.steps.find((x) => x.state === 'cur');
   const need = p.steps.filter((x) => x.state !== 'skip').length; // 國中部沒有的步驟不算進總步數
   return (
-    <>
-    <p class="stepcount" aria-live="polite">{cur ? `第 ${cur.no}／${p.steps.length} 步` : `共 ${need} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
-    <ol class="steps" aria-label="步驟">
-      {p.steps.map((s) => (
-        <li key={s.no}>
-          <button type="button" class={`step ${s.state}`} aria-current={s.state === 'cur' ? 'step' : undefined} onClick={() => p.onGo(s.no)}>
-            <span class="no">{s.no}</span>
-            <span>{s.name}{s.note && <small>{s.note}</small>}</span>
-            <small>{mark[s.state]}</small>
-          </button>
-        </li>
-      ))}
-    </ol>
-    </>
+    <div class="card" style="padding:10px">
+      <div class="stepprog" aria-live="polite">{cur ? `第 ${cur.no}／${p.steps.length} 步` : `共 ${need} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</div>
+      <ol class="steps" aria-label="步驟">
+        {p.steps.map((s) => (
+          <li key={s.no}>
+            <button type="button" class={`step ${s.state}`} aria-current={s.state === 'cur' ? 'step' : undefined} onClick={() => p.onGo(s.no)}>
+              <span class="no">{icon(s)}</span>
+              <span><b>{s.name}</b><small>{tag[s.state] ? `${tag[s.state]}・` : ''}{s.note}</small></span>
+            </button>
+          </li>
+        ))}
+      </ol>
+    </div>
   );
 }
 
-/** 頂端「← 回到 …」與「↶ 復原：<動作>」列（DESIGN 10.1）；▾ 可直接回到任一步之前，不顯示累計數字 */
-export function TopBar(p: {
-  backLabel?: string; onBack?: () => void;
+export interface UndoProps {
   undoLabel?: string; onUndo: () => void;
   /** 可回頭的步驟（最新在前）；index 交回 onUndoTo */
   steps?: { index: number; label: string }[]; onUndoTo?: (index: number) => void;
-}): JSX.Element {
+}
+
+/** 「↶ 復原：<動作>」主鈕＋緊貼的「▾」歷史鈕（稿 v2.15）：沒有歷史時兩顆都停用但看得到；選單選一步回到那一步之前（DESIGN 10.1） */
+export function UndoControl(p: UndoProps): JSX.Element {
+  const [open, setOpen] = useState(false);
+  const has = !!p.undoLabel;
   const steps = p.steps ?? [];
+  useEffect(() => {
+    if (!open) return;
+    const h = (e: MouseEvent) => { if (!(e.target as HTMLElement | null)?.closest('.undowrap')) setOpen(false); };
+    document.addEventListener('click', h);
+    return () => document.removeEventListener('click', h);
+  }, [open]);
+  useEffect(() => { if (!has) setOpen(false); }, [has]);
   return (
-    <div class="btnrow topbar">
-      {p.backLabel && p.onBack && <Button kind="ghost" onClick={p.onBack}>← 回到 {p.backLabel}</Button>}
-      <span style="flex:1" />
-      <Button disabled={!p.undoLabel} onClick={p.onUndo} title="Ctrl+Z" aria-label={p.undoLabel ? `復原：${p.undoLabel}` : '復原'}>{p.undoLabel ? `↶ 復原：${p.undoLabel}` : '↶ 復原'}</Button>
-      {steps.length > 1 && p.onUndoTo && (
-        <details class="undo-menu" style="position:relative">
-          <summary class="btn" aria-label="回到更早的步驟" title="回到更早的步驟">▾</summary>
-          <ol style="position:absolute;right:0;z-index:20;margin:4px 0 0;padding:8px 12px 8px 28px;background:var(--surface,#fff);border:1px solid var(--border,#ccc);border-radius:8px;min-width:240px;list-style:decimal">
-            {steps.map((st, i) => (
-              <li key={st.index}>
-                <button type="button" class="btn btn-ghost" onClick={(e) => { (e.currentTarget.closest('details') as HTMLDetailsElement | null)?.removeAttribute('open'); p.onUndoTo?.(st.index); }}>回到「{st.label}」之前</button>
-                {i > 0 && <span class="small muted"> 後面 {i} 步會標為過期</span>}
-              </li>
-            ))}
-          </ol>
-        </details>
+    <span class="undowrap">
+      <button type="button" class="btn undo-main" disabled={!has} onClick={p.onUndo} title="只退最近一步（Ctrl+Z）；最多可復原 20 步" aria-label={p.undoLabel ? `復原：${p.undoLabel}` : '復原'}>{p.undoLabel ? `↶ 復原：${p.undoLabel}` : '↶ 復原'}</button>
+      <button type="button" class="btn undo-more" disabled={!has || !p.onUndoTo} aria-haspopup="menu" aria-expanded={open && has} aria-label="看可以回頭的步驟" title="看可以回頭的步驟" onClick={() => setOpen((o) => !o)}>▾</button>
+      {open && has && (
+        <div class="undomenu" role="menu" aria-label="可回頭的步驟">
+          <div class="small muted">選一步，回到那一步之前；比它新的動作一併退掉。</div>
+          {steps.map((st) => (
+            <button type="button" role="menuitem" key={st.index} onClick={() => { setOpen(false); p.onUndoTo?.(st.index); }}>回到「{st.label}」之前</button>
+          ))}
+        </div>
       )}
-    </div>
+    </span>
   );
+}
+
+/** 頁面最上面獨佔一行的「← 回到 …」（回原頁，DESIGN 10.1） */
+export function PageBack(p: { label: string; onBack: () => void }) {
+  return <div class="pagebar"><Button kind="ghost" onClick={p.onBack}>← {p.label}</Button></div>;
 }
 
 /** 破壞性動作的二次確認：說明會失去什麼，並提示可用「↶ 復原」找回（DESIGN 10.7） */
@@ -171,22 +184,38 @@ export function EmptyState(p: { title: string; children?: ComponentChildren; act
   );
 }
 
-/** 常駐摘要列（不可關）：考生／座位／空位／待處理；待處理只當標記（完整原因只在頁面上方的一則警示講，DESIGN 10.7 規則 4），可點，一鍵跳到第一個問題 */
+/**
+ * 常駐摘要列（稿 v2.15，DESIGN 10.7）：上層四格（考生／座位／空位〔不足改「缺位」〕／待處理），
+ * 下層逐項列出每一個待處理（步驟｜標題與小字｜需要・可用・缺少｜前往處理），整列可點跳到該步驟。
+ * 有待處理時不固定在頂端（.has-iss），沒有時固定。真問題在前、「尚未完成」的步驟在後（排序在 flowOf）。
+ */
 export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
   const { summary: s, issues } = p.flow;
   const lack = s.spare < 0;
+  const noStudents = s.students === 0;
+  const stat = (label: string, v: number | string, cls = '') => <div class={`sc${cls ? ` ${cls}` : ''}`}><span class="sl">{label}</span><b>{v}</b></div>;
   return (
-    <div class="sumbar" role="region" aria-label="本次考試摘要">
-      {s.students === 0 ? <span>考生 <b>尚未匯入考試名單</b></span> : <span>考生 <b>{s.students}</b></span>}
-      <span>座位 <b>{s.seats}</b></span>
-      <span class={lack && s.students > 0 ? 'bad' : ''}>{s.seats === 0 || s.students === 0 ? '空位' : lack ? '缺位' : '空位'} <b>{s.seats === 0 || s.students === 0 ? '—' : lack ? -s.spare : s.spare}</b></span>
-      {issues.length === 0
-        ? <span class="ok">待處理 <b>0</b>　✓ 沒有待處理的事</span>
-        : (
-          <button type="button" class="warnbtn" onClick={() => p.onGo(issues[0]!.step)} title={issues.map((i) => i.text).join('；')}>
-            ⚠ 待處理 <b>{issues.length}</b>　{issues[0]!.text}　<u>{issues[0]!.fix}</u>
-          </button>
-        )}
+    <div class={`sumbar${issues.length ? ' has-iss' : ''}`} role="region" aria-label="本次考試摘要">
+      <div class="sstats">
+        {noStudents ? stat('考生', '尚未匯入考試名單', 'dim') : stat('考生', s.students)}
+        {stat('座位', s.seats)}
+        {s.seats === 0 || noStudents ? stat('空位', '—', 'dim') : lack ? stat('缺位', -s.spare, 'bad') : stat('空位', s.spare)}
+        {issues.length
+          ? <div class="sc warn"><span class="sl">待處理</span><b>{issues.length}</b></div>
+          : <div class="sc okc"><span class="sl">待處理</span><b>0</b><em>✓ 沒有待處理的事</em></div>}
+      </div>
+      {issues.length > 0 && (
+        <div class="slist">
+          {issues.map((i, k) => (
+            <button type="button" key={k} class={`si${i.todo ? ' todo' : ''}`} onClick={() => p.onGo(i.step)}>
+              <span class="sstep">{'①②③④⑤⑥'[i.step - 1]} {STEP_NAMES[i.step - 1]}</span>
+              <span class="sti">{i.title ?? i.text}{i.sub && <small>{i.sub}</small>}</span>
+              {i.need != null && <span class="sn"><span>需要 <b>{i.need}</b></span><span>可用 <b>{i.have}</b></span><span class="bad">缺少 <b>{i.lack}</b></span></span>}
+              <span class="sgo">{i.fix} ›</span>
+            </button>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -195,8 +224,8 @@ export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
 export const StepNextContext = createContext<{ action: NextAction; onGo: (step: StepNo) => void } | null>(null);
 
 /**
- * 步驟標題卡（DESIGN 10.9、方案 A）：左 h2＋一句說明，右側放「下一步」主按鈕（D58）。
- * 按鈕永遠可以按；前面還有沒做完的事，只在頁面上方用琥珀提示標示原因並給一鍵跳轉，不禁止（D47）。
+ * 步驟標題卡（稿 v2.15）：左 h2＋一句小字（步驟說明），右側主按鈕「完成此步，前往 ○ …」（D58）；最後一步改寫「最後一步」。
+ * 按鈕永遠可以按；待處理只在上方的常駐摘要列列出，這裡不另外警示（D47）。
  */
 export function StepHead(p: { title: string; children?: ComponentChildren }) {
   const ctx = useContext(StepNextContext);
@@ -204,34 +233,8 @@ export function StepHead(p: { title: string; children?: ComponentChildren }) {
   return (
     <div class="card stephead">
       <div><h2>{p.title}</h2>{p.children && <p class="small muted">{p.children}</p>}</div>
-      {ctx && a && a.kind === 'go' && <Button kind="primary" onClick={() => ctx.onGo(a.to)}>{a.label} →</Button>}
-    </div>
-  );
-}
-
-/** 前面還有沒做完的事：只標示原因並給一鍵跳轉，不禁止往下（D47）。顯示在步驟標題卡上方 */
-export function StepPending(p: { action: NextAction; onGo: (step: StepNo) => void }) {
-  const a = p.action;
-  if (a.kind === 'none' || !a.pending) return null;
-  return (
-    <div class="stepnext">
-      <Alert tone="warn" action={<Button small onClick={() => p.onGo(a.pending!.fixStep)}>{a.pending.fix}</Button>}>
-        <b>前面還有事沒做完：</b>{a.pending.reason}。你可以先往下看，之後再回來處理。
-      </Alert>
-    </div>
-  );
-}
-
-/** （保留給既有測試與舊呼叫）上方的「下一步」整條：警示＋按鈕 */
-export function StepNextBar(p: { action: NextAction; onGo: (step: StepNo) => void }) {
-  const a = p.action;
-  if (a.kind === 'none') return null;
-  return (
-    <div class="stepnext">
-      <StepPending action={a} onGo={p.onGo} />
-      <div class="btnrow" style="justify-content:flex-end">
-        <Button kind="primary" onClick={() => p.onGo(a.to)}>{a.label} →</Button>
-      </div>
+      {ctx && a && a.kind === 'go' && <Button kind="primary" onClick={() => ctx.onGo(a.to)}>{a.label}</Button>}
+      {ctx && a && a.kind === 'none' && <span class="small muted">最後一步</span>}
     </div>
   );
 }

@@ -6,10 +6,10 @@ import './featureRegister/alignment';
 import './featureRegister/quick';
 import { Footer } from './components/Footer';
 import { StepSide, hasSide } from './pages/StepSide';
-import { Alert, Badge, Button, EmptyState, Seg, StepNav, StepNextContext, StepPending, SummaryBar, TopBar } from './components';
+import { Alert, Badge, Button, EmptyState, PageBack, Seg, StepNav, StepNextContext, SummaryBar, UndoControl } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
-import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, STEP_NAMES, type NavState, type Route } from './nav';
+import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, type NavState, type Route } from './nav';
 import { Exams } from './pages/Exams';
 import { NewExam } from './pages/NewExam';
 import { Init } from './pages/Init';
@@ -106,6 +106,9 @@ export function App() {
   useEffect(() => { if (r.page === 'step') setLastExamId(r.examId); }, [r]);
   const lastExam = hist.present.exams.find((e) => e.id === lastExamId);
   const hasFolder = r.page !== 'init' || repo.hasFolder();
+  const wsExam = r.page === 'step' ? hist.present.exams.find((e) => e.id === r.examId) : undefined;
+  const savedNote = saveErr ? '尚未存妥（見下方提示）' : fsSupported ? '已儲存到資料夾' : undefined;
+  const undoProps = { undoLabel: nextUndoLabel(hist), onUndo: () => { setStaleNote(undefined); onUndo(); }, steps: undoSteps(hist), onUndoTo };
 
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
@@ -132,20 +135,27 @@ export function App() {
           <span class="spacer" />
           <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '跟隨系統' }, { value: 'light', label: '淺色' }, { value: 'dark', label: '深色' }]} />
         </div>
-        {hasFolder && lastExam && (
-          <div class="pbar-in pbar-sub">
-            <span class="cur-exam" title={lastExam.name}>{lastExam.name}</span>
-            <Badge>{examLabel(lastExam)}</Badge>
-            <nav class="nav" aria-label="目前模擬考的步驟">
-              {STEP_NAMES.map((name, i) => (
-                <button type="button" key={name} onClick={() => go({ page: 'step', examId: lastExam.id, step: (i + 1) as 1 | 2 | 3 | 4 | 5 | 6 })} aria-current={r.page === 'step' && r.examId === lastExam.id && r.step === i + 1}>{`${'①②③④⑤⑥'[i]} ${name}`}</button>
-              ))}
-            </nav>
-          </div>
-        )}
       </header>
       <main class="wrap">
-        {r.page !== 'init' && r.page !== 'copyright' && r.page !== 'privacy' && <TopBar backLabel={backLabel(gnav)} onBack={back} undoLabel={nextUndoLabel(hist)} onUndo={() => { setStaleNote(undefined); onUndo(); }} steps={undoSteps(hist)} onUndoTo={onUndoTo} />}
+        {(r.page === 'lookup' || r.page === 'new' || r.page === 'exams') && backLabel(gnav) && <PageBack label={`回到 ${backLabel(gnav)}`} onBack={back} />}
+        {r.page === 'settings' && (
+          <>
+            <PageBack label={backLabel(gnav) ? `回到 ${backLabel(gnav)}` : '模擬考列表'} onBack={() => (gnav.back.length ? back() : go({ page: 'exams' }))} />
+            <div class="pagehead"><h1>共用設定</h1><Badge>資料夾層級，所有模擬考共用</Badge><span style="margin-left:auto"><UndoControl {...undoProps} /></span></div>
+          </>
+        )}
+        {r.page === 'step' && wsExam && (
+          <div class="pagehead">
+            <Button kind="ghost" onClick={() => go({ page: 'exams' })}>← 模擬考列表</Button>
+            <h1 class="pagetitle" title={wsExam.name}>{wsExam.name}</h1>
+            <Badge>{examLabel(wsExam)}</Badge>
+            {savedNote && <span class="small muted">{savedNote}</span>}
+            <span style="margin-left:auto;display:inline-flex;gap:10px;flex-wrap:wrap">
+              <UndoControl {...undoProps} />
+              <Button onClick={() => go2({ page: 'settings', division: wsExam.division }, { route: r, label: pageName(r, hist.present) })}>設定</Button>
+            </span>
+          </div>
+        )}
         {staleNote && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{staleNote}</Alert></div>}
         {r.page === 'privacy' && <Privacy {...(backLabel(gnav) ? { backLabel: backLabel(gnav)! } : {})} onBack={() => (gnav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} onCopyright={() => go2({ page: 'copyright' }, { route: r, label: pageName(r, hist.present) })} />}
         {r.page === 'copyright' && <Copyright onPrivacy={() => go2({ page: 'privacy' }, { route: r, label: pageName(r, hist.present) })} {...(backLabel(gnav) ? { backLabel: backLabel(gnav)! } : {})} onBack={() => (gnav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} />}
@@ -191,7 +201,6 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <div class="stack" style="min-width:0">
         <SummaryBar flow={flow} onGo={p.onStep} />
-        <StepPending action={quietPending(nextAction(flow, step), step)} onGo={p.onStep} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
           : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
           : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />
@@ -204,13 +213,4 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       </div>
     </StepNextContext.Provider>
   );
-}
-
-/**
- * 警示只講一次（DESIGN 10.7 規則 4）：要去補的就是「這一步」時，頁面本身已有更具體的狀態卡，不再顯示「前面還有事沒做完」；
- * ⑤ 排座自己有「還不能排座」的完整清單，也不重複。
- */
-function quietPending(a: ReturnType<typeof nextAction>, step: number): ReturnType<typeof nextAction> {
-  if (a.kind === 'go' && a.pending && (a.pending.fixStep === step || step === 5)) return { ...a, pending: undefined };
-  return a;
 }

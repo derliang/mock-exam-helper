@@ -11,7 +11,7 @@ export function Footer(p: { version?: string; buildDate?: string; onCopyright?: 
   return (
     <footer class="pfoot">
       <span class="pf-name">{APP_NAME}</span>
-      <button type="button" class="pf-ver" onClick={() => setOpen(true)} aria-haspopup="dialog" title="關於本程式">
+      <button type="button" class="btn btn-sm pf-ver" onClick={() => setOpen(true)} aria-haspopup="dialog" title="關於本程式">
         {formatVersion(version)}{pre && <span class="pf-pre">{pre}</span>}
       </button>
       {p.onCopyright

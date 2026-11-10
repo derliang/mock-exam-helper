@@ -144,7 +144,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   return (
     <section class="stack">
-      <StepHead title="② 考試名單">這次誰參加、考什麼科。匯入大考中心格式的考生資料名單，再和共用學生名單比對。</StepHead>
+      <StepHead title="② 考試名單">匯入、比對、參加者</StepHead>
       {status}
       {filePick}
       {err && <Alert tone="danger">{err}</Alert>}

@@ -22,7 +22,6 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
   const [division, setDivision] = useState<Division>(p.division ?? 'senior');
   return (
     <section>
-      <h2>共用設定</h2>
       <div class="utabs" role="group" aria-label="設定項目" style="margin:12px 0">
         {TABS.map((t) => <button type="button" key={t.value} aria-pressed={tab === t.value} onClick={() => setTab(t.value)}>{t.label}</button>)}
       </div>
