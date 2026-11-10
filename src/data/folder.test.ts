@@ -25,7 +25,7 @@ const doc = (): Doc => ({
     headerText: '模擬考',
     defaultLabelPaper: 'B4',
     classes: [{ no: 1, name: '溫', division: 'senior', track: 'science', colorIndex: 1 }],
-    classrooms: [{ id: 'r1', name: '第一試場', kind: 'class', rows: 2, depth: 3, seatCount: 5 }],
+    classrooms: [{ id: 'r1', name: '第一試場', kind: 'class', rows: 2, depth: 3, seatCount: 5, division: 'senior' }],
   },
   rosters: { senior: [{ classNo: 1, seatNo: 1, name: '測試甲' }], junior: [] },
   exams: [exam('e2', '2026-02-01'), exam('e1', '2026-01-01')],
