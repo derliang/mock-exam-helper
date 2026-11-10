@@ -79,7 +79,31 @@ export interface SeatPos {
   depth: number;
 }
 
-/** 科目（D52：考科表自動帶入、可增刪改，不用節次） */
+/**
+ * 節次表的一列（D94；共用設定「節次與時長」）：像學校的模擬考科目表，一天一欄、科目由上往下。
+ * 節次編號依順序自動算，samePrev＝與上一科同節（同時進行）。學測國文是兩列（國綜、國寫）指向同一個科目 id
+ * 「chinese」：標示與抽離整個一起（一個標示涵蓋兩節）。
+ */
+export interface PeriodRow {
+  /** 顯示名稱（印在預備教室標籤上），例 國綜 */
+  name: string;
+  /** 對應考科表的科目 id；沒設就用名稱比對考科表 */
+  subjectId?: string;
+  /** 時長（分鐘），選填，只做參考 */
+  minutes?: number;
+  /** 與上一科同節 */
+  samePrev?: boolean;
+  /** 開始時間 HH:MM，選填，不印在標籤上 */
+  start?: string;
+}
+export interface PeriodTable {
+  /** 一天一欄，目前畫面是兩天 */
+  days: PeriodRow[][];
+}
+/** 節次表的種類：學測第 1、2 次／第 3、4 次、分科、會考 */
+export type ScheduleKey = 'g12' | 'g34' | 'ast' | 'bcct';
+
+/** 科目（D52：考科表自動帶入、可增刪改；節次由共用設定的節次表決定，D94） */
 export interface Subject {
   id: string;
   name: string;
@@ -238,6 +262,8 @@ export interface Settings {
   markMap?: Record<string, string>;
   /** 選用功能開關（D75）：功能 id → 是否開啟；沒有這個欄位或沒寫的功能一律視為關 */
   features?: Record<string, boolean>;
+  /** 節次與時長（D94）：只存使用者改過的種類；沒有這個欄位（舊存檔）或沒寫的種類＝內建預設 */
+  schedules?: Partial<Record<ScheduleKey, PeriodTable>>;
 }
 
 /** 磁碟檔案外殼：版本與損壞偵測用（D21） */

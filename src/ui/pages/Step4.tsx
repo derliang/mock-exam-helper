@@ -160,6 +160,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
               </table>
             </div>
           )}
+        {exam.kind === 'gsat' && <p class="small muted">國文標示整個一起：國綜、國寫兩節一起抽離（節次見共用設定「節次與時長」）。</p>}
         <div class="row"><Button onClick={() => p.onStep(5)}>查看預備教室與抽離</Button></div>
       </div>
     </section>
