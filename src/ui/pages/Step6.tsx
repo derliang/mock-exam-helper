@@ -63,7 +63,7 @@ function PreviewCard(p: { prepared: Extract<ReturnType<typeof prepareExport>, { 
   return (
     <div class="card stack" style="margin-top:12px">
       <div class="row" style="justify-content:space-between">
-        <div><h3>預覽</h3><p class="small muted">{room ? room.name : '沒有班級教室'}，與下載檔同一份版面。</p></div>
+        <div><h3>預覽</h3><p class="small muted">{room ? room.name : '沒有班級教室'}</p></div>
         <div class="row"><Seg<PreviewKind> label="預覽類型" value={kind} onChange={setKind} options={kinds} /></div>
       </div>
       {rooms.length > 1 && (
@@ -175,7 +175,7 @@ export function Step6(p: {
           </Alert>
         </div>
       ))}
-      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>檢查通過：</b>可以下載。</Alert></div>}
+      {prepared.ok && !blocked && issues.length === 0 && <div style="margin-top:12px"><Alert tone="ok"><b>驗證通過：</b>全部檢查符合，可以下載。</Alert></div>}
 
       <div class="card stack" style="margin-top:12px">
         <div>
@@ -187,14 +187,14 @@ export function Step6(p: {
         </div>
         <div class="stack">
           {ck('seat', '座位表（A4）', '合併成一個檔案，每間班級教室一頁；每頁附該教室的考生統計')}
-          {ck('label', '標籤', '合併成一個檔案，每間班級教室一張紙；標籤格大小固定，每個班級一種底色')}
+          {ck('label', '標籤', '合併成一個檔案，每間班級教室一張紙；標籤格大小固定，白底' + (junior ? '' : '；不考、加考、抽離的標籤用淡黃底'))}
           <div class="field" style="margin-left:30px">
             <span class="label">標籤紙張（只有標籤可選；座位表與名單固定 A4）</span>
             <div class="row"><Seg<LabelPaper> label="標籤紙張" value={o.paper} onChange={(v) => set({ paper: v })} options={[{ value: 'B4', label: 'B4（一般，6×8）' }, { value: 'A3', label: 'A3（大尺寸，7×7）' }]} /></div>
             <span class="hint">兩種紙張的標籤格大小各自固定，不隨班級人數變；用不到的格子空白。</span>
           </div>
           {!junior && ck('study', '抽離自習名單（A4）', '合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')}
-          {!junior && ck('reserve', '預備教室的座位表（A4）', '抽離考試，每科每間預備教室一頁；要同時勾選上面的「標籤」，才會一併產生預備教室標籤')}
+          {!junior && ck('reserve', `預備教室的座位表（A4）與標籤（${o.paper}）`, '抽離考試，每節科目各自排；座位表、標籤各合併成一個檔案')}
         </div>
         {extras.length > 0 && (
           <div class="stack">

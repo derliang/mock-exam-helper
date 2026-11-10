@@ -2,7 +2,7 @@ import { syncDiffs } from '../store';
 import { useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
 import { DEFAULT_LABEL_NOTES, LABEL_NOTE_MAX_CHARS, LABEL_NOTE_MAX_LINES, noteLineLength, studentCode } from '../../data';
-import { Alert, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg } from '../components';
+import { Alert, Badge, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg, Switch } from '../components';
 import { confirmCopy } from '../flow';
 import { RoomList } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
@@ -289,20 +289,21 @@ function School({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
 function Features({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const list = allFeatures();
   return (
-    <div class="stack">
-      <p class="muted">以下功能不一定每個學校都需要，用得到的再打開。關掉的功能不會出現在畫面上，也不影響排座、標籤、座位表與下載這些基本功能。</p>
+    <div class="card stack">
+      <div><h3>選用功能</h3><p class="small muted">每所學校需要的不一樣，勾選要用的功能。沒開的功能會從導覽、下載頁與步驟中完全消失，不留灰色入口。</p></div>
       {list.map((f) => {
         const on = doc.settings.features?.[f.id] === true;
         return (
-          <label key={f.id} class="check" style="align-items:flex-start">
-            <input type="checkbox" checked={on} onChange={(e) => onChange({ ...doc, settings: withFeature(doc.settings, f.id, e.currentTarget.checked) })} />
-            <span>
-              <b>{f.name}</b>{f.scope === 'bcct' && <> <span class="small muted">（只用於會考）</span></>}<br />
-              <span class="small muted">{f.desc}</span>
-            </span>
-          </label>
+          <div key={f.id} class={`featrow${on ? ' on' : ''}`}>
+            <div class="fi">
+              <div class="row" style="gap:8px"><b>{f.name}</b>{f.scope === 'bcct' && <Badge tone="info">會考專用</Badge>}<Badge>預設：關</Badge></div>
+              <p class="small muted">{f.desc}</p>
+            </div>
+            <Switch label="啟用" ariaLabel={`啟用${f.name}`} checked={on} onText="已開啟" offText="未開啟" onChange={(v) => onChange({ ...doc, settings: withFeature(doc.settings, f.id, v) })} />
+          </div>
         );
       })}
+      <Alert tone="info"><b>核心功能永遠開啟，不在這裡：</b>排座、標籤、座位表、抽離、下載與防呆提示。設定只存在這台電腦的設定檔，不上傳。</Alert>
     </div>
   );
 }

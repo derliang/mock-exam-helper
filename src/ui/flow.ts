@@ -24,7 +24,7 @@ export interface FlowIssue {
   need?: number; have?: number; lack?: number;
 }
 
-export interface FlowStep { no: StepNo; name: string; state: StepState; note?: string }
+export interface FlowStep { no: StepNo; name: string; state: StepState; note?: string; /** 第二行短語（會考的 ③ 沒有預備教室） */ blurb?: string }
 
 export interface FlowSummary {
   students: number;
@@ -101,6 +101,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
     name: STEP_NAMES[no - 1]!,
     state: no === current ? 'cur' : no === 4 && !needsMarks(exam) ? 'skip' : done[no],
     ...(no === 4 && !needsMarks(exam) ? { note: '會考不需要' } : {}),
+    ...(no === 3 && exam.division === 'junior' ? { blurb: '橫排、深位' } : {}),
   }));
   return { steps, issues, summary: { students, seats: classSeats, spare, warnings: issues.length } };
 }

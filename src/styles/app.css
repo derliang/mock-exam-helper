@@ -599,3 +599,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .stats>div.chk.bad{background:var(--danger-soft)}
 .stats>div.chk.warnc::before{background:var(--warn-bar)}
 .errnote{color:var(--danger-ink)}
+
+/* 校-49：選用功能列卡 */
+.featrow{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px 18px;align-items:center;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.featrow.on{border-color:var(--accent-line);background:var(--accent-soft)}
+.featrow .fi{display:grid;gap:4px;min-width:0}
+@media (max-width:560px){.featrow{grid-template-columns:1fr}}

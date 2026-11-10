@@ -2,7 +2,7 @@ import type { CSSProperties } from 'preact/compat';
 
 /** 班級色共 12 色（D28/D69），colorIndex 1～12；超出就循環。只輸出 CSS 變數，不寫死色碼 */
 export const CLASS_COLOR_COUNT = 12;
-export const CLASS_COLOR_NAMES = ['琥珀', '綠', '藍', '紫', '洋紅', '珊瑚', '青綠', '萊姆', '靛', '棕', '灰藍', '玫瑰'] as const;
+export const CLASS_COLOR_NAMES = ['淺紫', '淺洋紅', '淺青綠', '淺咖啡', '淺灰藍', '淺藕粉', '深紫', '深洋紅', '深青綠', '深咖啡', '深灰藍', '深藕粉'] as const;
 
 export const normColor = (i: number): number => ((((Math.trunc(i) || 1) - 1) % CLASS_COLOR_COUNT) + CLASS_COLOR_COUNT) % CLASS_COLOR_COUNT + 1;
 

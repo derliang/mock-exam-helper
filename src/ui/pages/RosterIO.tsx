@@ -48,15 +48,15 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
 
   return (
     <>
-      <Button onClick={() => setTpl(true)}>下載名單範本</Button>
-      <Button onClick={() => input.current?.click()}>匯入學生名單</Button>
-      <FormatButton kind="xls" onClick={async () => downloadBytes(`${DIV_NAME[p.division]}學生名單.xlsx`, await writeXlsx(exportRows(p.doc.rosters[p.division]), '學生名單'), XLSX_MIME)}>下載學生名單</FormatButton>
+      <FormatButton kind="xls" onClick={() => setTpl(true)}>下載 Excel 範本</FormatButton>
+      <FormatButton kind="xls" onClick={() => input.current?.click()}>匯入 Excel</FormatButton>
+      <FormatButton kind="xls" onClick={async () => downloadBytes(`${DIV_NAME[p.division]}學生名單.xlsx`, await writeXlsx(exportRows(p.doc.rosters[p.division]), '學生名單'), XLSX_MIME)}>下載 Excel</FormatButton>
       <input ref={input} type="file" accept=".xlsx" hidden aria-label="選擇學生名單 Excel 檔"
         onChange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ''; if (f) void onFile(f); }} />
       {tpl && (
         <Modal title="下載名單範本" onClose={() => setTpl(false)}
           actions={<><Button onClick={() => setTpl(false)}>取消</Button><Button kind="primary" onClick={async () => { downloadBytes('學生名單範本.xlsx', await writeXlsx(templateRows(), '學生名單'), XLSX_MIME); setTpl(false); }}>下載範本</Button></>}>
-          <p class="small muted">先下載範本、照格式整理學生資料，再按「匯入學生名單」放進來。檔名：學生名單範本.xlsx。</p>
+          <p class="small muted">先下載範本、照格式整理學生資料，再按「匯入 Excel」放進來。檔名：學生名單範本.xlsx。</p>
           <div class="scroll"><table class="t compact nw">
             <thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>學號（選填）</th></tr></thead>
             <tbody><tr><td>溫</td><td>1</td><td>王小明</td><td>1150101</td></tr><tr><td>溫</td><td>2</td><td>李小華</td><td class="muted">（沒有就留空）</td></tr></tbody>

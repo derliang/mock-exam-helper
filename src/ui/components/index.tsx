@@ -69,7 +69,7 @@ export function StatsBar(p: { items: { label: string; value: number | string; ba
 
 /** 班級標籤：淡底＋班級字（不只靠顏色） */
 export function ClassChip(p: { colorIndex: number; children: ComponentChildren }) {
-  return <span class="badge" style={classColorVars(p.colorIndex)}>{p.children}</span>;
+  return <span class="chip-class" style={classColorVars(p.colorIndex)}><i aria-hidden="true" />{p.children}</span>;
 }
 
 export function Modal(p: { title: string; onClose: () => void; children: ComponentChildren; actions?: ComponentChildren }) {
@@ -92,7 +92,7 @@ export function Modal(p: { title: string; onClose: () => void; children: Compone
 export type StepState = 'cur' | 'done' | 'stale' | 'todo' | 'skip';
 
 /** 步驟導覽（四種狀態，可自由跳步，D47）：每項兩行，標題＋「狀態・說明」，圖示 ✓／!／數字（稿 v2.22，校-05） */
-export function StepNav(p: { steps: { no: number; name: string; state: StepState; note?: string }[]; onGo: (no: number) => void }) {
+export function StepNav(p: { steps: { no: number; name: string; state: StepState; note?: string; blurb?: string }[]; onGo: (no: number) => void }) {
   const mark: Partial<Record<StepState, string>> = { done: '已完成', stale: '過期', skip: '不需要' };
   const cur = p.steps.find((x) => x.state === 'cur');
   const need = p.steps.filter((x) => x.state !== 'skip').length; // 國中部沒有的步驟不算進總步數
@@ -106,7 +106,7 @@ export function StepNav(p: { steps: { no: number; name: string; state: StepState
           <li key={s.no}>
             <button type="button" class={`step ${s.state}`} aria-current={s.state === 'cur' ? 'step' : undefined} onClick={() => p.onGo(s.no)}>
               <span class="no">{s.state === 'done' ? '✓' : s.state === 'stale' ? '!' : s.no}</span>
-              <span><b>{s.name}</b><small>{tag ? `${tag}・` : ''}{STEP_BLURBS[s.no - 1] ?? ''}</small></span>
+              <span><b>{s.name}</b><small>{s.state === 'skip' ? '不需要' : `${tag ? `${tag}・` : ''}${s.blurb ?? STEP_BLURBS[s.no - 1] ?? ''}`}</small></span>
             </button>
           </li>
         );
