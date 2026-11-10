@@ -5,7 +5,7 @@
  */
 import { useState } from 'preact/hooks';
 import type { PeriodTable, ScheduleKey } from '../../data';
-import { addRow, dropRow, isDefaultSchedule, moveRow, numberRows, removeRow, SCHEDULE_KEYS, scheduleOf, updateRow, withSchedule, type RowRef } from '../../core/periods';
+import { addRow, dropRow, isDefaultSchedule, moveRow, numberRows, removeRow, slotName, SCHEDULE_KEYS, scheduleOf, updateRow, withSchedule, type RowRef } from '../../core/periods';
 import type { Doc } from '../store';
 
 const NOTES: Record<ScheduleKey, string> = {
@@ -24,7 +24,7 @@ export function ScheduleTab({ doc, onChange }: { doc: Doc; onChange: (d: Doc) =>
   const label = SCHEDULE_KEYS.find((x) => x.key === key)!.label;
   const save = (t: PeriodTable) => onChange({ ...doc, settings: withSchedule(doc.settings, key, t) });
   const rows = numberRows(table);
-  const periodAt = (day: number, index: number) => rows.find((x) => x.day === day && x.index === index)!.period;
+  const slotAt = (day: number, index: number) => rows.find((x) => x.day === day && x.index === index)!.slot;
   const dropProps = (to: RowRef, id: string) => ({
     onDragOver: (e: DragEvent) => { if (drag) { e.preventDefault(); setOver(id); } },
     onDragLeave: () => setOver((o) => (o === id ? null : o)),
@@ -60,7 +60,7 @@ export function ScheduleTab({ doc, onChange }: { doc: Doc; onChange: (d: Doc) =>
                   <span class="sgrip" draggable title="拖拉改順序" aria-hidden="true"
                     onDragStart={(e) => { setDrag(at); e.dataTransfer?.setData('text/plain', id); }}
                     onDragEnd={() => { setDrag(null); setOver(null); }}>⠿</span>
-                  <span class="sn">{`第 ${periodAt(di, i)} 節`}</span>
+                  <span class="sn">{slotName(slotAt(di, i))}</span>
                   <input class="input" aria-label="科目名稱" value={r.name} onChange={(e) => { const v = e.currentTarget.value.trim(); if (v) save(updateRow(table, at, { name: v })); }} />
                   <span class="dur"><input class="input" type="number" min={1} aria-label="時長（分鐘）" value={r.minutes ?? ''} onChange={(e) => { const n = Math.round(Number(e.currentTarget.value)); save(updateRow(table, at, { minutes: n > 0 ? n : undefined })); }} /><span>分</span></span>
                   <span class="ops">

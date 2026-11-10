@@ -154,18 +154,18 @@ describe('預備教室合併標籤（D94-5）', () => {
     const pages = buildLabelPages(fixture(), 'reserve');
     expect(pages.map((p) => p.roomName)).toEqual(['預備教室　抽離考試']);
     expect(pages[0]!.cells.map((c) => [c.coord, c.periodLines!.map((l) => `${l.head} ${l.text}`)])).toEqual([
-      ['1-1', ['第 1 節 英文　良 06', '第 3 節 國綜　溫 05', '第 7 節 國寫　溫 05']],
-      ['1-2', ['第 1 節 英文　溫 07', '第 5 節 數學　溫 07']],
+      ['1-1', ['第一天 時段一 英文　良 06', '第一天 時段三 國綜　溫 05', '第二天 時段三 國寫　溫 05']],
+      ['1-2', ['第一天 時段一 英文　溫 07', '第二天 時段一 數學　溫 07']],
     ]);
   });
   it('列印與 Word 都印出各行，不印時間與姓名', async () => {
     const pages = buildLabelPages(fixture(), 'reserve');
     const html = renderPrintHtml({ label: pages }, meta);
-    for (const s of ['第 3 節', '國綜　溫 05', '國寫　溫 05', '數學　溫 07']) expect(html).toContain(s);
+    for (const s of ['第一天 時段三', '國綜　溫 05', '國寫　溫 05', '數學　溫 07']) expect(html).toContain(s);
     expect(html).not.toContain('甲生');
     const z = await JSZip.loadAsync(await renderDocx({ label: pages }, { fonts, ...meta }));
     const xml = await z.file('word/document.xml')!.async('string');
-    for (const s of ['第 3 節', '國綜　溫 05', '數學　溫 07']) expect(xml).toContain(s);
+    for (const s of ['第一天 時段三', '國綜　溫 05', '數學　溫 07']) expect(xml).toContain(s);
     expect(xml).not.toContain('甲生');
   });
 });
