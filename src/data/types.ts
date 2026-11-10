@@ -228,6 +228,10 @@ export interface Settings {
   schoolName: string;
   /** 座位表與標籤的固定表頭文字 */
   headerText: string;
+  /** 座位表表頭範本（稿 v2.22，校-54）：可用 {學年}{次別}{類型} 占位符；沒有這個欄位＝預設範本 */
+  seatHeader?: string;
+  /** 標籤表頭範本（同上） */
+  labelHeader?: string;
   defaultLabelPaper: LabelPaper;
   /** 標籤下方注意事項框的文字（每行一句，**粗體**）；沒有這個欄位（舊存檔）＝預設文字，空字串＝不印 */
   labelNotes?: string;
