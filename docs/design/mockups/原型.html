@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.24</title>
+<title>模擬考原型 稿 v2.25</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -351,6 +351,16 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .logo{width:56px;height:56px;border-radius:var(--r-lg);background:var(--accent);color:var(--accent-on);display:grid;place-items:center}
 .logo svg{width:34px;height:34px;display:block}
 .folder-chip{display:inline-flex;gap:8px;align-items:center;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r-sm);padding:6px 12px;font-family:ui-monospace,Consolas,monospace;font-size:13px}
+.phd{display:grid;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.phd-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}
+.phd-top .grow{margin-right:auto}
+.phd-top .btn-ghost{padding-left:0}
+.phd-save{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3)}
+.phd-save::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok,#2e7d4f)}
+.phd-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.phd-title h1{margin:0;font-size:26px}
+.phd-tools{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:600px){.phd-top .phd-save{order:3;flex-basis:100%}}
 .pagehead{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
 .pagehead h1{margin-right:auto}
 .exam-list{display:grid;gap:12px}
@@ -768,7 +778,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v1.0.0</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.24・2026-11-10</span>
+  <span class="brand">模擬考小幫手<span class="ver">v1.0.0</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.25・2026-11-10</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -1408,7 +1418,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var e=S.cur,view=stepView(),s=STEPS[S.step-1],wide=view.side==='';
     var sl=STEPS.map(function(st,i){var k=stepState(i+1),tag=k==='done'?'已完成':k==='stale'?'過期':k==='skip'?'不需要':'';
       return '<li><button class="step '+(k==='skip'?'skip':k)+'" type="button" data-act="step" data-n="'+(i+1)+'"'+(i+1===S.step?' aria-current="step"':'')+'><span class="no">'+(k==='done'?'✓':k==='stale'?'!':(i+1))+'</span><span><b>'+st[0]+'</b><small>'+(tag?tag+'・':'')+st[1]+'</small></span></button></li>'}).join('');
-    return '<div class="pagehead"><button class="btn btn-ghost" data-act="list">← 模擬考列表</button><h1 style="font-size:26px">'+esc(e.name)+'</h1><span class="badge">'+typeLabel(e.type)+'</span><span class="small muted">已儲存到資料夾（模擬）</span><span style="margin-left:auto;display:inline-flex;gap:10px;flex-wrap:wrap">'+undoBtn()+'<button class="btn" data-act="tosettings" data-v="stu">設定</button></span></div>'+wsRet()+
+    return '<header class="phd"><div class="phd-top"><button class="btn btn-ghost grow" data-act="list">← 模擬考列表</button><span class="phd-save">已儲存到資料夾</span><span class="phd-tools">'+undoBtn()+'<button class="btn" data-act="tosettings" data-v="stu">設定</button></span></div><div class="phd-title"><h1>'+esc(e.name)+'</h1><span class="badge">'+typeLabel(e.type)+'</span></div></header>'+wsRet()+
       '<div class="ws'+(wide?' wide':'')+'"><aside class="side"><div class="card" style="padding:10px"><div class="stepprog">第 '+S.step+'／6 步　已完成 '+STEPS.filter(function(x,i){return stepState(i+1)==='done'}).length+' 步</div><ol class="steps">'+sl+'</ol></div></aside>'+
       '<section class="main">'+sumbarHTML(e)+'<div class="card stephead"><div><h2 style="font-size:26px">'+'①②③④⑤⑥'.charAt(S.step-1)+' '+s[0]+'</h2><p class="muted small">'+s[1]+'</p></div>'+(NEXT(e,S.step)?'<button class="btn btn-primary" data-act="'+(S.step===1?'next1':'next')+'" data-n="'+NEXT(e,S.step)[0]+'">完成此步，前往 '+NEXT(e,S.step)[1]+'</button>':'<span class="small muted">最後一步</span>')+'</div>'+view.main+'</section>'+
       (wide?'':'<aside class="side side-r">'+view.side+'</aside>')+'</div>'}
@@ -1617,7 +1627,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var deptSeg=(tab==='school'||tab==='feat'||tab==='sched')?'':'<div class="row"><span class="label" style="margin:0">部別</span><div class="seg seg-soft" role="group" aria-label="部別">'+['高中部','國中部'].map(function(x){return '<button type="button" data-act="dept" data-v="'+x+'" aria-pressed="'+(dept===x)+'">'+x+'</button>'}).join('')+'</div><span class="small muted">'+(isJ?'國中部：不分文理組，會考科目固定七科':'高中部：每個班級分理組或文組')+'</span></div>';
     var body='';
     if(tab==='stu')body=vRosterTab();
-    else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th><th>操作</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱"></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td><td><button type="button" class="btn btn-sm btn-danger" aria-label="刪除'+CNAME[i]+'班">刪除</button></td></tr>'}).join('')+'</tbody></table></div><div><button type="button" class="btn btn-sm">＋ 新增班級</button></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱可改、可新增或刪除（稿 v2.24 補畫，使用者 2026-11-10 裁示保留實作的功能；原型不真的增減）。</p></div>';
+    else if(tab==='cls')body='<div class="card stack"><div><h3>班級資料（'+dept+'）</h3><p class="small muted">班級名稱、'+(isJ?'班級色':'文理組、班級色')+'，所有模擬考共用。</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>名稱</th>'+(isJ?'':'<th>文理組</th>')+'<th>班級色（12 色）</th><th>操作</th></tr></thead><tbody>'+d.cls.map(function(c,i){return '<tr><td>'+chip(i)+'</td><td><input class="input" style="min-width:90px;max-width:120px" value="'+CNAME[i]+'" aria-label="第'+(i+1)+'班名稱"></td>'+(isJ?'':'<td><div class="seg" role="group" aria-label="'+CNAME[i]+'班文理組"><button type="button" data-act="grp" data-c="'+i+'" data-g="sci" aria-pressed="'+(c.grp==='sci')+'">理組</button><button type="button" data-act="grp" data-c="'+i+'" data-g="art" aria-pressed="'+(c.grp==='art')+'">文組</button></div></td>')+'<td><div class="swatches">'+[1,2,3,4,5,6,7,8,9,10,11,12].map(function(k){return '<button type="button" data-act="ccol" data-c="'+i+'" data-k="'+k+'" style="background:var(--c'+k+'-bg);border-color:var(--c'+k+'-line)" aria-label="改成第'+k+'色" aria-pressed="'+(k===cc(i))+'"></button>'}).join('')+'</div></td><td><button type="button" class="btn btn-sm btn-danger" aria-label="刪除'+CNAME[i]+'班">刪除</button></td></tr>'}).join('')+'</tbody></table></div><div><button type="button" class="btn btn-sm">＋ 新增班級</button></div><p class="small muted">共 12 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。班級名稱可改、可新增或刪除（稿 v2.25 補畫，使用者 2026-11-10 裁示保留實作的功能；原型不真的增減）。</p></div>';
     else if(tab==='feat')body=featTab();
     else if(tab==='sched')body=schedTab();
     else if(tab==='school'){var sc=S.school=S.school||{name:'示範高級中學',seat:'【{學年}學年第{次別}次{類型}模擬考】座位表',label:'{學年}學年第{次別}次{類型}模擬考'};var pp=(S.exp&&S.exp.paper)||'B4';
@@ -1628,7 +1638,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       body='<div class="card stack"><div><h3>教室清單（'+dept+'）</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡用開關選出並自動帶入上次的選擇，可修改。座位表在這裡也能編輯，和模擬考 ③ 是同一個編輯畫面。'+capLine()+'</p></div><div class="scroll"><table class="t compact nw"><thead><tr><th>名稱</th><th>類型</th><th>橫排×深位</th><th>可排座位</th><th></th></tr></thead><tbody>'+
         d.rooms.map(function(r,i){return rr(r,i,'r')}).join('')+d.prep.map(function(r,i){return rr(r,i,'p')}).join('')+
         '</tbody></table></div>'+(isJ?'':'<div class="row"><button class="btn" data-act="padd">新增預備教室</button></div>')+'</div>'}
-    return '<div class="pagebar">'+(S.ret?wsBack():'<button class="btn btn-ghost" data-act="list">← 模擬考列表</button>')+'</div><div class="pagehead"><h1>共用設定</h1><span class="badge">資料夾層級，所有模擬考共用</span><span style="margin-left:auto">'+undoBtn()+'</span></div><div class="stack">'+seg+deptSeg+body+'</div>'}
+    return '<header class="phd"><div class="phd-top"><span class="grow">'+(S.ret?wsBack():'<button class="btn btn-ghost" data-act="list">← 模擬考列表</button>')+'</span><span class="phd-tools">'+undoBtn()+'</span></div><div class="phd-title"><h1>共用設定</h1><span class="badge">資料夾層級，所有模擬考共用</span></div></header><div class="stack">'+seg+deptSeg+body+'</div>'}
   function vFind(){
     var e=S.cur,d=D();if(!e.seat){computeSeat(e)}
     return '<div class="stack" style="max-width:860px"><div><h1 style="font-size:26px">考生查詢</h1><p class="muted">輸入考生編號或姓名，立刻看到教室與座位。</p></div><div class="card stack"><div class="field"><label for="fq">考生編號或姓名</label><input class="input" id="fq" value="'+esc(S.fq||'')+'" placeholder="例如 0207 或 蔡小雅" style="max-width:280px"></div><div id="fres" class="stack">'+findHTML()+'</div></div></div>'}
@@ -1688,7 +1698,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     else if(a==='stuedit')openStu(g('id'));
     else if(a==='studel')delStu(g('id'));
     else if(a==='stunew')openStu(null,g('c')===null?undefined:g('c'),g('n'));
-    else if(a==='cmpstart'){if(document.querySelector('[data-act="cmpstart"]').textContent.indexOf('再匯入')>=0){showModal('<div class="modal" role="dialog" aria-label="再匯入一次"><h3>再匯入一次？</h3><p class="muted">會重新讀取考試名單並重新比對，目前已選的比對處理會清掉。（稿 v2.24 補畫，使用者 2026-11-10 裁示保留）</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="rimp">再匯入一次</button></div></div>',function(ev){if(ev.target.id==='rimp'){closeModal();setRet();startCmp()}})}else{setRet();startCmp()}}
+    else if(a==='cmpstart'){if(document.querySelector('[data-act="cmpstart"]').textContent.indexOf('再匯入')>=0){showModal('<div class="modal" role="dialog" aria-label="再匯入一次"><h3>再匯入一次？</h3><p class="muted">會重新讀取考試名單並重新比對，目前已選的比對處理會清掉。（稿 v2.25 補畫，使用者 2026-11-10 裁示保留）</p><div class="acts"><button class="btn" data-mclose>取消</button><button class="btn btn-primary" id="rimp">再匯入一次</button></div></div>',function(ev){if(ev.target.id==='rimp'){closeModal();setRet();startCmp()}})}else{setRet();startCmp()}}
     else if(a==='cmppick'){S.cmp.pick[+g('i')]=g('v');render()}
     else if(a==='cmpapply')applyCmp();
     else if(a==='backws'){S.screen='ws';S.step=+g('n');render()}
