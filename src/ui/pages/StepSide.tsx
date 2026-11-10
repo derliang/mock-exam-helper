@@ -1,7 +1,7 @@
 import type { ExamConfig } from '../../data';
 import { Alert } from '../components';
 import { examClasses, markRows, seatableEntries } from '../seating';
-import { KIND_LABEL, schoolYear, type Doc } from '../store';
+import { examLabel, schoolYear, type Doc } from '../store';
 import { mathSplit } from '../subjects';
 
 /** 右側欄（原型 v1side／v4side）：只有 ① 與 ④ 有，其餘步驟沒有右側欄（原型 stepView） */
@@ -20,11 +20,11 @@ function Side1(p: { exam: ExamConfig }) {
     <>
       <div class="card stack">
         <div class="lab">本次摘要</div>
-        <div class="stats" style="grid-template-columns:1fr 1fr">
+        <div class="stats side-stats">
           <div><small>考科</small><strong>{exam.subjects.length}</strong></div>
           <div><small>學期</small><strong>{term}學期</strong></div>
         </div>
-        <p class="small muted">{KIND_LABEL[exam.kind].replace(/（.*）/, '')}・{schoolYear(new Date(exam.createdAt))} 學年・{exam.division === 'senior' ? '高中部' : '國中部'}</p>
+        <p class="small muted">{examLabel(exam)}・{schoolYear(new Date(exam.createdAt))} 學年・{exam.division === 'senior' ? '高三' : '國三'}</p>
       </div>
       <div class="card stack">
         <div class="lab">這一步會影響</div>

@@ -34,7 +34,7 @@ export function examProgress(doc: Doc, exam: ExamConfig): ExamProgress {
   const done = cells.filter((c) => c === 'd').length;
   const total = cells.filter((c) => c !== 'n').length;
   const all = done === total;
-  const detail = stale > -1 ? `${stepLabel(stale)}已過期` : cur > -1 ? `進行中：${stepLabel(cur)}` : '已完成';
+  const detail = stale > -1 ? `${stepLabel(stale)}已過期` : cur > -1 ? `進行中：${STEP_NAMES[cur]}` : '已完成';
   return {
     cells, done, total, headline: `${done}／${total} 步完成`, detail,
     tone: stale > -1 ? 'amb' : 'mut', status: stale > -1 ? 'stale' : all ? 'done' : 'doing',

@@ -34,10 +34,10 @@ export function Badge(p: { tone?: 'ok' | 'warn' | 'danger' | 'info'; children: C
   return <span class={`badge${p.tone ? ` b-${BADGE_CLS[p.tone]}` : ''}`}>{p.children}</span>;
 }
 
-export function Alert(p: { tone?: 'ok' | 'warn' | 'danger' | 'info'; children: ComponentChildren; action?: ComponentChildren }) {
+export function Alert(p: { tone?: 'ok' | 'warn' | 'danger' | 'info'; children: ComponentChildren; action?: ComponentChildren; noIcon?: boolean }) {
   return (
     <div class={`alert${p.tone ? ` a-${TONE_CLS[p.tone]}` : ''}`} role={p.tone === 'danger' ? 'alert' : 'status'}>
-      <span aria-hidden="true">{p.tone === 'danger' ? '⛔' : p.tone === 'warn' ? '⚠' : p.tone === 'ok' ? '✓' : 'ℹ'}</span>
+      {!p.noIcon && <span aria-hidden="true">{p.tone === 'danger' ? '⛔' : p.tone === 'warn' ? '⚠' : p.tone === 'ok' ? '✓' : 'ℹ'}</span>}
       <div>{p.children}</div>
       {p.action}
     </div>

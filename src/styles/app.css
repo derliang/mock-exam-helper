@@ -577,3 +577,15 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .lcell.mk-add .mk{background:#fff;color:#22201B;border-color:#22201B}
 /* 校-13、14：初始化拖放區較高，外框大米色底、卡片白底 */
 .dropzone{min-height:clamp(280px,48vh,520px);padding:44px 24px}
+
+/* 包 B：學期選項卡、新增考試返回鈕（校-17、20） */
+.termcards{display:flex;gap:10px;flex-wrap:wrap}
+.tcard.term{display:inline-flex;align-items:center;gap:10px;padding:8px 16px;min-height:44px;width:auto}
+.tcard.term strong{font-size:14px;font-family:var(--f-ui)}
+.tcard.term .tick{position:static}
+.pagehead>.btn-ghost{min-height:40px;padding:0 12px}
+
+/* 校-22、24：次別鈕四顆等寬不折行；右側「本次摘要」大字單行 */
+.stats.side-stats{grid-template-columns:1fr}
+.stats.side-stats strong{white-space:nowrap}
+@media (max-width:560px){.field>.seg{width:100%}.field>.seg button{flex:1 1 0;min-width:0;white-space:nowrap;padding:0 6px}}

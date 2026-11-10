@@ -176,6 +176,9 @@ export function examLabel(e: Pick<ExamConfig, 'division' | 'kind'>): string {
   return `${e.division === 'senior' ? '高中部' : '國中部'}・${KIND_LABEL[e.kind].replace(/（.*）/, '')}`;
 }
 
+/** 學生名單依部別命名（稿 v2.22，校-23）：高三學生名單／國三學生名單 */
+export const rosterName = (division: 'senior' | 'junior'): string => (division === 'senior' ? '高三學生名單' : '國三學生名單');
+
 export const KIND_LABEL: Record<ExamKind, string> = { gsat: '學測', ast: '分科', bcct: '會考' };
 
 /** 更新某次模擬考的欄位（名稱同名檢查） */
