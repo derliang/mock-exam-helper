@@ -31,7 +31,7 @@ export function RoomList(p: {
   const upd = (id: string, f: (r: Classroom) => Classroom) => p.onChange(patchRoom(p.rooms, id, f));
   return (
     <div class="rw">
-      <p class="muted small">點教室那一列，或按「▸ 編輯座位表」，就會在下方展開座位配置。</p>
+      <p class="muted small">座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個）。點教室那一列，或按「▸ 編輯座位表」，就會在下方展開座位配置。</p>
       {p.rooms.filter((r) => !(p.junior && r.kind === 'reserve')).map((r) => {
         const isOpen = open === r.id;
         const on = p.selected?.includes(r.id) ?? false;
@@ -52,13 +52,13 @@ export function RoomList(p: {
                     onChange={(t) => upd(r.id, (x) => setRoomTrack(x, t))} />
                   {!r.track && <span class="hint">⚠ 還沒指定，高中部排座會被擋下</span>}</div>
               )}
-              <div class="info">座位 {r.seatCount}／{roomCapacity(r)}（上限 {cap}）</div>
+              <div class="info">座位 <b>{roomCapacity(r)}</b>・不排 <b>{roomCapacity(r) - r.seatCount}</b>・可排 <b>{r.seatCount}</b>{r.kind === 'reserve' ? <><br />預備教室，不計入班級教室</> : (!p.junior && r.track ? <><br />{r.track === 'science' ? '理組' : '文組'}</> : null)}</div>
               <div class="btnrow" onClick={(e) => e.stopPropagation()}>
                 <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '▾ 收合座位表' : '▸ 編輯座位表'}</Button>
-                <ConfirmButton small copy={confirmCopy.deleteRoom(r.name, !!p.selected?.includes(r.id) || !!p.inUse?.(r.id))} onConfirm={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</ConfirmButton>
+                {r.kind === 'reserve' && <ConfirmButton small copy={confirmCopy.deleteRoom(r.name, !!p.selected?.includes(r.id) || !!p.inUse?.(r.id))} onConfirm={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</ConfirmButton>}
               </div>
             </div>
-            {isOpen && <SeatGrid room={r} cap={cap} onChange={(x) => upd(r.id, () => x)} />}
+            {isOpen && <SeatGrid room={r} cap={cap} onClose={() => setOpen(null)} onChange={(x) => upd(r.id, () => x)} />}
           </div>
         );
       })}
@@ -78,14 +78,16 @@ function RoomBadge(p: { room: Classroom; index: number; classes?: { name: string
 }
 
 /** 座位表：講臺在下，深位 1 最靠講臺（左側只標數字），橫排標「第N排」，每格印「排-深位」（D49/D50） */
-function SeatGrid(p: { room: Classroom; cap: number; onChange: (r: Classroom) => void }) {
+function SeatGrid(p: { room: Classroom; cap: number; onClose: () => void; onChange: (r: Classroom) => void }) {
   const { room } = p;
   const depths = Array.from({ length: room.depth }, (_, i) => room.depth - i); // 上到下：深位大→小
   const rows = Array.from({ length: room.rows }, (_, i) => i + 1);
   return (
     <div class="roomedit prev">
-      <h4>{room.name} 座位表</h4>
-      <p class="muted small">點哪個座位，哪個就「不排」（打斜線，例如壞掉的桌椅或走道）；再點一次恢復。排座時會跳過不排的座位，人由前往後連續坐。</p>
+      <div class="row" style="justify-content:space-between"><div><h4>編輯座位表：{room.name}</h4>
+        <p class="small muted">橫排 {room.rows} × 深位 {room.depth} ＝ {roomCapacity(room)} 個座位，可排 {room.seatCount}、不排 {roomCapacity(room) - room.seatCount}。一間教室最多 {p.cap} 個座位。座位只能多、不能少；不納入預備教室。</p></div>
+        <Button small onClick={p.onClose}>收合</Button></div>
+      <p class="muted small">座標是「排－深位」。點哪個座位，哪個就「不排」（打斜線，例如壞掉的桌椅或走道）；再點一次恢復。排座時會跳過不排的座位，人由前往後連續坐。</p>
       <div style="overflow-x:auto">
         <div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center">
           <div />
