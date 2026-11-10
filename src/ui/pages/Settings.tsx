@@ -4,7 +4,7 @@ import type { Division, LabelPaper, Student, Track } from '../../data';
 import { DEFAULT_LABEL_NOTES, LABEL_NOTE_MAX_CHARS, LABEL_NOTE_MAX_LINES, noteLineLength, studentCode } from '../../data';
 import { Alert, Badge, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg, Switch } from '../components';
 import { confirmCopy } from '../flow';
-import { RoomList } from '../components/RoomList';
+import { RoomTable } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
 import { RosterIO } from './RosterIO';
 import { allFeatures, withFeature } from '../features';
@@ -25,7 +25,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
       <div class="utabs" role="group" aria-label="設定項目" style="margin:12px 0">
         {TABS.map((t) => <button type="button" key={t.value} aria-pressed={tab === t.value} onClick={() => setTab(t.value)}>{t.label}</button>)}
       </div>
-      {tab !== 'school' && tab !== 'rooms' && tab !== 'features' && (
+      {tab !== 'school' && tab !== 'features' && (
         <div class="row" style="margin-bottom:12px">
           <span class="label" style="margin:0">部別</span>
           <div class="seg seg-soft" role="group" aria-label="部別">
@@ -38,12 +38,23 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
       {tab === 'classes' && <Classes {...p} division={division} />}
       {tab === 'school' && <School {...p} />}
       {tab === 'features' && <Features doc={p.doc} onChange={p.onChange} />}
-      {tab === 'rooms' && <div class="card stack"><div><h3>教室清單</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡選用，座位表在這裡也能編輯。</p></div><RoomList classes={p.doc.settings.classes} inUse={(id) => p.doc.exams.some((e) => e.classroomIds.includes(id))} rooms={p.doc.settings.classrooms} paper={p.doc.settings.defaultLabelPaper} onChange={(classrooms) => p.onChange({ ...p.doc, settings: { ...p.doc.settings, classrooms } })} /></div>}
+      {tab === 'rooms' && <Rooms doc={p.doc} onChange={p.onChange} division={division} />}
     </section>
   );
 }
 
 type Props = { doc: Doc; onChange: (d: Doc) => void; division: Division };
+
+/** 教室清單（稿 v2.22 校-43）：依部別切換，表格呈現，整列可點展開座位表 */
+function Rooms({ doc, onChange, division }: Props) {
+  return (
+    <div class="card stack">
+      <div><h3>教室清單（{division === 'junior' ? '國中部' : '高中部'}）</h3><p class="small muted">維護常用的班級教室與預備教室；每次模擬考從這裡用開關選出並自動帶入上次的選擇，可修改。座位表在這裡也能編輯，和模擬考 ③ 是同一個編輯畫面。</p></div>
+      <RoomTable division={division} classes={doc.settings.classes} exams={doc.exams} inUse={(id) => doc.exams.some((e) => e.classroomIds.includes(id))} rooms={doc.settings.classrooms} paper={doc.settings.defaultLabelPaper}
+        onChange={(classrooms) => onChange({ ...doc, settings: { ...doc.settings, classrooms } })} />
+    </div>
+  );
+}
 
 function Roster({ doc, onChange, division }: Props) {
   const [q, setQ] = useState('');
