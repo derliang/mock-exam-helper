@@ -547,6 +547,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .sumbar .sc.dim b{font-size:14px;color:var(--text-3)}
 .sumbar .slist{display:grid;gap:6px}
 .sumbar .si{display:grid;grid-template-columns:auto minmax(0,1fr) auto auto;align-items:center;gap:6px 14px;min-height:44px;padding:6px 12px;border:1px solid var(--line);border-left:4px solid var(--danger);border-radius:var(--r-sm);background:var(--surface);color:var(--text);font:inherit;text-align:left;cursor:pointer;transition:background var(--dur) var(--ease),box-shadow var(--dur) var(--ease)}
+.sumbar .si.todo{border-left-color:var(--warn-bar)}
 .sumbar .si:hover{background:var(--sunken)}
 .sumbar .si:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
 .sumbar .sstep{font-weight:700;white-space:nowrap}
