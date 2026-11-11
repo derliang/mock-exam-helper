@@ -2,7 +2,7 @@ import { launchChrome, Browser } from './cdp.mjs';
 import { SEED } from './seed.mjs';
 import { writeFileSync, mkdirSync, appendFileSync } from 'node:fs';
 
-const PORT = 5517, SCR = process.argv[2], OUT = process.argv[3];
+const PORT = Number(process.env.SHOT_PORT) || 5517, SCR = process.argv[2], OUT = process.argv[3];
 const ONLY = (process.argv[4] || '').split(',').filter(Boolean);
 const WIDTHS = (process.argv[5] || '375,820,1280').split(',').map(Number);
 const MODES = (process.argv[6] || 'light,dark').split(',');
@@ -10,7 +10,8 @@ mkdirSync(OUT, { recursive: true });
 const TAGLIST = process.env.TAGS ? (await import('node:fs')).readFileSync(process.env.TAGS, 'utf8').split(',') : null;
 const APP = `http://localhost:${PORT}/`;
 const PROTO = `http://localhost:${PORT}/docs/design/mockups/%E5%8E%9F%E5%9E%8B.html`;
-const STEP = ['考試設定', '考試名單', '教室設定', '標示與抽離規則', '排座與預覽', '下載'];
+const STEP = ['①', '②', '③', '④', '⑤', '⑥'];
+const STEP_NAME = ['考試設定', '考試名單', '教室設定', '標示與抽離規則', '排座與預覽', '下載'];
 
 const { proc, ws } = await launchChrome(9333, SCR + '/prof');
 const b = new Browser(ws); await b.open();
@@ -29,7 +30,7 @@ const appOpen = async (p, name) => {
   if (!ok) throw new Error('開不了 ' + name);
   await p.sleep(800);
 };
-const appStep = async (p, name, n) => { await appOpen(p, name); if (n > 1) await p.clickText(STEP[n - 1]); await p.sleep(500); };
+const appStep = async (p, name, n) => { await appOpen(p, name); if (n > 1) await p.clickText(STEP_NAME[n - 1], '.side button'); await p.sleep(500); };
 // ---- 原型端導覽 ----
 const protoInit = async (p) => { await p.goto(PROTO); await p.sleep(500); };
 const protoGo = async (p, k, id) => {
@@ -47,6 +48,7 @@ const S = [
   { id: '03新增模擬考', app: async (p) => { await appList(p); await p.clickText('新增模擬考'); await p.sleep(400); }, proto: (p) => protoGo(p, 'new') },
   ...[1, 2, 3, 4, 5, 6].map((n) => ({ id: `04步驟${'①②③④⑤⑥'[n - 1]}`, app: (p) => appStep(p, '學測第三次', n), proto: (p) => protoGo(p, 'ws' + n, 3) })),
   { id: '04b步驟②待處理', app: (p) => appStep(p, '學測第二次', 2), proto: (p) => protoGo(p, 'ws2', 2) },
+  { id: '04c步驟②名單比對', app: async (p) => { await appStep(p, '學測第二次', 2); if (await p.ev(`[...document.querySelectorAll('button')].some(x=>x.textContent.trim()==='處理差異')`)) await p.clickText('處理差異'); await p.sleep(400); } },
   { id: '04b步驟④待處理', app: (p) => appStep(p, '學測第二次', 4), proto: (p) => protoGo(p, 'ws4', 2) },
   { id: '04b步驟⑤擋下', app: (p) => appStep(p, '學測第二次', 5), proto: (p) => protoGo(p, 'ws5', 2) },
   { id: '04c會考步驟③', app: (p) => appStep(p, '會考第一次', 3), proto: (p) => protoGo(p, 'ws3', 1) },

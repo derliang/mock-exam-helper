@@ -6,6 +6,7 @@ import { demoDoc } from '../ui/repository';
 import { newExam } from '../ui/store';
 import { ScheduleTab } from '../ui/pages/Schedule';
 import {
+  dayName, slotName,
   addRow, defaultSchedule, dropRow, examSubjectPeriods, isDefaultSchedule, isOneSubjectPerPeriod, moveRow, numberRows,
   removeRow, scheduleKeyOf, scheduleOf, subjectPeriods, updateRow, withSchedule,
 } from './periods';
@@ -111,6 +112,16 @@ describe('共用設定「節次與時長」分頁', () => {
   it('照稿：類型分段鈕、兩天兩欄、節次編號、國文整個一起標、英聽固定、還原預設', () => {
     const html = renderToString(<ScheduleTab doc={demoDoc()} onChange={() => undefined} />);
     for (const s of ['節次與時長', '學測第 1、2 次', '學測第 3、4 次', '分科', '會考', '第 一 天', '第 二 天', '與上一科同節', '開始時間（選填）', '國文：整個一起標', '英聽固定排第一天最後一節', '＋ 新增一科', '還原「學測第 1、2 次」預設']) expect(html).toContain(s);
-    expect(html).toContain('第 7 節');
+    expect(html).toContain('時段三');
+    expect(html).not.toContain('第 7 節');
+  });
+});
+
+describe('時段編號每天重新開始（使用者 2026-11-10）', () => {
+  it('第二天從時段一開始；同節不多算一個時段', () => {
+    const rows = numberRows({ days: [[{ name: 'A' }, { name: 'B' }], [{ name: 'C' }, { name: 'D', samePrev: true }, { name: 'E' }]] } as never);
+    expect(rows.map((r) => [r.day, r.slot, r.period])).toEqual([[0, 1, 1], [0, 2, 2], [1, 1, 3], [1, 1, 3], [1, 2, 4]]);
+    expect(slotName(1)).toBe('時段一');
+    expect(dayName(1)).toBe('第二天');
   });
 });

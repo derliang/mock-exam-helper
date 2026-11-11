@@ -558,11 +558,17 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .sumbar .sgo{color:var(--accent-ink);font-weight:700;white-space:nowrap}
 @media (max-width:760px){.sumbar{position:static}.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
 
-/* 頁頂標題列與復原（校-04、07、11） */
-.pagehead-back{margin-bottom:4px}
-.pagehead{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;margin-bottom:16px}
-.pagehead h1{font-size:26px}
-.pagehead-acts{margin-left:auto;display:inline-flex;gap:10px;flex-wrap:wrap;align-items:center}
+/* 工作區頁首（稿 v2.25 兩層）；復原、校-04、07、11 */
+.phd{display:grid;gap:8px;margin-bottom:18px;padding-bottom:14px;border-bottom:1px solid var(--line)}
+.phd-top{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-height:36px}
+.phd-back{margin-right:auto}
+.phd-top .btn-ghost{padding-left:0}
+.phd-save{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3)}
+.phd-save::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok-bar)}
+.phd-title{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.phd-title h1{margin:0;font-size:26px}
+.phd-tools{display:inline-flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:600px){.phd-top .phd-save{order:3;flex-basis:100%}}
 .stephead{display:flex;gap:12px;justify-content:space-between;align-items:center;flex-wrap:wrap}
 .undowrap{position:relative;display:inline-flex}
 .undowrap .undo-main{border-top-right-radius:0;border-bottom-right-radius:0;max-width:min(60vw,300px);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
