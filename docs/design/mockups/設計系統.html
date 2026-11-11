@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考設計系統 稿 v2.26</title>
+<title>模擬考設計系統 稿 v2.27</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -392,12 +392,58 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 @media (max-width:760px){.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
 .empty{display:grid;gap:8px;justify-items:start;padding:20px;border:1.5px dashed var(--line-2);border-radius:var(--r-lg);background:var(--surface)}
 .empty strong{font-family:var(--f-head);font-size:18px}.empty p{margin:0}
+/* 分科新模型（D99 核心批次，稿 v2.27） */
+.astrow{grid-template-columns:minmax(150px,1.2fr) auto minmax(130px,1fr) minmax(140px,1fr) auto;cursor:auto}
+.astrow .stepper .icon-btn{width:36px;height:36px}
+.aed{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-md) var(--r-md);background:var(--sunken);overflow-x:auto}
+.aedgrid,.aedseat{display:grid;gap:6px;min-width:560px}
+.aedcol{display:grid;gap:2px;justify-items:center}
+.aedcol .stepper{gap:2px}.aedcol .icon-btn{width:30px;height:30px;font-size:15px}.aedcol output{min-width:20px;font-size:15px}
+.sq{min-height:36px;border-radius:6px;border:1.5px solid var(--line-2);background:var(--surface);color:var(--text-2);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.sq:hover{border-color:var(--text-3)}
+.sq.off{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,var(--line-2) 5px 10px);border-style:dashed;color:var(--text-3)}
+.sq.none{border:0;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 10px);min-height:36px;border-radius:6px;opacity:.6}
+.sq:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.mcard{display:grid;gap:8px;align-content:start;padding:14px;border:1.5px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.mcard.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.mcard h4{margin:0;font-size:18px}
+.mord{margin:0;padding-left:20px;display:grid;gap:2px}
+.cmpt td.best{font-weight:700}
+.cmpt th.selc{box-shadow:inset 0 -3px 0 var(--accent);color:var(--text)}
+.cmpt tr.grp td{background:var(--sunken);font-weight:700;color:var(--text-2);font-size:13px}
+.ut{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
+.ut th,.ut td{padding:4px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;font-size:13px;vertical-align:middle}
+.ut thead th{background:var(--sunken);color:var(--text-2)}
+.ut th.day{font-weight:700;color:var(--text)}
+.ut .rn{text-align:left;min-width:128px;padding:6px 8px;background:var(--surface);position:sticky;left:0;z-index:1}
+.ut thead .rn{background:var(--sunken)}
+.ut td button,.ut .thb{font:inherit;display:grid;gap:0;justify-items:center;align-content:center;width:100%;min-height:48px;border-radius:6px;border:1.5px solid transparent;background:transparent;cursor:pointer;padding:2px 4px;color:inherit}
+.ut .thb{min-height:44px;font-weight:700;font-size:12px}
+.ut td button:hover,.ut .thb:hover{border-color:var(--line-2)}
+.ut button[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:-2px}
+.ut button:focus-visible{outline:3px solid var(--accent);outline-offset:-2px}
+.ut td button b{font-size:18px;font-variant-numeric:tabular-nums;line-height:1.1}
+.ut td button span{font-size:12px;font-weight:700}
+.ut td.u-ex button{background:var(--text);color:var(--surface)}
+.ut td.u-st button{background:var(--sunken);border-color:var(--line-2)}
+.ut td.u-bor button{background:var(--sunken);border:1.5px dashed var(--text-2)}
+.ut td.u-pend button{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn-line)}
+.ut td.u-home button{color:var(--text-3)}
+.ulg{gap:14px;font-size:13px;color:var(--text-2)}
+.ulg .lg{display:inline-flex;align-items:center;gap:6px}
+.ulg i{display:inline-block;width:18px;height:14px;border-radius:3px;border:1.5px solid var(--line-2)}
+.ulg i.u-ex{background:var(--text);border-color:var(--text)}.ulg i.u-st{background:var(--sunken)}.ulg i.u-bor{background:var(--sunken);border-style:dashed;border-color:var(--text-2)}
+.ulg i.u-pend{background:var(--warn-soft);border-color:var(--warn-line)}.ulg i.u-home{background:transparent}
+.propcard .acts{display:grid;gap:6px;align-content:start;min-width:140px}
+.chartbox{overflow-x:auto;max-width:100%}
+@media(max-width:700px){.astrow{grid-template-columns:1fr 1fr}.propcard{grid-template-columns:auto 1fr}.propcard .acts{grid-column:1/-1;grid-auto-flow:column}}
 </style>
 
 <div class="top">
-  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.26・2026-11-12</span></span>
+  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.27・2026-11-12</span></span>
   <nav class="toc" aria-label="目錄">
-    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#paper">座位表與標籤</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
+    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#ast">分科新模型</a><a href="#paper">座位表與標籤</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
   </nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">跟隨系統</button>
@@ -684,6 +730,38 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
         <div class="chk"><small>預備教室座位</small><strong>72</strong><span class="sub">2 間</span><span class="badge b-ok">夠用</span></div>
       </div>
       <div class="stack" style="gap:6px;margin-top:10px"><p class="small muted"><b>文組：</b>教室座位 133，考生 133，剛好排滿。</p><p class="small errnote"><b>無法排座：</b>理組教室座位 115，理組考生 133。座位不能比考生少，請增加 18 個座位。</p></div>
+    </div>
+  </section>
+
+  <section id="ast">
+    <header><h2>分科新模型元件（D99 核心批次，稿 v2.27）</h2><p>分科改成「每個時段各自排」：教室每個時段可換用途，同一時段同一間只能考場或自習擇一。以下是新增的元件，全部用假資料；實際畫面在原型的分科示範考試（步驟③④⑤）。</p></header>
+    <div class="card stack">
+      <h3>教室用途表（列＝教室、欄＝時段）</h3>
+      <p class="small muted">格子內容：<b>考試</b>＝深色中性底（科目＋人數）；<b>自習</b>＝淺灰底（人數）；<b>借用原班自習</b>＝虛線框；<b>待核可</b>＝琥珀；<b>原班</b>＝淡字。顏色分工不變：考試不用藍（藍是操作色）、不用班級色；琥珀只代表待處理。整格是 44px 以上的按鈕，點了看該時段座位圖，選中的格子加 3px 藍外框。</p>
+      <div class="scroll"><table class="ut" style="min-width:520px"><thead><tr><th class="rn" rowspan="2">教室</th><th class="day" colspan="3">第一天</th></tr><tr><th><button type="button" class="thb" aria-pressed="false">第一天 時段一<br>物理</button></th><th><button type="button" class="thb" aria-pressed="false">時段二<br>化學</button></th><th><button type="button" class="thb" aria-pressed="false">時段三<br>數甲</button></th></tr></thead><tbody>
+        <tr><td class="rn"><b>溫班教室</b><br><span class="small muted">理組教室・45 位</span></td><td class="u-ex"><button type="button" aria-pressed="true"><span>考 物理</span><b>38</b></button></td><td class="u-ex"><button type="button" aria-pressed="false"><span>考 化學</span><b>37</b></button></td><td class="u-home"><button type="button" aria-pressed="false"><span>原班</span></button></td></tr>
+        <tr><td class="rn"><b>綜合教室一</b><br><span class="small muted">綜合教室・36 位</span></td><td class="u-st"><button type="button" aria-pressed="false"><span>自習</span><b>17</b></button></td><td class="u-bor"><button type="button" aria-pressed="false"><span>借用自習</span><b>3</b></button></td><td class="u-pend"><button type="button" aria-pressed="false"><span>待核可</span><b>+2</b></button></td></tr>
+      </tbody></table></div>
+    </div>
+    <div class="card stack">
+      <h3>排座模式選擇卡</h3>
+      <p class="small muted">兩張卡並排（窄螢幕直排），選中的卡左側 3px 藍條；預設「少教室優先」標「預設」徽章；卡內列出該模式的取捨順位與這份名單的結果，按鈕是 aria-pressed 的選項鈕，不是主要按鈕。</p>
+      <div class="mgrid"><div class="mcard on"><div class="row" style="justify-content:space-between"><h4>少教室優先</h4><span class="badge b-acc">預設</span></div><p class="small muted">用最少的教室。</p><ol class="small mord"><li>用到的教室總數</li><li>被抽離的原班非應考者人次</li><li>各考場人數平均</li></ol><button type="button" class="btn btn-primary" aria-pressed="true">目前使用 ✓</button></div><div class="mcard"><h4>少移動優先</h4><p class="small muted">讓最少人離開原班。</p><ol class="small mord"><li>離開原班人次</li><li>跨節換教室次數</li><li>用到的教室總數</li></ol><button type="button" class="btn" aria-pressed="false">改用這個</button></div></div>
+    </div>
+    <div class="card stack">
+      <h3>替代方案提示卡（自習容量不足）</h3>
+      <p class="small muted">琥珀警示卡：說明缺幾個位置、程式建議改用哪一間（附原班人數與容量）、<b>影響</b>（教室總數是否增加、幾人離開原班、只影響哪個時段），並寫明「未經你核可不會採用」。右側兩顆按鈕：「核可此方案」（卡內唯一實心藍）、「調高自習容量／改設定」。核可後這個時段的格子變虛線「借用自習」，並出現綠色「已核可」條，可取消核可。</p>
+      <div class="alert a-warn propcard"><span class="ico" data-i="!"></span><span><b>第二天 時段四（公民與社會）自習容量不足，缺 2 個位置。</b><br>程式建議：改用「誠班教室」（這個時段沒當考場；原班本來就有 15 位同學留在那裡自習，再收 2 人，合計 17 人，自習容量 44）。<br><span class="small"><b>影響：</b>教室總數 +1；這 2 位同學要離開原班；只影響這個時段。<b>未經你核可不會採用。</b></span></span><span class="acts"><button class="btn btn-primary btn-sm">核可此方案</button><button class="btn btn-sm">調高自習容量／改設定</button></span></div>
+    </div>
+    <div class="card stack">
+      <h3>座位圖編輯器（每排深位數可不同）</h3>
+      <p class="small muted">每一排上方一個 −／＋ 步進器調深位數（1～8）；下方座位格可點：點一下停用（斜線虛框、顯示「停」）、再點恢復；該排沒有的深位畫成斜線淡格。要留空靠停用座位，不另做隔排隔位規則。窄螢幕時整塊橫向捲動，頁面不出現橫向捲軸。自習容量欄在教室列，預設＝可排座位，調高時出現琥珀「已手動調高 +N」徽章。</p>
+      <div class="aed" style="max-width:420px"><div class="aedgrid" style="grid-template-columns:repeat(4,minmax(54px,1fr));min-width:0"><div class="aedcol"><span class="small muted">第1排</span><div class="stepper"><button class="icon-btn">−</button><output>5</output><button class="icon-btn">＋</button></div></div><div class="aedcol"><span class="small muted">第2排</span><div class="stepper"><button class="icon-btn">−</button><output>5</output><button class="icon-btn">＋</button></div></div><div class="aedcol"><span class="small muted">第3排</span><div class="stepper"><button class="icon-btn">−</button><output>4</output><button class="icon-btn">＋</button></div></div><div class="aedcol"><span class="small muted">第4排</span><div class="stepper"><button class="icon-btn">−</button><output>5</output><button class="icon-btn">＋</button></div></div></div><div class="aedseat" style="grid-template-columns:repeat(4,minmax(54px,1fr));min-width:0"><button class="sq">1-5</button><button class="sq">2-5</button><span class="sq none"></span><button class="sq">4-5</button><button class="sq">1-4</button><button class="sq off">停</button><button class="sq">3-4</button><button class="sq">4-4</button></div></div>
+    </div>
+    <div class="card stack">
+      <h3>方案比較表</h3>
+      <p class="small muted">兩種模式各一欄，使用中的欄表頭加 3px 藍底線；分「取捨指標」「試務複雜度」兩組；兩欄中較小者粗體；每列下方灰字說明這個指標怎麼算。</p>
+      <div class="scroll"><table class="t compact cmpt"><thead><tr><th>指標</th><th class="selc">少教室優先（使用中）</th><th>少移動優先</th></tr></thead><tbody><tr class="grp"><td colspan="3">取捨指標（越小越好）</td></tr><tr><td>用到的教室總數<br><span class="small muted">兩天去重</span></td><td class="n best">7</td><td class="n">8</td></tr><tr><td>離開原班人次</td><td class="n">411</td><td class="n best">287</td></tr></tbody></table></div>
     </div>
   </section>
 

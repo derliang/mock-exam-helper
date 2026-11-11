@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.26</title>
+<title>模擬考原型 稿 v2.27</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -430,6 +430,52 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 @media (max-width:760px){.ws.wide{grid-template-columns:minmax(0,1fr)}}
 .ws .chart{--cw:90px;--ch:104px}
 .cell.dim{opacity:.25}
+/* 分科新模型（D99 核心批次，稿 v2.27） */
+.astrow{grid-template-columns:minmax(150px,1.2fr) auto minmax(130px,1fr) minmax(140px,1fr) auto;cursor:auto}
+.astrow .stepper .icon-btn{width:36px;height:36px}
+.aed{display:grid;gap:10px;padding:12px;border:1px solid var(--line);border-top:0;border-radius:0 0 var(--r-md) var(--r-md);background:var(--sunken);overflow-x:auto}
+.aedgrid,.aedseat{display:grid;gap:6px;min-width:560px}
+.aedcol{display:grid;gap:2px;justify-items:center}
+.aedcol .stepper{gap:2px}.aedcol .icon-btn{width:30px;height:30px;font-size:15px}.aedcol output{min-width:20px;font-size:15px}
+.sq{min-height:36px;border-radius:6px;border:1.5px solid var(--line-2);background:var(--surface);color:var(--text-2);font:inherit;font-size:12px;font-weight:700;cursor:pointer}
+.sq:hover{border-color:var(--text-3)}
+.sq.off{background:repeating-linear-gradient(135deg,var(--sunken) 0 5px,var(--line-2) 5px 10px);border-style:dashed;color:var(--text-3)}
+.sq.none{border:0;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 10px);min-height:36px;border-radius:6px;opacity:.6}
+.sq:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.mgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:12px}
+.mcard{display:grid;gap:8px;align-content:start;padding:14px;border:1.5px solid var(--line);border-radius:var(--r-md);background:var(--surface)}
+.mcard.on{border-color:var(--accent);box-shadow:inset 3px 0 0 var(--accent)}
+.mcard h4{margin:0;font-size:18px}
+.mord{margin:0;padding-left:20px;display:grid;gap:2px}
+.cmpt td.best{font-weight:700}
+.cmpt th.selc{box-shadow:inset 0 -3px 0 var(--accent);color:var(--text)}
+.cmpt tr.grp td{background:var(--sunken);font-weight:700;color:var(--text-2);font-size:13px}
+.ut{border-collapse:separate;border-spacing:0;width:100%;min-width:760px}
+.ut th,.ut td{padding:4px;border-bottom:1px solid var(--line);border-right:1px solid var(--line);text-align:center;font-size:13px;vertical-align:middle}
+.ut thead th{background:var(--sunken);color:var(--text-2)}
+.ut th.day{font-weight:700;color:var(--text)}
+.ut .rn{text-align:left;min-width:128px;padding:6px 8px;background:var(--surface);position:sticky;left:0;z-index:1}
+.ut thead .rn{background:var(--sunken)}
+.ut td button,.ut .thb{font:inherit;display:grid;gap:0;justify-items:center;align-content:center;width:100%;min-height:48px;border-radius:6px;border:1.5px solid transparent;background:transparent;cursor:pointer;padding:2px 4px;color:inherit}
+.ut .thb{min-height:44px;font-weight:700;font-size:12px}
+.ut td button:hover,.ut .thb:hover{border-color:var(--line-2)}
+.ut button[aria-pressed="true"]{outline:3px solid var(--accent);outline-offset:-2px}
+.ut button:focus-visible{outline:3px solid var(--accent);outline-offset:-2px}
+.ut td button b{font-size:18px;font-variant-numeric:tabular-nums;line-height:1.1}
+.ut td button span{font-size:12px;font-weight:700}
+.ut td.u-ex button{background:var(--text);color:var(--surface)}
+.ut td.u-st button{background:var(--sunken);border-color:var(--line-2)}
+.ut td.u-bor button{background:var(--sunken);border:1.5px dashed var(--text-2)}
+.ut td.u-pend button{background:var(--warn-soft);color:var(--warn-ink);border-color:var(--warn-line)}
+.ut td.u-home button{color:var(--text-3)}
+.ulg{gap:14px;font-size:13px;color:var(--text-2)}
+.ulg .lg{display:inline-flex;align-items:center;gap:6px}
+.ulg i{display:inline-block;width:18px;height:14px;border-radius:3px;border:1.5px solid var(--line-2)}
+.ulg i.u-ex{background:var(--text);border-color:var(--text)}.ulg i.u-st{background:var(--sunken)}.ulg i.u-bor{background:var(--sunken);border-style:dashed;border-color:var(--text-2)}
+.ulg i.u-pend{background:var(--warn-soft);border-color:var(--warn-line)}.ulg i.u-home{background:transparent}
+.propcard .acts{display:grid;gap:6px;align-content:start;min-width:140px}
+.chartbox{overflow-x:auto;max-width:100%}
+@media(max-width:700px){.astrow{grid-template-columns:1fr 1fr}.propcard{grid-template-columns:auto 1fr}.propcard .acts{grid-column:1/-1;grid-auto-flow:column}}
 .cell .mks{display:grid;gap:1px;justify-items:center}
 .chart .cell .mk,.sheet .cell .mk{font-size:10.5px;line-height:14px;padding:0 4px}
 .cell[role="button"]{cursor:pointer}
@@ -779,7 +825,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v1.0.0</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.26・2026-11-12</span>
+  <span class="brand">模擬考小幫手<span class="ver">v1.0.0</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.27・2026-11-12</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -1061,6 +1107,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var subs=subjList(e);for(var k=0;k<subs.length;k++){var pl=prepPlan(e,subs[k]);if(pl.exCells){for(var c=0;c<pl.exCells.length;c++){if(pl.exCells[c].room&&pl.exCells[c].room.name===r.name&&Object.keys(pl.exCells[c].map).length)return {room:r,map:pl.exCells[c].map,sub:subs[k]}}}}
     return {room:r,map:{},sub:''}}
   function blockers(e){
+    if(e.type==='分科')return e.cmpPending?[{special:'cmp',step:2,t:'本次考試名單還沒和學生名單比對（有差異要逐筆處理）',ti:'考試名單尚未比對',sub:'有差異要逐筆處理'}].concat(astBlockers(e)):astBlockers(e);
     var out=[],names=['考試設定','考試名單','教室設定','標示與抽離規則'];
     for(var i=0;i<4;i++){if(i===3&&e.type==='會考')continue;if(e.prog[i]!=='d')out.push({step:i+1,t:'步驟'+'①②③④'.charAt(i)+' '+names[i]+'尚未完成',ti:names[i]+'尚未完成'})}
     if(e.cmpPending)out.push({special:'cmp',step:2,t:'本次考試名單還沒和學生名單比對（有差異要逐筆處理）',ti:'考試名單尚未比對',sub:'有差異要逐筆處理'});
@@ -1222,9 +1269,10 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var n=S.step;
     if(n===1)return {main:v1(),side:v1side()};
     if(n===2)return {main:v2(),side:''};
-    if(n===3)return {main:v3(),side:''};
-    if(n===4)return {main:v4(),side:v4side()};
-    if(n===5)return {main:v5(),side:''};
+    var ast=S.cur&&S.cur.type==='分科';
+    if(n===3)return {main:ast?astV3():v3(),side:''};
+    if(n===4)return ast?{main:astV4(),side:''}:{main:v4(),side:v4side()};
+    if(n===5)return {main:ast?astV5():v5(),side:''};
     return {main:v6(),side:''}}
   function nextBtn(n,label){return ''}
   function statsStrip(items){return '<div class="stats">'+items.map(function(i){return '<div class="'+(i[2]||'')+'"><small>'+i[0]+'</small><strong>'+i[1]+'</strong></div>'}).join('')+'</div>'}
@@ -1412,12 +1460,12 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var STN='①②③④⑤⑥',stat=function(l,v,c){return '<div class="sc'+(c?' '+c:'')+'"><span class="sl">'+l+'</span><b>'+v+'</b></div>'};
     var rows=iss.map(function(x){
       var nums=(x.need!=null)?'<span class="sn"><span>需要 <b>'+x.need+'</b></span><span>可用 <b>'+x.have+'</b></span><span class="bad">缺少 <b>'+x.lack+'</b></span></span>':'';
-      return '<button type="button" class="si'+(x.todo?' todo':'')+'" data-act="step" data-n="'+x.step+'"><span class="sstep">'+STN.charAt(x.step-1)+' '+STEPS[x.step-1][0]+'</span><span class="sti">'+esc(x.ti||x.t)+(x.sub?'<small>'+esc(x.sub)+'</small>':'')+'</span>'+nums+'<span class="sgo">'+(x.fix||'前往處理')+' ›</span></button>'}).join('');
+      return '<button type="button" class="si'+(x.todo?' todo':'')+'" data-act="step" data-n="'+x.step+'"><span class="sstep">'+STN.charAt(x.step-1)+' '+stepsOf(e)[x.step-1][0]+'</span><span class="sti">'+esc(x.ti||x.t)+(x.sub?'<small>'+esc(x.sub)+'</small>':'')+'</span>'+nums+'<span class="sgo">'+(x.fix||'前往處理')+' ›</span></button>'}).join('');
     return '<div class="sumbar'+(iss.length?' has-iss':'')+'" role="region" aria-label="本次考試摘要"><div class="sstats">'+(none?stat('考生','尚未匯入考試名單','dim'):stat('考生',stu))+stat('座位',seats)+(none||!seats?stat('空位','—','dim'):lack?stat('缺位',-spare,'bad'):stat('空位',spare))+(iss.length?'<div class="sc warn"><span class="sl">待處理</span><b>'+iss.length+'</b></div>':'<div class="sc okc"><span class="sl">待處理</span><b>0</b><em>✓ 沒有待處理的事</em></div>')+'</div>'+(iss.length?'<div class="slist">'+rows+'</div>':'')+'</div>'}
   /* ---------- 工作區外框 ---------- */
   function vWs(){
-    var e=S.cur,view=stepView(),s=STEPS[S.step-1],wide=view.side==='';
-    var sl=STEPS.map(function(st,i){var k=stepState(i+1),tag=k==='done'?'已完成':k==='stale'?'過期':k==='skip'?'不需要':'';
+    var e=S.cur,view=stepView(),s=stepsOf(e)[S.step-1],wide=view.side==='';
+    var sl=stepsOf(e).map(function(st,i){var k=stepState(i+1),tag=k==='done'?'已完成':k==='stale'?'過期':k==='skip'?'不需要':'';
       return '<li><button class="step '+(k==='skip'?'skip':k)+'" type="button" data-act="step" data-n="'+(i+1)+'"'+(i+1===S.step?' aria-current="step"':'')+'><span class="no">'+(k==='done'?'✓':k==='stale'?'!':(i+1))+'</span><span><b>'+st[0]+'</b><small>'+(tag?tag+'・':'')+st[1]+'</small></span></button></li>'}).join('');
     return '<header class="phd"><div class="phd-top"><button class="btn btn-ghost grow" data-act="list">← 模擬考列表</button><span class="phd-save">已儲存到資料夾</span><span class="phd-tools">'+undoBtn()+'<button class="btn" data-act="tosettings" data-v="stu">設定</button></span></div><div class="phd-title"><h1>'+esc(e.name)+'</h1><span class="badge">'+typeLabel(e.type)+'</span></div></header>'+wsRet()+
       '<div class="ws'+(wide?' wide':'')+'"><aside class="side"><div class="card" style="padding:10px"><div class="stepprog">第 '+S.step+'／6 步　已完成 '+STEPS.filter(function(x,i){return stepState(i+1)==='done'}).length+' 步</div><ol class="steps">'+sl+'</ol></div></aside>'+
@@ -1493,7 +1541,8 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       h+='<tr><td>'+esc(r.name)+'</td>'+subs.map(function(x){var n=cnt[x]||0;return '<td class="n">'+n+'（備 '+Math.max(2,Math.ceil(n*0.03))+'）</td>'}).join('')+'</tr>'});
     if(e.type!=='會考'){h+='<tr><td>預備教室（抽離考試）</td>'+subs.map(function(x){var n=pull(e,x).ex.length;return '<td class="n">'+n+(n?'（備 2）':'')+'</td>'}).join('')+'</tr>'}
     return h+'</tbody></table></div><p class="small muted">每格是「試卷與答案卡各幾份（備用幾份）」。備用份數是原型示範的算法，正式規則待使用者確認。</p>'}
-  function v6(){
+  function v6(){var _n=S.cur.type==='分科'?astV6Note():'';return _n+v6core()}
+  function v6core(){
     var e=S.cur,d=D(),bl=blockers(e);
     if(bl.length)return blockedCard(bl,'下載');
     if(!e.seat){computeSeat(e);if(!isStale(e))e.prog[4]='d'}
@@ -1723,6 +1772,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     else if(a==='dept'){S.dept=g('v');S.rf=0;S.rexp=null;render()}
     else if(a==='goret'){var rl=S.ret||{screen:'ws',step:S.step||1};S.ret=null;S.screen=rl.screen;S.step=rl.step;if(rl.stab)S.stab=rl.stab;render()}
     else if(a==='rsw'){return}
+    else if(a.slice(0,4)==='ast_'){astAct(a,b)}
     else if(a==='rexp'){if(/^(INPUT|SELECT|TEXTAREA)$/.test(ev.target.tagName)||ev.target.closest('.stepper'))return;S.rsel=g('s');S.rexp=S.rexp===g('s')?null:g('s');render()}
     else if(a==='tpl')openTpl();
     else if(a==='stab'){S.stab=g('v');render()}
@@ -1795,6 +1845,288 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       if(e.target.closest('[data-mclose]')||e.target.id==='mf')$('#modalHost').innerHTML='';
       if(e.target.id==='pkok'){S.folder=sel;$('#modalHost').innerHTML='';toast('已授權資料夾：'+sel+'（模擬）');go('list')}}}
 
+  /* ===== 分科新模型（D99 核心批次，稿 v2.27）：每節各自排、教室用途表、座位圖、兩種模式、自習容量、多間綜合教室 ===== */
+  var AST_SUBJ=['物理','化學','數學甲','生物','歷史','地理','數學乙','公民與社會'];
+  var AST_N=[44,45,44,45,44,44];
+  /* 各班各科報名人數（假資料；學號 1～T 的人考該科） */
+  var AST_T=[[38,36,41,14,3,2,2,1],[34,33,40,16,2,3,3,2],[33,31,39,12,3,2,2,2],[2,1,3,0,39,36,41,33],[1,2,2,1,37,31,40,30],[1,1,2,0,36,30,35,29]];
+  /* 兩種模式在示範資料下的考場挑選（示意；真正的引擎由施工依 D99 順位計算）。c0～c5＝班級教室，k0～k2＝綜合教室 */
+  var AST_PLAN={
+    few:[['c0','c1','k0'],['c0','c1','k0'],['c0','c1','c2'],['c1'],['c3','c4','k0'],['c3','c4','k0'],['c3','c4','k0'],['c3','c4','k0']],
+    move:[['c0','c1','c2'],['c0','c1','c2'],['c0','c1','c2'],['c1'],['c3','c4','c5'],['c3','c4','c5'],['c3','c4','c5'],['c3','c4','c5']]};
+  function astInit(){
+    if(S.ast)return S.ast;
+    var f=function(n,d){var a=[];for(var i=0;i<n;i++)a.push(d);return a};
+    var rooms=[];
+    for(var c=0;c<6;c++)rooms.push({key:'c'+c,name:CNAME[c]+'班教室',kind:'c',c:c,grp:c<3?'sci':'art',depths:f(9,5),off:{},scap:null,on:true});
+    rooms[0].scap=48;                                  /* 示範「自習容量手動調高」 */
+    rooms[2].depths=[5,5,5,5,5,5,5,5,4];                /* 示範「每排深位數不同」 */
+    rooms[5].off={'5,3':1};                             /* 示範「停用個別座位」 */
+    rooms.push({key:'k0',name:'綜合教室一',kind:'k',depths:f(6,6),off:{},scap:null,on:true});
+    rooms.push({key:'k1',name:'綜合教室二',kind:'k',depths:[5,5,5,5,4],off:{},scap:null,on:true});
+    rooms.push({key:'k2',name:'綜合教室三',kind:'k',depths:f(3,6),off:{},scap:null,on:false});
+    S.ast={mode:'few',allow:false,apv:{},rooms:rooms,sel:{p:0,k:null},exp:null,hl:-1,mix:false};
+    return S.ast}
+  function aRoom(k){return astInit().rooms.filter(function(r){return r.key===k})[0]}
+  function aSeats(r){var n=0;r.depths.forEach(function(d,i){for(var k=1;k<=d;k++)if(!r.off[(i+1)+','+k])n++});return n}
+  function aOff(r){var n=0;r.depths.forEach(function(d,i){for(var k=1;k<=d;k++)if(r.off[(i+1)+','+k])n++});return n}
+  function aStudy(r){return r.scap!=null?r.scap:aSeats(r)}
+  function aName(k){var r=aRoom(k);return r?r.name:k}
+  function aShort(k){var r=aRoom(k);return r.kind==='c'?CNAME[r.c]+'班':r.name.replace('教室','')}
+  function aid(s){return pad2(s.c+1)+pad2(s.no)}
+  /* 模擬一種模式的整個排程：每節的考場、自習、替代方案；每位學生每節的位置 */
+  function astSim(mode){
+    var A=astInit(),res={mode:mode,per:[],loc:{}},prevStudy={};
+    for(var p=0;p<8;p++){
+      var grp=p<4?'sci':'art';
+      var set=AST_PLAN[mode][p].filter(function(k){var r=aRoom(k);return r&&(r.kind==='c'||r.on)});
+      var per={p:p,subj:AST_SUBJ[p],grp:grp,exam:{},order:[],study:{},sorder:[],pend:[],prop:null,short:0,errs:[],borrow:{}};
+      var host={},cap={},movers=[];
+      set.forEach(function(k){host[k]={key:k,list:[],from:{}};cap[k]=aSeats(aRoom(k))});
+      for(var c=0;c<6;c++){var t=AST_T[c][p];if(!t)continue;var hk='c'+c;
+        if(host[hk]&&aRoom(hk).grp===grp){for(var i=1;i<=t;i++)host[hk].list.push({c:c,no:i});host[hk].from[c]=t;cap[hk]-=t}
+        else movers.push({c:c,n:t})}
+      movers.sort(function(a,b){return b.n-a.n||a.c-b.c});
+      movers.forEach(function(u){var left=u.n,nxt=1;
+        while(left>0){var best=null;
+          set.forEach(function(k){var r=aRoom(k);if(r.kind==='c'&&r.grp!==grp)return;if(cap[k]<=0)return;if(!best||cap[k]>cap[best])best=k});
+          if(!best){per.errs.push('考場座位不足：還有 '+left+' 人（'+CNAME[u.c]+'班）沒有座位');break}
+          var put=Math.min(left,cap[best]);
+          for(var j=0;j<put;j++)host[best].list.push({c:u.c,no:nxt++});
+          host[best].from[u.c]=(host[best].from[u.c]||0)+put;cap[best]-=put;left-=put}});
+      set.forEach(function(k){if(host[k].list.length){per.exam[k]=host[k];per.order.push(k)}});
+      /* 被徵用成考場的原班：不考的人要離開，預設只送本次可用、當時段沒當考場的綜合教室 */
+      var disp=[];
+      for(var c2=0;c2<6;c2++){var hk2='c'+c2;if(per.exam[hk2]&&aRoom(hk2).grp===grp){var t2=AST_T[c2][p];if(AST_N[c2]-t2>0)disp.push({c:c2,n:AST_N[c2]-t2,from:t2+1})}}
+      var comps=A.rooms.filter(function(r){return r.kind==='k'&&r.on&&!per.exam[r.key]}),used={};
+      var place=function(r,u,cnt,nxt,kind){var s=per.study[r.key]||(per.study[r.key]={key:r.key,list:[],from:{},kind:kind});per.sorder.indexOf(r.key)<0&&per.sorder.push(r.key);
+        for(var q=0;q<cnt;q++)s.list.push({c:u.c,no:nxt+q});s.from[u.c]=(s.from[u.c]||0)+cnt;used[r.key]=(used[r.key]||0)+cnt};
+      var spill=[];
+      disp.forEach(function(u){var left=u.n,nxt=u.from;
+        var cs=comps.slice().sort(function(a,b){var pa=prevStudy[u.c]===a.key?0:1,pb=prevStudy[u.c]===b.key?0:1;if(pa!==pb)return pa-pb;return (aStudy(b)-(used[b.key]||0))-(aStudy(a)-(used[a.key]||0))});
+        cs.forEach(function(r){if(left<=0)return;var free=aStudy(r)-(used[r.key]||0);if(free<=0)return;var put=Math.min(left,free);place(r,u,put,nxt,'k');nxt+=put;left-=put;prevStudy[u.c]=r.key});
+        if(left>0)spill.push({c:u.c,n:left,from:nxt})});
+      if(spill.length){
+        var need=0;spill.forEach(function(u){need+=u.n});
+        var cand=A.rooms.filter(function(r){return r.kind==='c'&&!per.exam[r.key]}).map(function(r){var occ=AST_N[r.c]-AST_T[r.c][p]+(used[r.key]||0);return {r:r,free:aStudy(r)-occ,occ:AST_N[r.c]-AST_T[r.c][p]}}).sort(function(a,b){return b.free-a.free});
+        var key=mode+'|'+p;
+        if(A.allow||A.apv[key]){
+          spill.forEach(function(u){var left=u.n,nxt=u.from;cand.forEach(function(cd){if(left<=0)return;var fr=aStudy(cd.r)-cd.occ-(used[cd.r.key]||0);if(fr<=0)return;var put=Math.min(left,fr);place(cd.r,u,put,nxt,'borrow');nxt+=put;left-=put;prevStudy[u.c]=cd.r.key});if(left>0)per.errs.push('自習座位不足：還有 '+left+' 人沒有地方')})}
+        else{
+          spill.forEach(function(u){per.pend.push(u)});per.short=need;
+          var b=cand[0];per.prop=b?{need:need,room:b.r.key,occ:b.occ,free:b.free,after:b.occ+need,cap:aStudy(b.r)}:null}}
+      /* 每位學生這一節的位置 */
+      for(var c3=0;c3<6;c3++)for(var n=1;n<=AST_N[c3];n++)res.loc[c3+'-'+n]=res.loc[c3+'-'+n]||[];
+      Object.keys(per.exam).forEach(function(k){per.exam[k].list.forEach(function(s){res.loc[s.c+'-'+s.no][p]={t:'x',r:k}})});
+      Object.keys(per.study).forEach(function(k){per.study[k].list.forEach(function(s){res.loc[s.c+'-'+s.no][p]={t:'s',r:k}})});
+      per.pend.forEach(function(u){for(var q=0;q<u.n;q++)res.loc[u.c+'-'+(u.from+q)][p]={t:'p',r:'pend'}});
+      for(var c4=0;c4<6;c4++)for(var n2=1;n2<=AST_N[c4];n2++)if(!res.loc[c4+'-'+n2][p])res.loc[c4+'-'+n2][p]={t:'h',r:'c'+c4};
+      res.per.push(per)}
+    return res}
+  /* 第二階段：教室內座位（一排一班、班級交錯、同班座號由小到大、坐滿可用座位） */
+  function astLayout(r,list){
+    var q={},map={};list.forEach(function(s){(q[s.c]=q[s.c]||[]).push(s)});
+    var cls=Object.keys(q).map(Number).sort(function(a,b){return a-b});if(!cls.length)return map;
+    Object.keys(q).forEach(function(c){q[c].sort(function(a,b){return a.no-b.no})});
+    var cur=0;
+    for(var col=1;col<=r.depths.length;col++){
+      for(var row=1;row<=r.depths[col-1];row++){
+        if(r.off[col+','+row])continue;
+        var g=0;while(g++<=cls.length&&!q[cls[cur%cls.length]].length)cur++;
+        var cl=cls[cur%cls.length];if(!q[cl].length)return map;
+        map[col+','+row]=q[cl].shift()}
+      cur++}
+    return map}
+  var AST_CACHE={};
+  function astMetrics(sim){
+    var out={rooms:0,roomList:[],leaveX:0,leaveS:0,disp:0,changes:0,spread:0,spreadAt:'',labels:0,sameMax:0,sameMulti:0,sections:0,mixRooms:0,mixRows:0,pend:0},rs={},seat={};
+    sim.per.forEach(function(per){
+      per.order.forEach(function(k){rs[k]=1;out.sections++;
+        var m=astLayout(aRoom(k),per.exam[k].list);Object.keys(m).forEach(function(sk){var kk=k+'|'+sk;(seat[kk]=seat[kk]||{})[aid(m[sk])]=1})});
+      per.sorder.forEach(function(k){rs[k]=1});
+      per.pend.forEach(function(u){out.pend+=u.n});
+      if(per.order.length>1){var ls=per.order.map(function(k){return per.exam[k].list.length}),sp=Math.max.apply(null,ls)-Math.min.apply(null,ls);if(sp>out.spread){out.spread=sp;out.spreadAt=PL(per.p)+''}}});
+    out.roomList=Object.keys(rs);out.rooms=out.roomList.length;
+    Object.keys(sim.loc).forEach(function(id){var c=+id.split('-')[0],L=sim.loc[id],prev=null;
+      L.forEach(function(x,p){var home=(x.t==='h')||(x.t==='x'&&x.r==='c'+c),key=home?'H':x.t+x.r;
+        if(!home){if(x.t==='x')out.leaveX++;else{out.leaveS++;out.disp++}}
+        if(prev!==null&&prev!==key)out.changes++;prev=key})});
+    out.labels=Object.keys(seat).length;
+    Object.keys(seat).forEach(function(k){var n=Object.keys(seat[k]).length;if(n>out.sameMax)out.sameMax=n;if(n>1)out.sameMulti++});
+    return out}
+  function astGet(mode){var A=astInit();var key=JSON.stringify([mode,A.allow,A.apv,A.rooms]);if(AST_CACHE.key!==key){AST_CACHE={key:key,sim:{},met:{}}}
+    if(!AST_CACHE.sim[mode]){AST_CACHE.sim[mode]=astSim(mode);AST_CACHE.met[mode]=astMetrics(AST_CACHE.sim[mode])}
+    return {sim:AST_CACHE.sim[mode],met:AST_CACHE.met[mode]}}
+  function astBlockers(e){
+    var A=astInit(),g=astGet(A.mode),out=[];
+    g.sim.per.forEach(function(per){
+      if(per.prop)out.push({step:5,ti:PL(per.p)+'自習容量不足（待核可）',sub:per.subj+'：缺 '+per.short+' 個位置，程式提了替代方案',t:'⑤ '+PL(per.p)+'自習容量不足，替代方案待核可',fix:'前往核可'});
+      else if(per.short)out.push({step:3,ti:PL(per.p)+'自習容量不足',sub:'沒有可用的替代教室',t:'③ '+PL(per.p)+'自習容量不足'});
+      per.errs.forEach(function(m){out.push({step:3,ti:PL(per.p)+'：'+m,t:'③ '+PL(per.p)+'：'+m})})});
+    return out}
+  var AST_NUM=['','一','二','三','四'];function PL(p){return (p<4?'第一天':'第二天')+' 時段'+AST_NUM[p%4+1]}
+  var AST_DAY=['第一天','第二天'];
+  function stepsOf(e){
+    if(e&&e.type==='分科'){var a=STEPS.slice();a[2]=['教室與自習空間','座位圖、自習容量、綜合教室'];a[3]=['排座模式與方案','少教室／少移動、方案比較'];a[4]=['時段教室與座位','教室用途表、座位圖、替代方案'];return a}
+    return STEPS}
+  /* ---------- ③ 分科：教室與自習空間 ---------- */
+  function astEditor(r){
+    var A=astInit(),mx=Math.max.apply(null,r.depths),h='<div class="aed"><div class="small muted">每一排的深位數可以不同（用 − ＋ 調整）；點座位可停用或恢復，停用的座位不排人。這裡沒有座位的地方（該排深位比較少）也畫成斜線。</div><div class="aedgrid" style="grid-template-columns:repeat('+r.depths.length+',minmax(54px,1fr))">';
+    h+=r.depths.map(function(d,i){return '<div class="aedcol"><span class="small muted">第'+(i+1)+'排</span><div class="stepper"><button class="icon-btn" data-act="ast_depth" data-k="'+r.key+'" data-i="'+i+'" data-d="-1" aria-label="第'+(i+1)+'排深位減一">−</button><output>'+d+'</output><button class="icon-btn" data-act="ast_depth" data-k="'+r.key+'" data-i="'+i+'" data-d="1" aria-label="第'+(i+1)+'排深位加一">＋</button></div></div>'}).join('');
+    h+='</div><div class="aedseat" style="grid-template-columns:repeat('+r.depths.length+',minmax(54px,1fr))">';
+    for(var row=mx;row>=1;row--)for(var col=1;col<=r.depths.length;col++){
+      if(row>r.depths[col-1])h+='<span class="sq none" aria-hidden="true"></span>';
+      else{var off=!!r.off[col+','+row];h+='<button type="button" class="sq'+(off?' off':'')+'" data-act="ast_seat" data-k="'+r.key+'" data-s="'+col+','+row+'" aria-pressed="'+(!off)+'" aria-label="第'+col+'排第'+row+'個，'+(off?'已停用，點一下恢復':'可排，點一下停用')+'">'+(off?'停':col+'-'+row)+'</button>'}}
+    return h+'</div></div>'}
+  function astRoomRow(r){
+    var A=astInit(),n=aSeats(r),off=aOff(r),sc=aStudy(r),open=A.exp===r.key,raised=r.scap!=null&&r.scap>n;
+    var tag=r.kind==='c'?'<span class="no rbadge" data-c="'+cc(r.c)+'" aria-hidden="true">'+CNAME[r.c]+'</span>':'<span class="no rbadge" aria-hidden="true">綜</span>';
+    var sw=r.kind==='k'?'<button type="button" class="btn btn-sm" data-act="ast_comp" data-k="'+r.key+'" aria-pressed="'+r.on+'">'+(r.on?'本次可用 ✓':'本次不用')+'</button>':'<span class="badge">'+(r.grp==='sci'?'理組教室':'文組教室')+'</span>';
+    return '<div class="rw"><div class="roomrow astrow'+(r.kind==='k'&&!r.on?' off':'')+'"><div class="row" style="flex-wrap:nowrap;gap:8px">'+tag+'<b>'+esc(r.name)+'</b></div><div>'+sw+'</div>'+
+      '<div class="info">座位 <b>'+(r.depths.reduce(function(a,b){return a+b},0))+'</b>・停用 <b>'+off+'</b>・可排 <b>'+n+'</b><br><span class="small muted">'+r.depths.length+' 排，深位 '+(Math.min.apply(null,r.depths)===Math.max.apply(null,r.depths)?'每排 '+r.depths[0]:'每排不同（'+r.depths.join('、')+'）')+'</span></div>'+
+      '<div class="field" style="gap:2px"><span class="small muted">自習容量（預設＝可排座位）</span><div class="stepper"><button class="icon-btn" data-act="ast_scap" data-k="'+r.key+'" data-d="-1" aria-label="自習容量減一">−</button><output>'+sc+'</output><button class="icon-btn" data-act="ast_scap" data-k="'+r.key+'" data-d="1" aria-label="自習容量加一">＋</button></div>'+(raised?'<span class="badge b-warn">已手動調高 +'+(sc-n)+'</span>':(r.scap!=null&&r.scap<n?'<span class="badge">已調低 '+(sc-n)+'</span>':'<span class="small muted">＝可排座位</span>'))+'</div>'+
+      '<div class="row" style="flex-wrap:nowrap"><button class="btn btn-sm'+(open?' btn-primary':'')+'" data-act="ast_edit" data-k="'+r.key+'" aria-expanded="'+open+'">'+(open?'收合座位圖':'編輯座位圖')+'</button>'+(r.scap!=null?'<button class="btn btn-sm btn-ghost" data-act="ast_scapreset" data-k="'+r.key+'">自習容量還原</button>':'')+'</div></div>'+(open?astEditor(r):'')+'</div>'}
+  function astV3(){
+    var A=astInit(),g=astGet(A.mode),cs=A.rooms.filter(function(r){return r.kind==='c'}),ks=A.rooms.filter(function(r){return r.kind==='k'});
+    var sci=0,art=0;cs.forEach(function(r){if(r.grp==='sci')sci+=aSeats(r);else art+=aSeats(r)});
+    var mxS=0,mxA=0;for(var p=0;p<8;p++){var tt=0;for(var c=0;c<6;c++)tt+=AST_T[c][p];if(p<4)mxS=Math.max(mxS,tt);else mxA=Math.max(mxA,tt)}
+    var kon=ks.filter(function(r){return r.on}),kseat=0,kcap=0;kon.forEach(function(r){kseat+=aSeats(r);kcap+=aStudy(r)});
+    var mxStudy=0;g.sim.per.forEach(function(per){var s=0;Object.keys(per.study).forEach(function(k){s+=per.study[k].list.length});per.pend.forEach(function(u){s+=u.n});mxStudy=Math.max(mxStudy,s)});
+    var pend=g.sim.per.filter(function(x){return x.prop||x.short}).length;
+    function chk(label,have,need,note,bad){return '<div class="chk'+(bad?' bad':'')+'"><small>'+label+'</small><strong>'+have+'</strong><span class="sub">'+note+' '+need+'</span><span class="badge '+(bad?'b-err':'b-ok')+'">'+(bad?'不足':'夠用')+'</span></div>'}
+    var cells=chk('理組考場座位',sci,mxS,'最多一個時段考生',sci<mxS)+chk('文組考場座位',art,mxA,'最多一個時段考生',art<mxA)+
+      '<div class="chk'+(kcap<mxStudy||pend?' warnc':'')+'"><small>綜合教室自習容量</small><strong>'+kcap+'</strong><span class="sub">最多一個時段自習 '+mxStudy+'（'+(A.mode==='few'?'少教室優先':'少移動優先')+'）・已勾 '+kon.length+'／'+ks.length+' 間</span><span class="badge '+(kcap<mxStudy||pend?'b-warn':'b-ok')+'">'+(kcap<mxStudy||pend?'有 '+(pend||1)+' 個時段放不下':'夠用')+'</span></div>';
+    var cls='<div class="cls-pal">'+[0,1,2,3,4,5].map(function(i){return '<div class="cp" data-c="'+cc(i)+'"><strong>'+CNAME[i]+'</strong><span>0'+(i+1)+' 班・'+AST_N[i]+' 人</span><span class="badge">'+(i<3?'理組':'文組')+'</span></div>'}).join('')+'</div>';
+    return '<div class="card stack"><div><h3>狀態檢核</h3><p class="small muted">分科<b>每個時段各自排</b>：每個時段只排當時要考的人，教室每個時段可以換用途（考場或自習），同一時段同一間教室只能擇一。這裡檢查座位與自習空間夠不夠；精確的每個時段用途在 ⑤。</p></div><div class="stats chkgrid">'+cells+'</div>'+
+      (pend?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>有 '+pend+' 個時段的綜合教室自習容量不夠。</b>可以在下面調高自習容量、勾選更多綜合教室，或開啟「允許自習去他班原班教室」；也可以到 ⑤ 看程式提的替代方案。</span><span></span></div>':'')+'</div>'+
+      '<div class="card stack"><div><h3>班級</h3><p class="small muted">教室的文理組＝班級的文理組；理組班教室只排理組考生、文組班教室只排文組考生（保留 D93、D95）。</p></div>'+cls+'</div>'+
+      '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>綜合教室（＝預備教室）</h3><p class="small muted">被徵用成考場的原班，不考的同學<b>預設只送綜合教室</b>自習。綜合教室可以有<b>多間，每次可能不同</b>：勾選本次可用的，並確認各自的座位與自習容量。</p></div><button class="btn" data-act="ast_addk">新增綜合教室</button></div><div class="roomlist">'+ks.map(astRoomRow).join('')+'</div></div>'+
+      '<div class="card stack"><div class="row" style="justify-content:space-between;align-items:flex-start"><div><h3>自習可以去哪裡</h3><p class="small muted">預設自習只去上面勾選的綜合教室。若綜合教室不夠，程式會在 ⑤ 提出「改用某班原班教室」的替代方案並說明影響，<b>由你核可才採用，不會自動採用</b>。你也可以直接開啟下面的開關，讓自習不夠時自動去沒當考場的原班教室。</p></div><button type="button" class="btn" data-act="ast_allow" aria-pressed="'+A.allow+'">'+(A.allow?'已允許自習去他班原班 ✓':'允許自習去他班原班教室')+'</button></div></div>'+
+      '<div class="card stack"><div><h3>班級教室與座位圖</h3><p class="small muted">座位圖可以每排深位數不同、可停用個別座位；要留空就停用座位，不另做「隔排、隔位」規則。<b>自習容量預設等於可排座位</b>，可以手動調高，程式不會自己調大。座位上限仍依標籤紙張（A3 49、B4 48）。</p></div><div class="roomlist">'+cs.map(astRoomRow).join('')+'</div></div>'}
+  /* ---------- ④ 分科：排座模式與方案 ---------- */
+  function astV4(){
+    var A=astInit(),G={few:astGet('few'),move:astGet('move')};
+    var MODES=[['few','少教室優先','預設','用最少的教室（教室多＝監考人力多）。願意讓更多人換教室。',['用到的教室總數（兩天去重；原班與綜合教室各算 1 間）','被抽離的原班非應考者人次','各考場人數平均（整班為單位，盡量不拆班）','同排混科次數','自習地點穩定（同人跨節盡量同一間）','標籤張數']],
+      ['move','少移動優先','','讓最少人離開原班教室（應考者與自習者各算 1 人次），教室可以多用幾間。',['離開原班人次','跨節換教室次數','用到的教室總數','各考場人數平均','同排混科次數','標籤張數']]];
+    var cards=MODES.map(function(m){var on=A.mode===m[0],mt=G[m[0]].met;
+      return '<div class="mcard'+(on?' on':'')+'"><div class="row" style="justify-content:space-between"><h4>'+m[1]+'</h4>'+(m[2]?'<span class="badge b-acc">'+m[2]+'</span>':'')+'</div><p class="small muted">'+m[3]+'</p><ol class="small mord">'+m[4].map(function(x){return '<li>'+x+'</li>'}).join('')+'</ol>'+
+        '<p class="small"><b>這份名單的結果：</b>用 '+mt.rooms+' 間教室、離開原班 '+(mt.leaveX+mt.leaveS)+' 人次、換教室 '+mt.changes+' 次</p>'+
+        '<button type="button" class="btn'+(on?' btn-primary':'')+'" data-act="ast_mode" data-m="'+m[0]+'" aria-pressed="'+on+'">'+(on?'目前使用 ✓':'改用這個')+'</button></div>'}).join('');
+    function row(l,f,note,low){var a=f(G.few.met),b=f(G.move.met);var ca=low&&a<b?' best':'',cb=low&&b<a?' best':'';return '<tr><td>'+l+(note?'<br><span class="small muted">'+note+'</span>':'')+'</td><td class="n'+ca+'">'+a+'</td><td class="n'+cb+'">'+b+'</td></tr>'}
+    var tbl='<div class="scroll"><table class="t compact cmpt"><thead><tr><th>指標</th><th class="'+(A.mode==='few'?'selc':'')+'">少教室優先'+(A.mode==='few'?'（使用中）':'')+'</th><th class="'+(A.mode==='move'?'selc':'')+'">少移動優先'+(A.mode==='move'?'（使用中）':'')+'</th></tr></thead><tbody>'+
+      '<tr class="grp"><td colspan="3">取捨指標（越小越好，粗體＝較少）</td></tr>'+
+      row('用到的教室總數',function(m){return m.rooms},'有考試或接收抽離自習的教室，兩天去重',1)+
+      row('被抽離的原班非應考者人次',function(m){return m.disp},'原班被徵用成考場，不考的人要離開',1)+
+      row('離開原班人次',function(m){return m.leaveX+m.leaveS},'應考者 '+G.few.met.leaveX+'／'+G.move.met.leaveX+'，自習者 '+G.few.met.leaveS+'／'+G.move.met.leaveS+'（少教室／少移動）',1)+
+      row('跨節換教室次數',function(m){return m.changes},'同一人相鄰兩個時段所在教室不同（回原班不算換）',1)+
+      row('各考場人數最大落差',function(m){return m.spread+' 人'},'同一時段多間考場的人數差',0)+
+      '<tr class="grp"><td colspan="3">試務複雜度（供比較；數字越小越單純）</td></tr>'+
+      row('混科教室數／同排混科排數',function(m){return m.mixRooms+' 間／'+m.mixRows+' 排'},'標準兩天、共 8 個時段，一時段一科，不會混科；文理同節時才會出現（時程調整另稿）',0)+
+      row('標籤張數',function(m){return m.labels},'每個被用到的座位一張，各時段一行',1)+
+      row('同一座位最多幾個人用過',function(m){return m.sameMax+' 人（'+m.sameMulti+' 個座位超過 1 人）'},'同一座位換人坐，標籤要列多節',0)+
+      row('發卷區段數',function(m){return m.sections},'每間考場每個時段的科目分段數（單科＝1 段）',1)+
+      '</tbody></table></div>';
+    var tie='<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>兩個方案完全同分時（設計員提案，待確認）：</b>固定規則決勝，同樣的資料永遠得到同樣的結果。①用到的教室裡，班級教室依班序（溫→誠）靠前者優先，綜合教室排後；②同一時段裡，考場的編號小者先排；③仍相同才比學號小者先排座。</span><span></span></div>';
+    var sched='<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>時程：</b>這次用「節次與時長」的分科標準時程（兩天、各 4 個時段、共 8 個時段，一時段一科）。要不要縮短天數、調整科目順序或文理同節，是下一批的「時程推薦」，先比時程指標再排座，需要你核准才採用。</span><span></span></div>';
+    return '<div class="card stack"><div><h3>選擇排座模式</h3><p class="small muted">兩種模式都提供，由你選；<b>預設少教室優先</b>，可以隨時切換，切換後 ⑤ 的教室用途表會重排。分科<b>不再使用「X＋科目」標示</b>，也不再有「標少數」的設定。</p></div><div class="mgrid">'+cards+'</div>'+tie+'</div>'+
+      '<div class="card stack"><div><h3>方案比較</h3><p class="small muted">用這份示範名單，兩種模式各算一次。選哪個由你決定，程式只負責把代價算清楚。</p></div>'+tbl+sched+'</div>'}
+  /* ---------- ⑤ 分科：時段教室與座位 ---------- */
+  function astCell(s,co,dim){return '<div class="cell'+(dim?' dim':'')+'" data-c="'+cc(s.c)+'"><span class="co">'+co+'</span><span class="no">'+aid(s)+'</span><span class="meta"><span class="tg">'+CNAME[s.c]+'</span>'+esc(fakeName(s.c,s.no))+'</span></div>'}
+  function astChart(r,map,title,sub,hl){
+    var C=r.depths.length,R=Math.max.apply(null,r.depths),h='<div class="chart"><div class="chart-wrap"><div class="chart-title">'+title+'<small>'+sub+'</small></div>';
+    h+='<div class="axis-y" style="grid-template-rows:repeat('+R+',var(--ch))">';for(var q=R;q>=1;q--)h+='<span>'+q+'</span>';
+    h+='</div><div><div class="cg" style="grid-template-columns:repeat('+C+',var(--cw))">';
+    for(var row=R;row>=1;row--)for(var col=1;col<=C;col++){var k=col+','+row,s=map[k];
+      if(row>r.depths[col-1]||r.off[k])h+='<div class="cell empty-seat" aria-label="'+(r.off[k]?'停用座位':'沒有這個座位')+'"></div>';
+      else if(!s)h+='<div class="cell empty-seat" aria-label="空位"></div>';
+      else h+=astCell(s,col+'-'+row,hl>=0&&s.c!==hl)}
+    h+='</div><div class="axis-x" style="grid-template-columns:repeat('+C+',var(--cw));margin-top:4px">';for(var c2=1;c2<=C;c2++)h+='<span>第'+c2+'排</span>';
+    return h+'</div></div><div class="podium-bar">講　台</div></div></div>'}
+  function astFromText(from){return Object.keys(from).map(Number).sort().map(function(c){return CNAME[c]+' '+from[c]}).join('、')}
+  function astV5(){
+    var A=astInit(),g=astGet(A.mode),sim=g.sim,sel=A.sel,per=sim.per[sel.p],ks=Object.keys(per.exam);
+    if(!sel.k||!per.exam[sel.k])sel.k=ks[0];
+    var rooms=A.rooms.filter(function(r){return r.kind==='c'||r.on||sim.per.some(function(x){return x.exam[r.key]||x.study[r.key]})});
+    function cell(r,p){var pr=sim.per[p],ex=pr.exam[r.key],st=pr.study[r.key],pressed=(sel.p===p&&sel.k===r.key),inner='',cls='';
+      if(ex){inner='<span class="ux">考 '+sh(pr.subj)+'</span><b>'+ex.list.length+'</b>';cls='u-ex'}
+      else if(st){inner='<span class="us">'+(st.kind==='borrow'?'借用自習':'自習')+'</span><b>'+st.list.length+'</b>';cls=st.kind==='borrow'?'u-bor':'u-st'}
+      else if(pr.prop&&pr.prop.room===r.key){inner='<span class="up">待核可</span><b>+'+pr.prop.need+'</b>';cls='u-pend'}
+      else if(r.kind==='c'){var n=AST_N[r.c]-(AST_T[r.c][p]);inner='<span class="uh">原班</span>';cls='u-home'}
+      else inner='<span class="uh">—</span>';
+      return '<td class="'+cls+'"><button type="button" data-act="ast_pick" data-p="'+p+'" data-k="'+r.key+'" aria-pressed="'+pressed+'" aria-label="'+esc(r.name)+'，'+PL(p)+' '+pr.subj+'">'+inner+'</button></td>'}
+    var head1='<tr><th class="rn" rowspan="2">教室</th>'+AST_DAY.map(function(d){return '<th class="day" colspan="4">'+d+'</th>'}).join('')+'</tr>';
+    var head2='<tr>'+AST_SUBJ.map(function(s,p){return '<th><button type="button" class="thb" data-act="ast_pick" data-p="'+p+'" data-k="" aria-pressed="'+(sel.p===p)+'">'+'時段'+AST_NUM[p%4+1]+'<br>'+sh(s)+'</button></th>'}).join('')+'</tr>';
+    var body=rooms.map(function(r){return '<tr><td class="rn"><b>'+esc(r.name)+'</b><br><span class="small muted">'+(r.kind==='c'?(r.grp==='sci'?'理組教室':'文組教室'):'綜合教室')+'・'+aSeats(r)+' 位</span></td>'+AST_SUBJ.map(function(s,p){return cell(r,p)}).join('')+'</tr>'}).join('');
+    var legend='<div class="row ulg"><span class="lg"><i class="u-ex"></i>考試（科目＋人數）</span><span class="lg"><i class="u-st"></i>自習（綜合教室）</span><span class="lg"><i class="u-bor"></i>借用原班自習（已核可）</span><span class="lg"><i class="u-pend"></i>待核可</span><span class="lg"><i class="u-home"></i>原班（沒被徵用，同學留在原班自習）</span></div>';
+    var props=sim.per.filter(function(x){return x.prop||x.errs.length}).map(function(x){var pp=x.prop,key=A.mode+'|'+x.p;
+      if(x.errs.length&&!pp)return '<div class="alert a-err"><span class="ico" data-i="×"></span><span><b>'+PL(x.p)+'（'+x.subj+'）：</b>'+x.errs.join('；')+'</span><span></span></div>';
+      var rn=aName(pp.room),other=pp.after>pp.cap;
+      return '<div class="alert a-warn propcard"><span class="ico" data-i="!"></span><span><b>'+PL(x.p)+'（'+x.subj+'）自習容量不足，缺 '+pp.need+' 個位置。</b><br>目前可用的綜合教室自習容量不夠。<b>程式建議：改用「'+esc(rn)+'」</b>（這個時段沒當考場；原班本來就有 '+pp.occ+' 位同學留在那裡自習，再收 '+pp.need+' 人，合計 '+pp.after+' 人，自習容量 '+pp.cap+'）。'+
+        '<br><span class="small"><b>影響：</b>'+(sim.per.some(function(y){return y.p!==x.p&&(y.exam[pp.room]||y.study[pp.room])})?'「'+esc(rn)+'」其他時段已經用過，教室總數不增加':'「'+esc(rn)+'」是新增使用的教室，教室總數 +1')+'；這 '+pp.need+' 位同學要離開原班；只影響這個時段。<b>未經你核可不會採用。</b></span></span>'+
+        '<span class="acts"><button class="btn btn-primary btn-sm" data-act="ast_apv" data-p="'+x.p+'">核可此方案</button><button class="btn btn-sm" data-act="ast_togo3">調高自習容量／改設定</button></span></div>'}).join('');
+    var okapv=Object.keys(A.apv).filter(function(k){return A.apv[k]&&k.indexOf(A.mode+'|')===0}).map(function(k){var p=+k.split('|')[1];return '<div class="alert a-ok"><span class="ico" data-i="✓"></span><span>'+PL(p)+'（'+AST_SUBJ[p]+'）已核可替代方案，自習借用原班教室。<button class="btn btn-sm btn-ghost" data-act="ast_unapv" data-p="'+p+'">取消核可</button></span><span></span></div>'}).join('');
+    /* 這一節摘要 */
+    var tk=0;ks.forEach(function(k){tk+=per.exam[k].list.length});var stn=0;per.sorder.forEach(function(k){stn+=per.study[k].list.length});per.pend.forEach(function(u){stn+=u.n});
+    var sum=statsStrip([['節次',PL(per.p)+''],['科目',per.subj],['應考',tk+' 人'],['考場',ks.length+' 間'],['自習(離開原班)',stn+' 人',per.short?'bad':'']]);
+    var ext='<div class="scroll"><table class="t compact"><thead><tr><th>用途</th><th>教室</th><th>人數</th><th>來自</th></tr></thead><tbody>'+
+      ks.map(function(k){var x=per.exam[k];return '<tr><td><span class="badge b-acc">考試</span></td><td><b>'+esc(aName(k))+'</b></td><td class="n">'+x.list.length+'</td><td>'+astFromText(x.from)+'</td></tr>'}).join('')+
+      per.sorder.map(function(k){var x=per.study[k];return '<tr><td><span class="badge">'+(x.kind==='borrow'?'借用自習':'自習')+'</span></td><td><b>'+esc(aName(k))+'</b></td><td class="n">'+x.list.length+'</td><td>'+astFromText(x.from)+'</td></tr>'}).join('')+
+      per.pend.map(function(u){return '<tr><td><span class="badge b-warn">待核可</span></td><td>—</td><td class="n">'+u.n+'</td><td>'+CNAME[u.c]+' '+u.n+'</td></tr>'}).join('')+'</tbody></table></div>';
+    /* 座位圖 */
+    var room=aRoom(sel.k),chart='',roomSeg='';
+    roomSeg='<div class="seg" role="group" aria-label="這個時段的考場">'+ks.map(function(k){return '<button type="button" data-act="ast_pick" data-p="'+sel.p+'" data-k="'+k+'" aria-pressed="'+(k===sel.k)+'">'+esc(aShort(k))+'</button>'}).join('')+'</div>';
+    var present={};
+    if(room&&per.exam[sel.k]){var map=astLayout(room,per.exam[sel.k].list);Object.keys(map).forEach(function(kk){present[map[kk].c]=1});
+      chart=astChart(room,map,'【115學年第一次分科模擬考】座位表',PL(per.p)+' '+per.subj+'　'+room.name+'　考生 '+per.exam[sel.k].list.length+' 人',A.hl)}
+    var view='<div class="seg" role="group" aria-label="檢視班級"><button type="button" data-act="ast_hl" data-c="-1" aria-pressed="'+(A.hl<0)+'">全部班級</button>'+Object.keys(present).map(Number).sort().map(function(c){return '<button type="button" data-act="ast_hl" data-c="'+c+'" aria-pressed="'+(A.hl===c)+'">只看'+CNAME[c]+'</button>'}).join('')+'</div>';
+    var rules='<div class="small muted"><b>教室內怎麼排（第二階段，順序固定、不權衡）：</b>①同班依座號由小到大，同一排只放同一班、各班各自連續；②不同科盡量分排，同排混科只准「連續分區」、不准逐位交錯；③跨科盡量同座位，但輸給①（發卷核對與座號依序優先）。座號依序、同排同班不會為了少用教室而放棄。</div>';
+    /* 示範：文理同節 */
+    var mixCard='';
+    var K=aRoom('k0'),mm={},ml=[];for(var i=1;i<=14;i++)ml.push({c:2,no:i,s:'化學'});for(var j=1;j<=14;j++)ml.push({c:5,no:j,s:'地理'});
+    var cols=0,qi=0;for(var col=1;col<=K.depths.length&&qi<ml.length;col++)for(var row=1;row<=K.depths[col-1]&&qi<ml.length;row++){mm[col+','+row]=ml[qi++]}
+    var mixHtml='';
+    if(A.mix){var cells='';var C=K.depths.length,R=Math.max.apply(null,K.depths);
+      mixHtml='<div class="chart"><div class="chart-wrap"><div class="chart-title">示範：綜合教室一（文理同節）<small>化學 14 人（連續分區，第 1～3 排前段）＋地理 14 人（連續分區，其後）</small></div><div class="axis-y" style="grid-template-rows:repeat('+R+',var(--ch))">';
+      for(var q2=R;q2>=1;q2--)mixHtml+='<span>'+q2+'</span>';
+      mixHtml+='</div><div><div class="cg" style="grid-template-columns:repeat('+C+',var(--cw))">';
+      for(var rw=R;rw>=1;rw--)for(var cl=1;cl<=C;cl++){var s=mm[cl+','+rw];mixHtml+=s?'<div class="cell" data-c="'+cc(s.c)+'"><span class="co">'+cl+'-'+rw+'</span><span class="no">'+aid(s)+'</span><span class="meta"><span class="tg">'+CNAME[s.c]+'</span>'+esc(fakeName(s.c,s.no))+'</span><span class="mks"><span class="mk" style="background:var(--surface);color:var(--text);border:2px solid var(--text)">'+s.s+'</span></span></div>':'<div class="cell empty-seat"></div>'}
+      mixHtml+='</div><div class="axis-x" style="grid-template-columns:repeat('+C+',var(--cw));margin-top:4px">';for(var c3=1;c3<=C;c3++)mixHtml+='<span>第'+c3+'排</span>';
+      mixHtml+='</div></div><div class="podium-bar">講　台</div></div></div>'}
+    mixCard='<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>示範：文理同節時的混科考場</h3><p class="small muted">標準兩天 8 個時段不會混科。學校把兩天壓成一天、文理同節考不同科時，少教室優先可能把兩科的少數人合併進同一間綜合教室：<b>同排混科只准連續分區</b>，每個座位格另標科目，發卷時一科一區。完整的時程調整另稿。</p></div><button type="button" class="btn" data-act="ast_mix" aria-pressed="'+A.mix+'">'+(A.mix?'收合示範':'看示範')+'</button></div>'+(A.mix?'<div class="chartbox">'+mixHtml+'</div>':'')+'</div>';
+    /* 硬性限制驗證 */
+    var bad={cap:0,dup:0,both:0,seat:0},seen={};
+    sim.per.forEach(function(x){x.sorder.forEach(function(k){if(x.exam[k])bad.both++;if(x.study[k].list.length>aStudy(aRoom(k)))bad.cap++});x.order.forEach(function(k){if(x.exam[k].list.length>aSeats(aRoom(k)))bad.seat++})});
+    Object.keys(sim.loc).forEach(function(id){sim.loc[id].forEach(function(x,p){if(!x)bad.dup++})});
+    var pendN=g.met.pend;
+    function vr(ok,t,d){return '<div class="row" style="justify-content:space-between;border-bottom:1px solid var(--line);padding-bottom:6px"><span>'+(ok?'<span class="badge b-ok">通過</span>':'<span class="badge b-err">不通過</span>')+'　'+t+'</span><span class="small muted">'+d+'</span></div>'}
+    var chks=vr(bad.both===0,'同一時段同一間教室只能是考場或自習其中一種',bad.both?bad.both+' 處':'0 處')+vr(bad.seat===0,'考場人數不超過可排座位',bad.seat?bad.seat+' 處':'0 處')+vr(bad.cap===0,'自習人數不超過自習容量',bad.cap?bad.cap+' 處':'0 處')+vr(bad.dup===0,'每位考生每個時段都有明確位置（考場、自習或原班）',bad.dup?bad.dup+' 處':'0 處')+vr(pendN===0,'沒有尚待核可的替代方案',pendN?pendN+' 人待核可':'0 人');
+    var modeBar='<div class="row" style="justify-content:space-between"><div class="small muted">目前模式：<b>'+(A.mode==='few'?'少教室優先':'少移動優先')+'</b>・用 '+g.met.rooms+' 間教室・離開原班 '+(g.met.leaveX+g.met.leaveS)+' 人次</div><div class="row"><button class="btn btn-sm" data-act="step" data-n="4">到 ④ 換模式</button></div></div>';
+    return '<div class="card stack"><div><h3>各時段教室用途</h3><p class="small muted">每一格是一間教室在那個時段的用途。點一格看那個時段的考場與座位圖；點上面的時段看整個時段。</p></div>'+modeBar+'<div class="scroll"><table class="ut"><thead>'+head1+head2+'</thead><tbody>'+body+'</tbody></table></div>'+legend+props+okapv+'</div>'+
+      '<div class="card stack"><div class="row" style="justify-content:space-between"><div><h3>'+PL(per.p)+'（'+per.subj+'）</h3><p class="small muted">這個時段誰在哪間教室。</p></div></div>'+sum+ext+'</div>'+
+      '<div class="card stack"><div class="row" style="justify-content:space-between;flex-wrap:wrap"><div><h3>考場座位圖</h3><p class="small muted">每排深位數可以不同；斜線格＝停用或沒有這個座位。</p></div>'+roomSeg+'</div>'+view+'<div class="chartbox">'+chart+'</div>'+rules+'</div>'+mixCard+
+      '<div class="card stack"><div><h3>硬性限制檢查</h3><p class="small muted">不符合就不輸出看似成功的結果。</p></div>'+chks+'</div>'}
+  function astV6Note(){
+    return '<div class="card stack"><div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>分科的標籤與班級公告是下一批稿。</b>分科改成「每個時段各自排」之後，標籤沿用合併標籤（每座位一張、各時段一行、印節次＋科目，有應試編號才印），並新增「依原班逐生、各時段各一欄」的班級公告；下面是舊版畫面，之後會被取代，請先別審這一頁的分科內容。</span><span></span></div></div>'}
+  function astAct(a,b){
+    var A=astInit(),g=function(k){return b.getAttribute('data-'+k)},r;
+    if(a==='ast_mode'){A.mode=g('m')}
+    else if(a==='ast_pick'){A.sel.p=+g('p');if(g('k'))A.sel.k=g('k');else A.sel.k=null}
+    else if(a==='ast_apv'){A.apv[A.mode+'|'+g('p')]=true;toast('已核可：'+PL(+g('p'))+'自習借用原班教室（示範）')}
+    else if(a==='ast_unapv'){delete A.apv[A.mode+'|'+g('p')]}
+    else if(a==='ast_hl'){A.hl=+g('c')}
+    else if(a==='ast_mix'){A.mix=!A.mix}
+    else if(a==='ast_allow'){A.allow=!A.allow}
+    else if(a==='ast_comp'){r=aRoom(g('k'));r.on=!r.on}
+    else if(a==='ast_edit'){A.exp=(A.exp===g('k'))?null:g('k')}
+    else if(a==='ast_scap'){r=aRoom(g('k'));var cur=aStudy(r);r.scap=Math.max(0,cur+(+g('d')));if(r.scap===aSeats(r))r.scap=null}
+    else if(a==='ast_scapreset'){aRoom(g('k')).scap=null}
+    else if(a==='ast_depth'){r=aRoom(g('k'));var i=+g('i');r.depths[i]=Math.max(1,Math.min(8,r.depths[i]+(+g('d'))))}
+    else if(a==='ast_seat'){r=aRoom(g('k'));var sk=g('s');if(r.off[sk])delete r.off[sk];else r.off[sk]=1}
+    else if(a==='ast_addk'){var n=A.rooms.filter(function(x){return x.kind==='k'}).length+1;A.rooms.push({key:'k'+(n-1),name:'綜合教室'+'一二三四五六七八'.charAt(n-1),kind:'k',depths:[5,5,5,5],off:{},scap:null,on:true});toast('已新增（示範）：座位圖與自習容量可再調整')}
+    else if(a==='ast_togo3'){S.step=3}
+    if(a!=='ast_pick'&&a!=='ast_hl'&&a!=='ast_mix'&&a!=='ast_edit')markStale();
+    render()}
+  var NEXT0=NEXT;NEXT=function(e,n){if(e.type==='分科'){if(n===3)return [4,'④ 排座模式與方案'];if(n===4)return [5,'⑤ 時段教室與座位']}return NEXT0(e,n)};
   /* ---------- 事件 ---------- */
   $('#app').addEventListener('click',function(e){var b=e.target.closest('[data-act]');if(!b)return;var a=b.getAttribute('data-act');
     if(a==='pick')openPick();
