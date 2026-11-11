@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.22</title>
+<title>模擬考原型 稿 v2.23</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -738,7 +738,8 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .ttr .sub{grid-column:2/-1;display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px;font-size:13px;color:var(--text-2)}
 .ttr .sub label{display:flex;align-items:center;gap:6px}.ttr .sub .input{width:120px}
 .ttc>.end{padding:8px 10px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
-@media (max-width:480px){.ttr{grid-template-columns:auto 48px minmax(0,1fr) auto}.ttr .dur{grid-column:2/4}.ttr .ops{grid-column:4;grid-row:1}.ttr .sub{grid-column:1/-1}}
+@media (max-width:480px){.ttr{grid-template-columns:auto minmax(0,1fr) auto}.ttr .sn{grid-column:2}.ttr .ops{grid-column:3;grid-row:1}.ttr>.input{grid-column:1/-1}.ttr .dur{grid-column:1/-1}.ttr .sub{grid-column:1/-1}}
+.seg.ttseg{overflow-x:auto;flex-wrap:nowrap}.seg.ttseg button{flex:none;white-space:nowrap}
 /* 預備教室合併標籤範例（D94：每座位一張、每節一行、同字級、印節次＋科目、不印時間） */
 .plbls{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .plbl{border:2px solid #222;border-radius:6px;background:#fff;color:#111;padding:10px 12px;display:grid;gap:6px;font-family:var(--font-body,inherit)}
@@ -768,7 +769,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 </style>
 
 <div class="pbar">
-  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.22・2026-11-09</span>
+  <span class="brand">模擬考小幫手<span class="ver">v0.1.0-beta.1</span><span class="badge b-warn" style="margin-left:6px">beta</span></span><span class="badge b-warn">原型・假資料</span><span class="badge b-acc vbadge">稿 v2.23・2026-11-11</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">系統</button>
@@ -1544,7 +1545,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
           '<span class="ops"><button class="btn btn-sm btn-ghost" data-act="scmv" data-d="'+di+'" data-i="'+i+'" data-dir="-1" aria-label="上移">↑</button><button class="btn btn-sm btn-ghost" data-act="scmv" data-d="'+di+'" data-i="'+i+'" data-dir="1" aria-label="下移">↓</button><button class="btn btn-sm btn-danger" data-act="scdel" data-d="'+di+'" data-i="'+i+'" aria-label="刪除'+esc(r.n)+'">×</button></span>'+
           '<span class="sub"><label><input type="checkbox" data-scs data-sd="'+di+'" data-sci="'+i+'"'+(r.same?' checked':'')+(di===0&&i===0?' disabled':'')+'>與上一科同節</label><label>開始時間（選填）<input class="input" type="time" data-sct data-sd="'+di+'" data-sci="'+i+'" value="'+esc(r.time||'')+'"></label>'+tag+'</span></div>'}).join('');
       return '<div class="ttc"><div class="hd"><span>第 '+(di===0?'一':'二')+' 天</span><span class="small muted">'+day.length+' 科</span></div>'+rows+'<div class="end" data-sdrop="'+di+',end"><button class="btn btn-sm" data-act="scadd" data-d="'+di+'">＋ 新增一科</button></div></div>'}).join('');
-    var segT='<div class="seg" role="group" aria-label="考試類型">'+SCH_TYPES.map(function(x){return '<button type="button" data-act="sctype" data-v="'+x[0]+'" aria-pressed="'+(T===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
+    var segT='<div class="seg ttseg" role="group" aria-label="考試類型">'+SCH_TYPES.map(function(x){return '<button type="button" data-act="sctype" data-v="'+x[0]+'" aria-pressed="'+(T===x[0])+'">'+x[1]+'</button>'}).join('')+'</div>';
     return '<div class="card stack"><div><h3>節次與時長</h3><p class="small muted">像學校的模擬考科目表：一天一欄，科目由上往下。<b>最重要的是科目順序</b>：用左邊的 ⠿ 拖拉，或按 ↑↓，也可以拖到另一天；新增模擬考時自動帶入這份順序。時長比照大考，只看考試時間、不管發卷與休息；開始時間每次可能不同，所以選填，也不會印在標籤上。</p></div>'+
       '<div class="row" style="justify-content:space-between">'+segT+'<button class="btn" data-act="scrst">還原「'+(SCH_TYPES.filter(function(x){return x[0]===T})[0][1])+'」預設</button></div>'+
       '<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>節次編號依順序自動算；同節＝同時進行。</b>'+d.note+'同一節各科的抽離人數會加總，再和預備教室容量比（預設一節一科，只有勾「與上一科同節」才會用到）。對應：1 月＝學測、7 月＝分科、5 月＝國中會考。</span><span></span></div>'+
