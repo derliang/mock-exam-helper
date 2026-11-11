@@ -33,7 +33,7 @@ export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; d
           <div class="seg seg-soft" role="group" aria-label="部別">
             {([['senior', '高中部'], ['junior', '國中部']] as const).map(([v, l]) => <button type="button" key={v} aria-pressed={division === v} onClick={() => setDivision(v)}>{l}</button>)}
           </div>
-          <span class="small muted">{division === 'junior' ? '國中部：會考科目固定七科' : '高中部：每個班級分理組或文組'}</span>
+          <span class="small muted">{division === 'junior' ? '國中部不分組；會考考科固定。' : '高中部班級須設定文組或理組。'}</span>
         </div>
       )}
       {tab === 'roster' && <Roster {...p} onChange={(d) => p.onChange(syncDiffs(d))} division={division} />}
@@ -91,7 +91,7 @@ function Roster({ doc, onChange, division }: Props) {
           <button type="button" aria-pressed={activeCf === 'all'} onClick={() => setCf('all')}>全部</button>
           {classes.map((c) => <button type="button" key={c.no} aria-pressed={activeCf === c.no} onClick={() => setCf(c.no)}>{c.name}</button>)}
         </div>
-        <input class="input" style="max-width:240px" type="search" aria-label="搜尋姓名、考生編號、學號" placeholder="搜尋姓名、考生編號或學號" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
+        <input class="input" style="max-width:240px" type="search" aria-label="搜尋姓名、考生編號、學號" placeholder="姓名／考生編號／學號" value={q} onInput={(e) => setQ(e.currentTarget.value)} />
       </div>
       <div class="btnrow">
         <Button kind="primary" onClick={() => setEditing('new')}>新增學生</Button>
@@ -116,19 +116,19 @@ function Roster({ doc, onChange, division }: Props) {
                 <tr key={`${s.classNo}-${s.seatNo}`}>
                   <td>{cls(s.classNo) ? <ClassChip colorIndex={cls(s.classNo)!.colorIndex}>{cls(s.classNo)!.name}</ClassChip> : s.classNo}</td>
                   <td class="num">{s.seatNo}</td><td class="num">{studentCode(s.classNo, s.seatNo)}</td><td>{s.name}</td>
-                  <td class="muted">{s.schoolId ?? '（空白）'}</td>
+                  <td class="muted">{s.schoolId ?? '未填'}</td>
                   {!isJ && <td>{s.groupCode ?? '—'}</td>}
                   <td class="small muted">{s.special ?? '—'}</td>
                   <td><div class="btnrow" style="flex-wrap:nowrap"><Button small onClick={() => setEditing(s)}>編輯</Button><ConfirmButton small copy={confirmCopy.deleteStudent(s.name, studentCode(s.classNo, s.seatNo))} onConfirm={() => onChange(removeStudent(doc, division, s))}>刪除</ConfirmButton></div></td>
                 </tr>
               );
             })}
-            {rows.length === 0 && all.length > 0 && <tr><td colSpan={cols} class="muted">{q.trim() ? `沒有符合「${q}」的學生，請換個關鍵字（姓名、考生編號或學號）。` : '這個班級還沒有學生。'}</td></tr>}
+            {rows.length === 0 && all.length > 0 && <tr><td colSpan={cols} class="muted">{q.trim() ? `找不到「${q}」。請確認姓名、編號或學號。` : '這個班級還沒有學生。'}</td></tr>}
           </tbody>
         </table>
       </div>
       {all.length === 0 && (
-        <EmptyState title="這個部別還沒有學生" action={<Button kind="primary" onClick={() => setEditing('new')}>新增第一位學生</Button>}>可以一位一位新增，或用上方「下載名單範本」填好後「匯入學生名單」。名單是之後考試名單比對的依據。</EmptyState>
+        <EmptyState title="尚未建立本部別學生名單" action={<Button kind="primary" onClick={() => setEditing('new')}>新增第一位學生</Button>}>可逐筆新增，或用上方「下載名單範本」填好後「匯入學生名單」批次匯入。此名單用於核對各次模擬考。</EmptyState>
       )}
       <p class="small muted">斜紋底的列是目前沒有學生的座號：刪除學生後座號會空著，不會自動遞補。座號由你輸入。學號沒匯入就留空，不影響排座與考生編號。</p>
       {editing && (
@@ -216,7 +216,7 @@ function Classes({ doc, onChange, division }: Props) {
                           onClick={() => onChange(setClassColor(doc, division, c.no, i + 1))} />
                       ))}
                     </div>
-                    {clash.length > 0 && <div class="hint">⚠ 與 {clash.map((n) => String(n).padStart(2, '0')).join('、')} 班同色；黑白列印時請核對班級字</div>}
+                    {clash.length > 0 && <div class="hint">與 {clash.map((n) => String(n).padStart(2, '0')).join('、')} 班同色；黑白列印請核對班級名稱。</div>}
                   </td>
                   <td>{(() => {
                     const u = classUsage(doc, division, c.no);
@@ -230,7 +230,7 @@ function Classes({ doc, onChange, division }: Props) {
           </tbody>
         </table>
       </div>
-      <p class="small muted">共 {CLASS_COLOR_COUNT} 種班級色，色相盡量拉開；每一格都另印班級字，黑白列印也分得出班。改色會套用到座位表與標籤；班級名稱可改，同一部別不可重名。</p>
+      <p class="small muted">班級色會同步套用至座位表及標籤；黑白列印請依班級文字辨認。班級名稱可改，同一部別不可重名。</p>
     </div>
   );
 }

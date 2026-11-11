@@ -162,8 +162,8 @@ export interface FieldCheck { ok: boolean; message: string }
 export function checkExamName(doc: Doc, name: string): FieldCheck {
   const n = name.trim();
   if (!n) return { ok: false, message: '請輸入名稱，例如「學測第三次」。' };
-  if (n.length > 30) return { ok: false, message: `名稱太長（${n.length} 字），請縮到 30 字以內。` };
-  if (doc.exams.some((e) => e.name === n)) return { ok: false, message: `已經有叫「${n}」的模擬考，請改個名稱（例如加上日期）。` };
+  if (n.length > 30) return { ok: false, message: `名稱最多 30 字（目前 ${n.length} 字）。` };
+  if (doc.exams.some((e) => e.name === n)) return { ok: false, message: `已有「${n}」，請改用不同名稱。` };
   return { ok: true, message: '' };
 }
 

@@ -13,11 +13,11 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
     try {
       const r = await f();
       // 使用者按了取消或沒授權寫入：資料夾沒有生效
-      if (r === false || !p.repo.hasFolder()) setErr('沒有取得資料夾的讀寫授權，請再試一次，或改用「選擇資料夾」。若是用拖拉的，請確認拖進來的是資料夾，不是檔案。');
+      if (r === false || !p.repo.hasFolder()) setErr('無法存取資料夾。請確認選的是資料夾（不是檔案）並允許讀寫，或改用「選擇資料夾」。');
       else p.onDone();
     } catch (e) {
       // 使用者取消選擇視窗不算錯誤
-      if (!(e instanceof DOMException && e.name === 'AbortError')) setErr('無法使用這個資料夾，請改選別的資料夾，或用拖拉的方式。');
+      if (!(e instanceof DOMException && e.name === 'AbortError')) setErr('無法開啟資料夾。請重新選擇，或改用拖曳。');
     } finally { setBusy(false); }
   };
 
@@ -35,31 +35,31 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
         <div><h1>模擬考小幫手</h1><p class="muted">安排模擬考座位、製作標籤與抽離名單</p></div>
       </div>
       <div class="card stack">
-        <h2 style="font-size:18px">第一次使用：選一個放資料的資料夾</h2>
+        <h2 style="font-size:18px">選擇資料儲存資料夾</h2>
         <p class="muted">學生名單與座位結果只存在你的電腦，本網站不會把它們上傳到網路。請選一個你找得到的資料夾；若這個資料夾由雲端硬碟同步，同步軟體仍可能把檔案上傳。下次開啟時會先嘗試沿用這個資料夾，瀏覽器可能要你重新授權。</p>
         <div
           class={`dropzone${over ? ' over' : ''}`} tabIndex={0} role="button"
-          aria-label="把資料夾拖到這裡，或按一下選擇資料夾"
+          aria-label="將資料夾拖曳至此，或按一下選擇資料夾"
           onClick={pick}
           onKeyDown={(e) => (e.key === 'Enter' || e.key === ' ') && pick()}
           onDragOver={(e) => { e.preventDefault(); setOver(true); }}
           onDragLeave={() => setOver(false)}
           onDrop={(e) => { e.preventDefault(); setOver(false); if (e.dataTransfer && !busy) { const items = e.dataTransfer.items; run(() => p.repo.adoptDropped(items)); } }}
         >
-          <strong>把資料夾拖到這裡</strong>
-          <span class="small">放開後會請你確認授權。按「選擇資料夾」出現問題時（例如視窗打不開），用拖拉最穩；按一下這個區塊也能選擇。</span>
+          <strong>將資料夾拖曳至此</strong>
+          <span class="small">放開後依瀏覽器提示授權；也可點此選擇資料夾。</span>
         </div>
         <div class="row">
           <span class="small muted">或者</span>
           <button type="button" class="btn btn-primary btn-lg" disabled={busy || !p.fsSupported} onClick={pick}>選擇資料夾</button>
-          {p.onRestore && <button type="button" class="btn btn-lg" disabled={busy} onClick={() => run(() => p.onRestore!())}>繼續使用上次的資料夾</button>}
-          <span class="small muted">限使用 <a href="https://www.google.com/intl/zh-TW/chrome/" target="_blank" rel="noopener noreferrer">Chrome</a> 瀏覽器</span>
+          {p.onRestore && <button type="button" class="btn btn-lg" disabled={busy} onClick={() => run(() => p.onRestore!())}>使用上次資料夾</button>}
+          <span class="small muted">請使用 <a href="https://www.google.com/intl/zh-TW/chrome/" target="_blank" rel="noopener noreferrer">Chrome</a> 瀏覽器</span>
         </div>
         {err && <Alert tone="danger">{err}</Alert>}
       </div>
       {p.fsSupported
-        ? <Alert tone="info">每次模擬考都會在這個資料夾裡自己放一個資料夾，不同次的資料不會互相蓋掉。</Alert>
-        : <Alert tone="danger">目前這個瀏覽器無法儲存資料，請改用 Chrome 開啟。</Alert>}
+        ? <Alert tone="info">每次模擬考會建立獨立資料夾，避免覆蓋其他考試資料。</Alert>
+        : <Alert tone="danger">目前瀏覽器無法儲存資料。請用 Chrome 開啟本網站。</Alert>}
     </div>
   );
 }

@@ -47,7 +47,7 @@ export function RoomList(p: {
   );
   return (
     <div class="rw">
-      <p class="muted small">座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個）。點教室那一列，或按「▸ 編輯座位表」，就會在下方展開座位配置。</p>
+      <p class="muted small">座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個）。點「▸ 編輯座位」調整座位排列。</p>
       {addRow}
       {shown.map((r) => {
         const isOpen = open === r.id;
@@ -71,7 +71,7 @@ export function RoomList(p: {
               )}
               <div class="info">座位 <b>{roomCapacity(r)}</b>・不排 <b>{roomCapacity(r) - r.seatCount}</b>・可排 <b>{r.seatCount}</b>{r.kind === 'reserve' ? <><br />預備教室，不計入班級教室</> : (!junior && r.track ? <><br />{r.track === 'science' ? '理組' : '文組'}</> : null)}</div>
               <div class="btnrow" onClick={(e) => e.stopPropagation()}>
-                <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '▾ 收合座位表' : '▸ 編輯座位表'}</Button>
+                <Button small onClick={() => setOpen(isOpen ? null : r.id)}>{isOpen ? '▾ 收合座位' : '▸ 編輯座位'}</Button>
                 {r.kind === 'reserve' && <ConfirmButton small copy={confirmCopy.deleteRoom(r.name, !!p.selected?.includes(r.id) || !!p.inUse?.(r.id))} onConfirm={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</ConfirmButton>}
               </div>
             </div>
@@ -101,7 +101,7 @@ export function RoomTable(p: {
   const upd = (id: string, f: (r: Classroom) => Classroom) => p.onChange(patchRoom(p.rooms, id, (r) => { const x = f(r); return x.division ? x : { ...x, division: p.division }; }));
   return (
     <div class="stack">
-      <p class="muted small">座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個）。點教室那一列，或按「編輯座位表」，就會在下方展開座位表。</p>
+      <p class="muted small">座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個）。點「編輯座位」調整座位排列。</p>
       <div class="scroll">
         <table class="t compact nw">
           <thead><tr><th>名稱</th><th>類型</th><th>橫排×深位</th><th>可排座位</th><th /></tr></thead>
@@ -118,7 +118,7 @@ export function RoomTable(p: {
                   <td class="n">{r.seatCount}</td>
                   <td onClick={(e) => e.stopPropagation()}>
                     <div class="row" style="flex-wrap:nowrap">
-                      <Button small {...(isOpen ? { kind: 'primary' as const } : {})} onClick={toggle}>{isOpen ? '收合座位表' : '編輯座位表'}</Button>
+                      <Button small {...(isOpen ? { kind: 'primary' as const } : {})} onClick={toggle}>{isOpen ? '收合座位' : '編輯座位'}</Button>
                       {r.kind === 'reserve' && <ConfirmButton small copy={confirmCopy.deleteRoom(r.name, !!p.inUse?.(r.id))} onConfirm={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</ConfirmButton>}
                     </div>
                   </td>
@@ -161,7 +161,7 @@ function SeatGrid(p: { room: Classroom; cap: number; onClose: () => void; onChan
           <div class="field" style="gap:2px"><span class="small muted">深位（前後）</span><Stepper label="深位" value={room.depth} max={p.cap} onChange={(n) => p.onChange(resize(room, { depth: n }, p.cap))} /></div>
         </div>
       )}
-      <p class="muted small">座標是「排－深位」。點哪個座位，哪個就「不排」（打斜線，例如壞掉的桌椅或走道）；再點一次恢復。排座時會跳過不排的座位，人由前往後連續坐。</p>
+      <p class="muted small">座標是「排－深位」。點座位切換「可排／不排」（不排會打斜線，例如壞掉的桌椅或走道）；不排的座位不會安排考生，人由前往後連續坐。</p>
       <div style="overflow-x:auto">
         <div style="display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center">
           <div />
@@ -170,7 +170,7 @@ function SeatGrid(p: { room: Classroom; cap: number; onClose: () => void; onChan
               const pos = { row: rw, depth: d };
               const act = isSeatActive(room, pos);
               return (
-                <button type="button" key={`${rw}-${d}`} class={`pc${act ? '' : ' off'}`} aria-pressed={act} title={act ? '點一下：這個座位不排' : '點一下：恢復這個座位'}
+                <button type="button" key={`${rw}-${d}`} class={`pc${act ? '' : ' off'}`} aria-pressed={act} title={act ? '設為不排' : '恢復可排'}
                   aria-label={`${seatLabel(pos)} ${act ? '可用' : '不排'}`} onClick={() => p.onChange(clickSeat(room, pos, p.cap))}>{seatLabel(pos)}</button>
               );
             }))}

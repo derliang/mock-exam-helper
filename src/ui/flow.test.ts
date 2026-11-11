@@ -192,7 +192,7 @@ describe('行內驗證', () => {
     expect(checkExamName(d, '  ')).toMatchObject({ ok: false });
     expect(checkExamName(d, '  ').message).toContain('例如');
     expect(checkExamName(d, 'x'.repeat(31)).message).toContain('31 字');
-    expect(checkExamName(d, '測試考').message).toContain('已經有叫「測試考」');
+    expect(checkExamName(d, '測試考').message).toContain('已有「測試考」');
     expect(checkExamName(d, '學測第三次')).toEqual({ ok: true, message: '' });
   });
 });

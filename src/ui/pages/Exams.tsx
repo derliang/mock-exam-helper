@@ -36,7 +36,7 @@ export function Exams(p: {
                   <div class="prog">{pr.headline}<span class={pr.tone}>・{pr.detail}</span></div>
                   <div class="small muted" style="margin-top:4px">最後修改 {formatModified(lastModified(e))}</div>
                 </div>
-                <div class="row"><Button kind="primary" onClick={() => p.onOpen(e.id)}>開啟</Button></div>
+                <div class="row"><Button kind="primary" onClick={() => p.onOpen(e.id)}>查看／安排</Button></div>
               </article>
             );
           })}
