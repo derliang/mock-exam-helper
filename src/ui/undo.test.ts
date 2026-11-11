@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { canUndo, commit, newHistory, nextUndoLabel, undo, undoSteps, undoTo, UNDO_LIMIT } from './undo';
+import { canUndo, commit, jsonEqual, newHistory, nextUndoLabel, undo, undoSteps, undoTo, UNDO_LIMIT } from './undo';
 
 describe('復原', () => {
   it('變更後可復原回前一狀態', () => {
@@ -45,4 +45,15 @@ describe('復原', () => {
     expect(nextUndoLabel(r.history)).toBe('新增學生');
     expect(undoTo(h, 99).history).toBe(h);
   });
+});
+
+describe('jsonEqual（#72）', () => {
+  const cases: [unknown, unknown][] = [
+    [{ a: 1 }, { a: 1 }], [{ a: 1 }, { a: 2 }], [{ a: undefined }, {}], [{ a: [1, { b: 2 }] }, { a: [1, { b: 2 }] }],
+    [{ a: [1, 2] }, { a: [1, 2, 3] }], [[], {}], [null, {}], ['x', 'x'], [1, '1'], [{ a: null }, {}],
+  ];
+  it.each(cases)('與 JSON.stringify 比對同義 %j vs %j', (a, b) => {
+    expect(jsonEqual(a, b)).toBe(JSON.stringify(a) === JSON.stringify(b));
+  });
+  it('同一個參照直接相等', () => { const o = { a: [1] }; expect(jsonEqual(o, o)).toBe(true); });
 });

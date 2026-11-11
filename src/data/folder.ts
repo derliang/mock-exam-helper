@@ -156,6 +156,63 @@ export async function saveDoc(fs: DirFS, doc: Doc): Promise<void> {
   }
 }
 
+const REMOVED = Symbol('removed');
+
+/**
+ * 增量存檔（#72）：與 saveDoc 寫出的內容完全相同，但記住「這個資料夾每個檔案上次成功寫入的資料物件」，
+ * 以參照比對（Doc 是不可變更新，沒動的部分參照不變）跳過沒變的檔案，不再每次讀回、編碼、比對全部檔案。
+ * - 第一次呼叫沒有任何記錄，等同完整 saveDoc（落盤的基準仍是磁碟內容）。
+ * - 記錄只在該檔寫入成功後才更新；中途失敗時已寫的不重寫、未寫的下次補上（#58 佇列重試語意不變）。
+ * - 只有考試代碼集合變了才掃描 exams/ 清掉被刪考試的檔案。
+ * 一個資料夾用一個 saver（換資料夾就建新的）。
+ */
+export function createIncrementalSaver(fs: DirFS): (doc: Doc) => Promise<void> {
+  const written = new Map<string, unknown>();
+  let scannedIds: string | null = null;
+  const put = async (path: string, data: unknown) => {
+    if (written.get(path) === data) return;
+    await writeFile(fs, path, data);
+    written.set(path, data);
+  };
+  const drop = async (path: string) => {
+    if (written.get(path) === REMOVED) return;
+    await fs.remove(path);
+    written.set(path, REMOVED);
+  };
+  return async (doc) => {
+    await put('settings.json', doc.settings);
+    await put(rosterPath('senior'), doc.rosters.senior);
+    await put(rosterPath('junior'), doc.rosters.junior);
+    const keep = new Set<string>();
+    for (const e of doc.exams) {
+      assertSafeId(e.id);
+      keep.add(e.id);
+      await put(`${examDir(e.id)}/exam.json`, e);
+      const files = doc.examFiles?.[e.id] ?? {};
+      for (const key of EXAM_FILE_KEYS) {
+        const v = files[key];
+        if (v !== undefined) await put(`${examDir(e.id)}/${key}.json`, v);
+        else await drop(`${examDir(e.id)}/${key}.json`);
+      }
+    }
+    const ids = [...keep].sort().join('\n');
+    if (ids === scannedIds) return;
+    for (const id of await fs.listDirs('exams')) {
+      if (keep.has(id)) continue;
+      for (const f of EXAM_FILES) {
+        await fs.remove(`${examDir(id)}/${f}`);
+        await fs.remove(`${examDir(id)}/${f}.bak`);
+      }
+    }
+    // 被刪考試的記錄作廢（之後復原回來要重寫）
+    for (const p of [...written.keys()]) {
+      const m = /^exams\/([^/]+)\//.exec(p);
+      if (m && !keep.has(m[1]!)) written.delete(p);
+    }
+    scannedIds = ids;
+  };
+}
+
 /** 一次模擬考底下的其他檔案 */
 export interface ExamFiles {
   entries: ExamEntry[];
