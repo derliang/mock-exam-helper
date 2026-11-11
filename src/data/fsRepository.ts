@@ -7,7 +7,7 @@ import type { Repository } from '../ui/repository';
 import type { Doc } from '../ui/store';
 import { createHandleFS, type DirFS } from './dirfs';
 import type { ExamFiles } from './folder';
-import { loadDoc, loadExamFile, saveDoc, saveExamFile } from './folder';
+import { createIncrementalSaver, loadDoc, loadExamFile, saveExamFile } from './folder';
 import { createSaveQueue, SwitchBlockedError, type SaveQueue, type SaveStatus } from './saveQueue';
 
 const DB = 'mock-exam-helper';
@@ -83,7 +83,8 @@ export function createFsRepository(deps: FsRepositoryDeps = {}): FsRepository {
     if (verify) await loadDoc(nextFs); // 新資料夾讀不了就丟錯、不切換（#69：B 讀檔失敗時仍使用 A）
     await remember(h);
     fs = nextFs;
-    queue = createSaveQueue((d: Doc) => saveDoc(nextFs, d), emit);
+    const saveInc = createIncrementalSaver(nextFs); // #72：每個資料夾一個，只寫有變的檔案
+    queue = createSaveQueue((d: Doc) => saveInc(d), emit);
     emit({ state: 'idle' });
     folder = h.name;
     return true;

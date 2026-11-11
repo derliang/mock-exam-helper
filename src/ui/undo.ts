@@ -16,9 +16,29 @@ export const DEFAULT_LABEL = '上一個動作';
 
 export const newHistory = <T>(present: T): History<T> => ({ past: [], present });
 
+/**
+ * 與 JSON.stringify(a) === JSON.stringify(b) 同義（值為 undefined 的欄位視同沒有），但同一個參照直接視為相等，
+ * 所以不可變更新時只比到真正有變的子樹，不必每次輸入都序列化整份 Doc（#72）。資料只含 JSON 型別。
+ */
+export function jsonEqual(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (typeof a !== 'object' || typeof b !== 'object' || a === null || b === null) return false;
+  if (Array.isArray(a) || Array.isArray(b)) {
+    if (!Array.isArray(a) || !Array.isArray(b) || a.length !== b.length) return false;
+    for (let i = 0; i < a.length; i++) if (!jsonEqual(a[i], b[i])) return false;
+    return true;
+  }
+  const oa = a as Record<string, unknown>;
+  const ob = b as Record<string, unknown>;
+  const ka = Object.keys(oa).filter((k) => oa[k] !== undefined);
+  if (ka.length !== Object.keys(ob).filter((k) => ob[k] !== undefined).length) return false;
+  for (const k of ka) if (!(k in ob) || !jsonEqual(oa[k], ob[k])) return false;
+  return true;
+}
+
 /** 套用一次變更；內容沒變就不記一步 */
 export function commit<T>(h: History<T>, next: T, label: string = DEFAULT_LABEL, limit = UNDO_LIMIT): History<T> {
-  if (JSON.stringify(next) === JSON.stringify(h.present)) return h;
+  if (jsonEqual(next, h.present)) return h;
   const past = [...h.past, { state: h.present, label }];
   return { past: past.length > limit ? past.slice(past.length - limit) : past, present: next };
 }
