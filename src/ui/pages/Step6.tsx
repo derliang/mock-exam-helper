@@ -222,7 +222,7 @@ export function Step6(p: {
         <div class="row" style="justify-content:space-between">
           <span class="muted">{o.format === 'pdf' ? '將開啟' : '將下載'} <b class="num">{(o.format === 'pdf' && files.length ? 1 : files.length) + chosenExtras.length}</b> {o.format === 'pdf' ? '個列印頁' : '個檔案'}</span>
           <button type="button" class="btn btn-primary btn-lg" disabled={blocked || busy || (files.length === 0 && chosenExtras.length === 0)} onClick={go}>
-            {busy ? '產生中…' : stale ? '排座過期，先重新排座' : o.format === 'word' ? '下載 Word' : '開啟列印頁（存成 PDF）'}
+            {busy ? '產生中…' : stale ? '排座過期，先重新排座' : o.format === 'word' ? '下載 Word 文件' : '開啟列印頁（另存 PDF）'}
           </button>
         </div>
         <p class="small muted">要列印時，請開啟下載的 Word 檔（或另存的 PDF）再列印，本程式不直接列印。頁尾印有產生時間與資料版本碼，可事後核對表是否對應現在的名單與設定。</p>
@@ -244,8 +244,8 @@ export function Step6(p: {
               <tr key={f.name}><td><b>{f.name}</b></td><td class="muted">{f.desc}</td><td>{kb(typeof f.data === 'string' ? f.data.length : f.data.byteLength)}</td></tr>
             ))}</tbody>
           </table></div>
-          <p class="small muted">資料版本碼：<Badge>{prepared.ok ? prepared.input.result.dataVersion : ''}</Badge>（印在每頁頁尾）</p>
-          {o.format === 'word' && <Alert tone="warn">Word 檔下載後若手動編輯，就不再受驗證器保護，請自行重新核對。</Alert>}
+          <p class="small muted">本次文件版本：<Badge>{prepared.ok ? prepared.input.result.dataVersion : ''}</Badge>（頁尾相同）</p>
+          {o.format === 'word' && <Alert tone="warn">修改 Word 文件後，請自行重新核對；系統不會驗證改後內容。</Alert>}
           <div>
             <h3>接下來該做什麼</h3>
             <ol class="nextlist">
