@@ -68,7 +68,7 @@ describe('共用設定「教室清單」（校-43、校-50）', () => {
     for (const h of ['>名稱<', '>類型<', '>橫排×深位<', '>可排座位<']) expect(html).toContain(h);
     expect(html).toContain('5×6');
     expect(html).toContain('rowtap');
-    expect(html.match(/>編輯座位表</g)).toHaveLength(2); // 高中部 2 間
+    expect(html.match(/>編輯座位</g)).toHaveLength(2); // 高中部 2 間
     expect(html.match(/>刪除</g)).toHaveLength(1); // 只有預備教室
     expect(html).not.toContain('國一教室');
   });

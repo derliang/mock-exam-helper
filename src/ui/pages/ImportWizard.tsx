@@ -8,7 +8,7 @@ import {
 import { Alert, Badge, Button, StatsBar } from '../components';
 import { FIELD_LABEL, SUBJECT_ID_MAP } from '../step2';
 
-const KIND_TEXT: Record<ReviewItem['kind'], string> = { 'bad-id': '班級或座號看不懂', 'no-name': '沒有姓名', dup: '班級座號重複', 'bad-group': '組別代碼不在對照表' };
+const KIND_TEXT: Record<ReviewItem['kind'], string> = { 'bad-id': '班級／座號無法辨識', 'no-name': '缺少姓名', dup: '班級與座號重複', 'bad-group': '未知組別代碼' };
 
 /** 本次考試的掃描設定：組別表換成考科表的 id；會考沒有組別欄，用固定科目 */
 export function scanOptionsFor(exam: ExamConfig, classNames: readonly string[], trackOf?: (classNo: number) => Track | undefined): ScanOptions {
@@ -62,7 +62,7 @@ export function ImportWizard(p: {
 
   return (
     <div class="card" style="margin-top:12px;padding:12px">
-      <h3>智慧匯入考試名單</h3>
+      <h3>匯入考試名單：檢查資料</h3>
       <p class="muted small">程式先讀懂整份檔案，把看不懂或可能出錯的地方列在下面請你決定。全部處理完、看過預覽並按「確認匯入」之後才會寫入並取代本次的考試名單，之前取消不會改到任何資料。</p>
 
       {scans.length > 1 && (
@@ -88,7 +88,7 @@ export function ImportWizard(p: {
         <>
           <h4 style="margin-top:16px">② 科目標示的寫法（共 {scan.groups.length} 組）</h4>
           <p class="muted small">整份名單用到的標示寫法已依相似度分組、計次。請為每一組選擇它代表哪一科，或選「忽略」。程式的建議只是參考，不會自動套用；但你先前確認並記住的對應會先帶入，請核對。</p>
-          <div style="overflow-x:auto"><table class="t"><thead><tr><th>出現的寫法（次數）</th><th>共</th><th>代表哪一科</th></tr></thead><tbody>
+          <div style="overflow-x:auto"><table class="t"><thead><tr><th>原始標示</th><th>出現次數</th><th>對應科目</th></tr></thead><tbody>
             {scan.groups.map((g) => (
               <tr key={g.id}>
                 <td>{g.members.map((m) => `「${m.raw}」×${m.count}`).join('　')}</td>
@@ -99,19 +99,19 @@ export function ImportWizard(p: {
                     {p.exam.subjects.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
                     <option value={IGNORE}>忽略（不是科目標示）</option>
                   </select>
-                  {g.suggestion && mapping[g.id] !== g.suggestion && <Button small onClick={() => setChosen((c) => ({ ...c, [g.id]: g.suggestion as string }))}>採用建議：{name(g.suggestion)}</Button>}
+                  {g.suggestion && mapping[g.id] !== g.suggestion && <Button small onClick={() => setChosen((c) => ({ ...c, [g.id]: g.suggestion as string }))}>套用建議：{name(g.suggestion)}</Button>}
                   {mapping[g.id] === undefined && <Badge tone="warn">待選擇</Badge>}
                 </div></td>
               </tr>
             ))}
           </tbody></table></div>
-          <label class="small" style="display:block;margin-top:8px"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.currentTarget.checked)} /> 記住這些對應，下次匯入自動帶入（仍可修改）</label>
+          <label class="small" style="display:block;margin-top:8px"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.currentTarget.checked)} /> 記住科目對應供下次匯入使用</label>
         </>
       )}
 
       {scan.review.length > 0 && (
         <>
-          <h4 style="margin-top:16px">③ 待確認的列（{res.pendingReview.length}／{scan.review.length} 未處理）</h4>
+          <h4 style="margin-top:16px">③ 待確認資料（{res.pendingReview.length} 筆待處理／共 {scan.review.length} 筆）</h4>
           <p class="muted small">這些列程式無法確定，不會被默默略過。請修正後套用，或明確選擇略過。</p>
           {scan.review.map((it) => (
             <ReviewRow key={it.row} item={it} decision={rowDec[it.row]} groupCodes={Object.keys(opts.groupTable ?? {})}
@@ -138,18 +138,18 @@ export function ImportWizard(p: {
         { label: '不變', value: diff.unchanged },
       ]} />
       {p.previous && p.previous.length > 0 && <p class="muted small" style="margin-top:8px">和目前的考試名單（{p.previous.length} 人）相比。確認匯入後可用「復原」回到匯入前。</p>}
-      {diff.changed.length > 0 && <details style="margin-top:8px"><summary>看變更的 {diff.changed.length} 位</summary>
+      {diff.changed.length > 0 && <details style="margin-top:8px"><summary>查看 {diff.changed.length} 筆變更</summary>
         <table class="t"><thead><tr><th>班級-座號</th><th>姓名</th><th>變動</th><th>科目（前→後）</th></tr></thead><tbody>
           {diff.changed.slice(0, 50).map((c) => <tr key={c.code}><td>{c.code}</td><td>{c.after.name}</td><td>{c.fields.map((f) => ({ name: '姓名', subjects: '科目', group: '組別' })[f]).join('、')}</td>
             <td>{c.fields.includes('subjects') ? `${c.before.subjectIds.map(name).join('、') || '無'} → ${c.after.subjectIds.map(name).join('、') || '無'}` : '—'}</td></tr>)}
         </tbody></table></details>}
-      {diff.removed.length > 0 && <div style="margin-top:8px"><Alert tone="warn">目前名單裡有 {diff.removed.length} 位不在新檔案中，匯入後會被移除。</Alert></div>}
-      {res.skippedByUser > 0 && <p class="muted small">你選擇略過 {res.skippedByUser} 列。</p>}
+      {diff.removed.length > 0 && <div style="margin-top:8px"><Alert tone="warn">本次名單將移除 {diff.removed.length} 人。請先確認是否漏列考生。</Alert></div>}
+      {res.skippedByUser > 0 && <p class="muted small">已略過 {res.skippedByUser} 筆，不會匯入。</p>}
 
       <div class="btnrow" style="margin-top:12px">
-        <Button onClick={p.onCancel}>取消（不改任何資料）</Button>
-        <Button kind="primary" disabled={!res.ready} onClick={() => p.onDone(res.entries, remember ? rememberMapping(scan.groups, mapping, p.saved) : p.saved)}>確認匯入 {res.entries.length} 位考生</Button>
-        {reasons.length > 0 && <span class="hint">還不能匯入：{reasons.join('；')}</span>}
+        <Button onClick={p.onCancel}>取消匯入</Button>
+        <Button kind="primary" disabled={!res.ready} onClick={() => p.onDone(res.entries, remember ? rememberMapping(scan.groups, mapping, p.saved) : p.saved)}>確認匯入 {res.entries.length} 人（取代本次名單）</Button>
+        {reasons.length > 0 && <span class="hint">尚有待處理項目：{reasons.join('；')}</span>}
       </div>
     </div>
   );
@@ -176,8 +176,8 @@ function ReviewRow(p: { item: ReviewItem; decision?: RowDecision; groupCodes: st
             <option value="">— 選組別 —</option>{p.groupCodes.map((k) => <option key={k} value={k}>{k}</option>)}
           </select>
         )}
-        <Button small kind="primary" disabled={!ok} onClick={() => p.onDecide({ action: 'fix', classNo: Number(c), seatNo: Number(s), name: n.trim(), ...(g ? { groupCode: g } : {}) })}>套用修正</Button>
-        <Button small kind={done?.action === 'skip' ? 'primary' : 'default'} onClick={() => p.onDecide({ action: 'skip' })}>略過這列</Button>
+        <Button small kind="primary" disabled={!ok} onClick={() => p.onDecide({ action: 'fix', classNo: Number(c), seatNo: Number(s), name: n.trim(), ...(g ? { groupCode: g } : {}) })}>確認修正</Button>
+        <Button small kind={done?.action === 'skip' ? 'primary' : 'default'} onClick={() => p.onDecide({ action: 'skip' })}>略過此筆</Button>
         {done && <Button small onClick={() => p.onDecide(null)}>重新處理</Button>}
       </div>
     </div>

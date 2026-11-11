@@ -98,7 +98,7 @@ export function StepNav(p: { steps: { no: number; name: string; state: StepState
   const need = p.steps.filter((x) => x.state !== 'skip').length; // 國中部沒有的步驟不算進總步數
   return (
     <>
-    <p class="stepprog" aria-live="polite">{cur ? `第 ${cur.no}／${p.steps.length} 步` : `共 ${need} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
+    <p class="stepprog" aria-live="polite">{cur ? `第 ${cur.no} 步（共 ${p.steps.length} 步）` : `共 ${need} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
     <ol class="steps" aria-label="步驟">
       {p.steps.map((s) => {
         const tag = mark[s.state];

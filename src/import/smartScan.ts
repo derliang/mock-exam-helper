@@ -90,7 +90,7 @@ const codeKey = (cell: string, opts: ScanOptions): string =>
 export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOptions): ExamScan {
   const empty = (problems: string[]): ExamScan => ({ header: null, columns: {}, headers: {}, subjectColumns: {}, rows: [], review: [], skipped: [], blankRows: 0, groups: [], problems });
   const header = smartFindHeader(rows);
-  if (!header) return empty(['找不到表頭：需要有「座號」與「姓名」兩欄（上方有標題或空列、欄名有錯字都沒關係）']);
+  if (!header) return empty(['找不到表頭。Excel 必須包含「座號」「姓名」欄。']);
   const col = header.map as Partial<Record<Field, number>>;
   const problems: string[] = [];
   if (col.classNo === undefined) problems.push('找不到「班級」欄，無法判斷考生屬於哪一班');
@@ -143,11 +143,11 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
     }
 
     if (!name) {
-      if (filled === 1 || (seatNo === null && classNo === null)) out.skipped.push({ row: rowNo, cells, reason: filled === 1 ? '只有一格有字，像是標題或說明' : '沒有姓名也沒有班級座號，不像考生列' });
+      if (filled === 1 || (seatNo === null && classNo === null)) out.skipped.push({ row: rowNo, cells, reason: filled === 1 ? '非考生資料（僅有單一欄位）' : '缺少辨識考生所需資料' });
       else out.review.push({ row: rowNo, kind: 'no-name', message: '有班級或座號但沒有姓名', cells, draft: { name: '', ...(classNo !== null ? { classNo } : {}), ...(seatNo !== null ? { seatNo } : {}) }, marks });
       continue;
     }
-    if (filled === 1) { out.skipped.push({ row: rowNo, cells, reason: '只有一格有字，像是標題或說明' }); continue; }
+    if (filled === 1) { out.skipped.push({ row: rowNo, cells, reason: '非考生資料（僅有單一欄位）' }); continue; }
     const base = { name, ...(classNo !== null ? { classNo } : {}), ...(seatNo !== null ? { seatNo } : {}), ...(get(r, 'group') ? { groupCode: get(r, 'group') } : {}) };
     if (classNo === null || seatNo === null) {
       out.review.push({ row: rowNo, kind: 'bad-id', message: `${classNo === null ? '班級' : '座號'}無法辨識`, cells, draft: base, marks, ...(note ? { note } : {}) });
