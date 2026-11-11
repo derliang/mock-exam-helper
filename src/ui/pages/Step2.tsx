@@ -9,9 +9,9 @@ import { ImportWizard } from './ImportWizard';
 const KIND_TEXT: Record<RosterDiff['kind'], string> = {
   'only-in-exam': '考試名單有，學生名單沒有',
   'only-in-roster': '學生名單有，考試名單沒有',
-  mismatch: '同一人的班級、座號或姓名不一致',
+  mismatch: '班級、座號或姓名不一致',
 };
-const CHOICE_TEXT: Record<RosterDiffChoice, string> = { 'use-exam': '以考試名單為準', 'use-roster': '以學生名單為準', manual: '手動編輯' };
+const CHOICE_TEXT: Record<RosterDiffChoice, string> = { 'use-exam': '以考試名單為準', 'use-roster': '以學生名單為準', manual: '手動修正' };
 
 
 /**
@@ -178,7 +178,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           </div>
         </div>
         <p class="small muted">{exam.participation === 'partial'
-          ? '沒報名的人不算差異，不排座、不出現在座位表。'
+          ? '未列入本次考試的人不視為名單差異，不排座、不出現在座位表。'
           : '學生名單有、考試名單沒有的人，列為差異，逐筆處理。'}</p>
         {fullyAbsent > 0 && (
           <Alert tone="info">
@@ -224,7 +224,7 @@ function Editor(p: { diff: RosterDiff; classNos: readonly number[]; onSave: (e: 
         <div class="field"><label>座號<input class="input" aria-label="座號" inputMode="numeric" value={s} onInput={(e) => setS(e.currentTarget.value)} /></label></div>
         <div class="field"><label>姓名<input class="input" aria-label="姓名" value={n} onInput={(e) => setN(e.currentTarget.value)} /></label></div>
       </div>
-      <div class="row"><Button small kind="primary" disabled={!ok} onClick={() => p.onSave({ classNo: Number(c), seatNo: Number(s), name: n.trim() })}>完成編輯</Button>
+      <div class="row"><Button small kind="primary" disabled={!ok} onClick={() => p.onSave({ classNo: Number(c), seatNo: Number(s), name: n.trim() })}>確認修正</Button>
         <span class={msg ? 'field-msg' : 'hint'}>{msg || '改完就算處理好，套用時以這裡的資料為準。'}</span></div>
     </div>
   );
