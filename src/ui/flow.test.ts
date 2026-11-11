@@ -59,7 +59,7 @@ describe('步驟狀態（第N/6步、完成狀態）', () => {
     const f = flowOf(doc(e, false), e, 1);
     expect(f.steps.map((s) => s.state)).toEqual(['cur', 'todo', 'todo', 'todo', 'todo', 'todo']);
     expect(f.steps).toHaveLength(6);
-    expect(f.issues.map((i) => i.step)).toEqual([2, 3, 5]);
+    expect(f.issues.map((i) => i.step)).toEqual([2, 3, 4, 5]); // ④ 補「尚未完成」（稿 v2.13）
   });
 
   it('接近一半未選：④ 未完成；選了之後 ①②③④ 完成', () => {
@@ -93,6 +93,32 @@ describe('步驟狀態（第N/6步、完成狀態）', () => {
     const f = flowOf(doc(e, false), e, 1);
     expect(f.steps[3]!.note).toBe('會考不需要');
     expect(f.issues.some((i) => i.step === 4)).toBe(false);
+  });
+});
+
+describe('稿 v2.13／v2.15 補項：尚未完成的步驟算待處理、會考跳過 ④', () => {
+  it('①～④ 沒做完、又沒有更具體問題的步驟，補一項「尚未完成」，排在真問題之後', () => {
+    const e = exam({ classroomIds: [] });
+    const f = flowOf(doc(e, false), e, 1);
+    const todo = f.issues.filter((i) => i.todo);
+    expect(todo.map((i) => i.step)).toEqual([4, 5]);
+    expect(todo.find((i) => i.step === 4)).toMatchObject({ text: '④ 標示與抽離規則尚未完成', level: 'warn' });
+    const firstTodo = f.issues.findIndex((i) => i.todo);
+    expect(f.issues.slice(firstTodo).every((i) => i.todo)).toBe(true);
+    expect(firstTodo).toBeGreaterThan(0);
+  });
+  it('會考的 ④ 不算「尚未完成」，③ 的下一步直接是 ⑤', () => {
+    const e = exam({ kind: 'bcct', division: 'junior' });
+    const f = flowOf(doc(e, false), e, 3);
+    expect(f.issues.some((i) => i.step === 4)).toBe(false);
+    expect(nextAction(f, 3)).toMatchObject({ kind: 'go', to: 5, label: '完成此步，前往 ⑤ 排座與預覽' });
+  });
+  it('摘要列「尚未完成」項目用 si todo（琥珀）', async () => {
+    const { renderToString } = await import('preact-render-to-string');
+    const { SummaryBar } = await import('./components');
+    const e = exam({ classroomIds: [] });
+    const html = renderToString(SummaryBar({ flow: flowOf(doc(e, false), e, 1), onGo: () => undefined }));
+    expect(html).toContain('class="si todo"');
   });
 });
 

@@ -10,7 +10,7 @@ mkdirSync(OUT, { recursive: true });
 const TAGLIST = process.env.TAGS ? (await import('node:fs')).readFileSync(process.env.TAGS, 'utf8').split(',') : null;
 const APP = `http://localhost:${PORT}/`;
 const PROTO = `http://localhost:${PORT}/docs/design/mockups/%E5%8E%9F%E5%9E%8B.html`;
-const STEP = ['①', '②', '③', '④', '⑤', '⑥'];
+const STEP = ['考試設定', '考試名單', '教室設定', '標示與抽離規則', '排座與預覽', '下載'];
 
 const { proc, ws } = await launchChrome(9333, SCR + '/prof');
 const b = new Browser(ws); await b.open();
@@ -45,7 +45,7 @@ const S = [
   { id: '01初始化', app: async (p) => { await appList(p); await p.clickText('資料夾設定', '.nav button'); await p.sleep(400); }, proto: protoInit },
   { id: '02模擬考列表', app: appList, proto: (p) => protoGo(p) },
   { id: '03新增模擬考', app: async (p) => { await appList(p); await p.clickText('新增模擬考'); await p.sleep(400); }, proto: (p) => protoGo(p, 'new') },
-  ...[1, 2, 3, 4, 5, 6].map((n) => ({ id: `04步驟${STEP[n - 1]}`, app: (p) => appStep(p, '學測第三次', n), proto: (p) => protoGo(p, 'ws' + n, 3) })),
+  ...[1, 2, 3, 4, 5, 6].map((n) => ({ id: `04步驟${'①②③④⑤⑥'[n - 1]}`, app: (p) => appStep(p, '學測第三次', n), proto: (p) => protoGo(p, 'ws' + n, 3) })),
   { id: '04b步驟②待處理', app: (p) => appStep(p, '學測第二次', 2), proto: (p) => protoGo(p, 'ws2', 2) },
   { id: '04b步驟④待處理', app: (p) => appStep(p, '學測第二次', 4), proto: (p) => protoGo(p, 'ws4', 2) },
   { id: '04b步驟⑤擋下', app: (p) => appStep(p, '學測第二次', 5), proto: (p) => protoGo(p, 'ws5', 2) },
@@ -54,6 +54,7 @@ const S = [
   { id: '05設定-班級資料', app: (p) => appSettings(p, '班級資料'), proto: (p) => protoSettings(p, '班級資料') },
   { id: '05設定-學校與表頭', app: (p) => appSettings(p, '學校與表頭'), proto: (p) => protoSettings(p, '學校與表頭') },
   { id: '05設定-教室清單', app: (p) => appSettings(p, '教室清單'), proto: (p) => protoSettings(p, '教室清單') },
+  { id: '05設定-節次與時長', app: (p) => appSettings(p, '節次與時長'), proto: (p) => protoSettings(p, '節次與時長') },
   { id: '05設定-選用功能', app: (p) => appSettings(p, '選用功能') },
   { id: '06版權', app: async (p) => { await appList(p); await p.clickText('© 版權所有'); await p.sleep(400); } },
   { id: '07隱私', app: async (p) => { await appList(p); await p.clickText('隱私權'); await p.sleep(400); } },

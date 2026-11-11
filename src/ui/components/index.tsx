@@ -221,7 +221,7 @@ export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
       {issues.length > 0 && (
         <div class="slist">
           {issues.map((i, k) => (
-            <button type="button" key={k} class="si" onClick={() => p.onGo(i.step)}>
+            <button type="button" key={k} class={`si${i.todo ? ' todo' : ''}`} onClick={() => p.onGo(i.step)}>
               <span class="sstep">{'①②③④⑤⑥'[i.step - 1]} {STEP_NAMES[i.step - 1]}</span>
               <span class="sti">{i.text.replace(/^[①-⑥]\s*/, '')}{i.sub && <small>{i.sub}</small>}</span>
               {i.need != null && <span class="sn"><span>需要 <b>{i.need}</b></span><span>可用 <b>{i.have}</b></span><span class="bad">缺少 <b>{i.lack}</b></span></span>}
