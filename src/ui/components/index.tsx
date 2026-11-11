@@ -143,18 +143,20 @@ export function UndoGroup(p: {
   );
 }
 
-/** 工作區頁頂列：「← 返回」、h1、徽章、狀態、右側動作（稿 v2.22，校-04／11） */
+/** 工作區頁首（稿 v2.25，兩層）：上層＝左「← 返回」、右「已儲存」「↶ 復原」「設定」；下層＝h1＋徽章；整塊底下一條細線 */
 export function PageHead(p: { back?: { label: string; onClick: () => void }; title: string; badge?: ComponentChildren; status?: string; children?: ComponentChildren }): JSX.Element {
   return (
-    <>
-      {p.back && <div class="pagehead-back"><Button kind="ghost" onClick={p.back.onClick}>← {p.back.label}</Button></div>}
-      <div class="pagehead">
+    <header class="phd">
+      <div class="phd-top">
+        <span class="phd-back">{p.back && <Button kind="ghost" onClick={p.back.onClick}>← {p.back.label}</Button>}</span>
+        {p.status && <span class="phd-save">{p.status}</span>}
+        {p.children && <span class="phd-tools">{p.children}</span>}
+      </div>
+      <div class="phd-title">
         <h1>{p.title}</h1>
         {p.badge && <span class="badge">{p.badge}</span>}
-        {p.status && <span class="small muted">{p.status}</span>}
-        {p.children && <span class="pagehead-acts">{p.children}</span>}
       </div>
-    </>
+    </header>
   );
 }
 
