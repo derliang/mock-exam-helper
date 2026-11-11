@@ -37,7 +37,7 @@ export function ScheduleTab({ doc, onChange }: { doc: Doc; onChange: (d: Doc) =>
         <p class="small muted">像學校的模擬考科目表：一天一欄，科目由上往下。<b>最重要的是科目順序</b>：用左邊的 ⠿ 拖拉，或按 ↑↓，也可以拖到另一天；新增模擬考時自動帶入這份順序。時長比照大考，只看考試時間、不管發卷與休息；開始時間每次可能不同，所以選填，也不會印在標籤上。</p>
       </div>
       <div class="row" style="justify-content:space-between">
-        <div class="seg" role="group" aria-label="考試類型">
+        <div class="seg ttseg" role="group" aria-label="考試類型">
           {SCHEDULE_KEYS.map((x) => <button type="button" key={x.key} aria-pressed={key === x.key} onClick={() => setKey(x.key)}>{x.label}</button>)}
         </div>
         <button type="button" class="btn" disabled={isDefaultSchedule(table, key)} onClick={() => onChange({ ...doc, settings: withSchedule(doc.settings, key, undefined) })}>{`還原「${label}」預設`}</button>

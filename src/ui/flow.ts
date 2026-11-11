@@ -22,6 +22,8 @@ export interface FlowIssue {
   sub?: string;
   /** 容量類問題的「需要／可用／缺少」 */
   need?: number; have?: number; lack?: number;
+  /** 只是「這一步還沒做完」，不是出了問題：摘要列用琥珀色、排在真問題之後（稿 v2.13） */
+  todo?: boolean;
 }
 
 export interface FlowStep { no: StepNo; name: string; state: StepState; note?: string; /** 第二行短語（會考的 ③ 沒有預備教室） */ blurb?: string }
@@ -85,7 +87,7 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
   const stale = !!result && isStale(doc, exam);
   let s5: StepState = 'todo';
   if (!result) {
-    add({ step: 5, text: '⑤ 還沒有排座結果', fix: '去 ⑤ 開始排座', level: 'block' });
+    add({ step: 5, text: '⑤ 還沒有排座結果', fix: '去 ⑤ 開始排座', level: 'block', todo: true });
   } else if (stale) {
     s5 = 'stale';
     add({ step: 5, text: '⑤ 名單或設定在排座後改過，需要重新排座', fix: '去 ⑤ 重新排座', level: 'block' });
@@ -103,6 +105,14 @@ export function flowOf(doc: Doc, exam: ExamConfig, current: StepNo): Flow {
     ...(no === 4 && !needsMarks(exam) ? { note: '會考不需要' } : {}),
     ...(no === 3 && exam.division === 'junior' ? { blurb: '橫排、深位' } : {}),
   }));
+  // 尚未完成的步驟也算待處理（稿 v2.13）：①～④ 沒做完、又沒有更具體的問題可講時，補一項「尚未完成」，排在真問題之後（會考的 ④ 不算）
+  for (const no of [1, 2, 3, 4] as StepNo[]) {
+    if (no === 4 && !needsMarks(exam)) continue;
+    if (done[no] !== 'done' && !issues.some((i) => i.step === no)) {
+      add({ step: no, text: `${'①②③④'[no - 1]} ${STEP_NAMES[no - 1]}尚未完成`, fix: '前往處理', level: 'warn', todo: true });
+    }
+  }
+  issues.sort((a, b) => Number(!!a.todo) - Number(!!b.todo) || (a.todo ? a.step - b.step : 0));
   return { steps, issues, summary: { students, seats: classSeats, spare, warnings: issues.length } };
 }
 
@@ -119,7 +129,9 @@ export type NextAction =
 /** 「下一步」按鈕：不擋人；前置有問題只標示缺什麼並給一鍵跳轉（擋下的只有 ⑤ 排座與 ⑥ 下載本身，D47） */
 export function nextAction(flow: Flow, current: StepNo): NextAction {
   if (current >= 6) return { kind: 'none' };
-  const to = (current + 1) as StepNo;
+  // 會考沒有 ④（標「不需要」）：③ 的下一步直接是 ⑤（稿 v2.15 NEXT）
+  let to = (current + 1) as StepNo;
+  if (flow.steps.find((s) => s.no === to)?.state === 'skip' && to < 6) to = (to + 1) as StepNo;
   const label = `完成此步，前往 ${'①②③④⑤⑥'[to - 1]} ${STEP_NAMES[to - 1]}`;
   // 前面的步驟（含目前這步）還有 block 問題就標示；進 ⑥ 時 ⑤ 本身也要完成
   const need = prerequisites(flow, to);
