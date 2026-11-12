@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考設計系統 稿 v2.28</title>
+<title>模擬考設計系統 稿 v2.29</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -441,7 +441,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 </style>
 
 <div class="top">
-  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.28・2026-11-12</span></span>
+  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.29・2026-11-12</span></span>
   <nav class="toc" aria-label="目錄">
     <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#ast">分科新模型</a><a href="#paper">座位表與標籤</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
   </nav>
@@ -627,8 +627,12 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
           <span class="undowrap"><button class="btn undo-main" type="button" disabled>↶ 復原</button><button class="btn undo-more" type="button" disabled aria-label="看可以回頭的步驟">▾</button></span></div></div>
         <div><div class="small muted" style="margin-bottom:6px">「回到…」返回鈕：從 A 頁連去 B 頁處理事情時，B 頁頂端一律有它，名稱寫清楚；到了步驟頁還有「↩ 回到 ⑤ 排座與預覽」。</div>
           <div class="row"><button class="btn btn-ghost" type="button">← 回到「學測第三次」② 考試名單</button><button class="btn" type="button">↩ 回到 ⑤ 排座與預覽</button></div></div>
-        <div><div class="small muted" style="margin-bottom:6px">子頁頁首（稿 v2.28）：返回與標題<b>同一列</b>——「← 回到 ○○」＋大標題＋（徽章），右側放「↶ 復原」。用在新增模擬考、名單比對、比對・覆寫等及其子頁（個別覆寫、預備教室與抽離、考生查詢）。步驟頁與共用設定頁因為工具多，維持稿 v2.25 的兩層頁首。</div>
-          <div class="row" style="gap:12px;align-items:center"><button class="btn btn-ghost" type="button">← 回到 比對・覆寫等</button><b style="font-family:var(--f-serif,serif);font-size:26px">個別覆寫</b><span class="badge">學測第三次</span><span style="margin-left:auto"><button class="btn" type="button">↶ 復原</button></span></div></div>
+        <div><div class="small muted" style="margin-bottom:6px">各頁共用頁首（稿 v2.29，方案 A 路徑＋標題卡）：<b>每一頁同一個元件</b>。上方一條「路徑」（模擬考列表 › 考試名稱 › 來源步驟，<b>最後一個連結就是返回</b>，名稱寫清楚）；下方標題＋徽章；「已儲存／↶ 復原／設定」成組靠右（手機換到標題下方）。沒有的項目整段拿掉，其餘位置不動；根頁（列表、資料夾設定）沒有路徑列。取代 v2.25 兩層與 v2.28 子頁同一列。</div>
+          <div style="display:grid;gap:14px">
+          <header class="pghd"><nav class="crumbs" aria-label="返回路徑"><button type="button" class="crumb">模擬考列表</button><span class="sep" aria-hidden="true">›</span><span class="cur">學測第三次</span></nav><div class="ph-row"><div class="ph-title"><h1>學測第三次</h1><span class="badge">高中部・學測</span></div><div class="ph-tools"><div class="ph-cap"><span class="phd-save">已儲存到資料夾</span><button class="btn" type="button">↶ 復原</button><button class="btn" type="button">設定</button></div></div></div></header>
+          <header class="pghd"><nav class="crumbs" aria-label="返回路徑"><button type="button" class="crumb">模擬考列表</button><span class="sep" aria-hidden="true">›</span><button type="button" class="crumb">學測第三次</button><span class="sep" aria-hidden="true">›</span><button type="button" class="crumb">⑥ 下載</button><span class="sep" aria-hidden="true">›</span><span class="cur">比對・覆寫等</span></nav><div class="ph-row"><div class="ph-title"><h1>比對・覆寫等</h1><span class="badge">學測第三次</span></div><div class="ph-tools"><button class="btn" type="button">↶ 復原</button></div></div></header>
+          <header class="pghd noc"><div class="ph-row"><div class="ph-title"><h1>模擬考</h1><span class="badge">📁 模擬考資料</span></div><div class="ph-tools"><button class="btn" type="button">更換資料夾</button><button class="btn" type="button">設定</button><button class="btn btn-primary" type="button">新增模擬考</button></div></div></header>
+          </div></div>
         <div><div class="small muted" style="margin-bottom:6px">模式 ① 警告條（稿 v2.28，學測預備教室；分科不用，會考沒有預備教室）：警告只講事實與影響、不擋下載；「改用模式 ②」是唯一按鈕。</div>
           <div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>同班座號沒有遞增：</b>預備教室「備一」第 2 排的「勤班」座號沒有由小到大，共 3 處。<span class="small muted">想要同班座號一定遞增，請改用模式 ②（監考優先）。</span></span><button class="btn btn-sm" type="button">改用模式 ②</button></div></div>
         <div><div class="small muted" style="margin-bottom:6px">預備教室座位表（A4 時段版，稿 v2.28）：一間預備教室一頁；格內<b>每行一個時段</b>（第 N 天 時段X／科目 班座號），同一個人跨時段坐同格與不同人輪流坐同格都各列一行；抽離自習不排座位。座標在格子右上角，講臺在底部，頁尾有格內說明。</div>
@@ -1035,6 +1039,26 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .pp .pp-at th{background:#F3EEDD;font-weight:700}
 .pp .pp-at td.l{text-align:left}.pp .pp-at td.d{color:var(--gray)}
 .stack>*{min-width:0}
+
+/* v2.29 各頁共用頁首（方案 A 路徑＋標題卡）：路徑最後一個連結＝返回；標題、徽章；已儲存／復原／設定成組靠右；沒有的項目整段拿掉 */
+.pghd{display:grid;margin-bottom:18px;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1)}
+.pghd .crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;padding:6px 12px;border-bottom:1px solid var(--line);background:var(--sunken);border-radius:var(--r-lg) var(--r-lg) 0 0;font-size:13px;min-width:0}
+.pghd .crumb{font:inherit;font-weight:700;color:var(--accent-ink);background:transparent;border:0;border-radius:6px;padding:0 6px;min-height:32px;cursor:pointer}
+.pghd .crumb:hover{background:var(--accent-soft)}
+.pghd .crumb:last-of-type{text-decoration:underline;text-underline-offset:3px}
+.pghd .crumb:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.pghd .sep{color:var(--text-3);padding:0 1px}
+.pghd .cur{color:var(--text-3);padding:0 6px}
+.ph-row{display:flex;gap:12px 20px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px 16px}
+.pghd.noc .ph-row{padding-block:16px}
+.ph-title{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;min-width:0}
+.ph-title h1{margin:0;font-size:26px}
+.ph-tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ph-cap{display:inline-flex;align-items:center;gap:8px;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r-md);padding:3px 3px 3px 12px;flex-wrap:wrap}
+.ph-cap .btn{box-shadow:none}
+.phd-save{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-3);white-space:nowrap}
+.phd-save::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok-bar)}
+@media(max-width:600px){.ph-row{padding:12px}.ph-tools{width:100%}}
 </style>
 <script>
 (function(){
