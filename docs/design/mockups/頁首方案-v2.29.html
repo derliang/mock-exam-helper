@@ -1,0 +1,207 @@
+<title>模擬考頁首方案 稿 v2.29</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@700&display=swap">
+<style>
+/* 頁首方案稿 v2.29：各頁共用單一「頁首」元件（品牌列＋頁首區）。三案差異在結構：A 路徑＋標題卡、B 標題優先、C 深色品牌列＋兩層。只用專案 tokens（docs/design/tokens.css 的值），假資料。 */
+:root{
+  --bg:#F5F2EA; --surface:#FFFDF8; --sunken:#F1EDE3; --line:#E4DECF; --line-2:#CFC7B2;
+  --text:#22201B; --text-2:#4F493D; --text-3:#6F6858;
+  --accent:#274690; --accent-on:#FFFFFF; --accent-soft:#E8EDF8; --accent-ink:#1F3877; --accent-line:#B9C6E6;
+  --ok-soft:#E3F2E0; --ok-ink:#1F5A1A; --ok-bar:#3C8B34;
+  --bar:#22201B; --bar-on:#FFFDF8; --bar-soft:#3A372F;
+  --shadow-1:0 1px 2px rgba(34,32,27,.07),0 2px 6px -2px rgba(34,32,27,.06);
+  --shadow-2:0 2px 4px rgba(34,32,27,.06),0 10px 24px -8px rgba(34,32,27,.16);
+  --r-sm:8px; --r-md:12px; --r-lg:16px; --ease:cubic-bezier(.2,.7,.2,1);
+  --f-ui:"Noto Sans TC","PingFang TC","Microsoft JhengHei",sans-serif;
+  --f-head:"Noto Serif TC","Noto Sans TC","PMingLiU",serif;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F; --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-bar:#5DB257;
+  --bar:#0C0B08; --bar-on:#F1EDE2; --bar-soft:#2A2720;
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6);
+  color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#13120E; --surface:#1C1A15; --sunken:#17150F; --line:#302D24; --line-2:#433F33;
+  --text:#F1EDE2; --text-2:#CFC8B6; --text-3:#A0987F;
+  --accent:#3F63C4; --accent-soft:#1B2540; --accent-ink:#AFC2F5; --accent-line:#33467E;
+  --ok-soft:#1C3220; --ok-ink:#B9E3B2; --ok-bar:#5DB257;
+  --bar:#0C0B08; --bar-on:#F1EDE2; --bar-soft:#2A2720;
+  --shadow-1:0 1px 2px rgba(0,0,0,.55),0 2px 8px -2px rgba(0,0,0,.40); --shadow-2:0 2px 4px rgba(0,0,0,.5),0 10px 24px -8px rgba(0,0,0,.6);
+  color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--text);font-family:var(--f-ui);font-size:14px;line-height:1.6;margin:0;padding-block:16px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3,p{margin:0}
+.wrap{max-width:1100px;margin:0 auto;display:grid;gap:20px}
+.muted{color:var(--text-3)}.small{font-size:13px}
+button{font:inherit;color:inherit}
+.btn{font-weight:700;min-height:40px;padding:0 14px;border-radius:var(--r-sm);border:1px solid var(--line-2);background:var(--surface);cursor:pointer;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;box-shadow:var(--shadow-1)}
+.btn:hover{background:var(--sunken)}
+.btn:focus-visible,.seg button:focus-visible,.crumbs a:focus-visible,.back:focus-visible,.nav a:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn-primary{background:var(--accent);color:var(--accent-on);border-color:var(--accent)}
+.btn-primary:hover{background:var(--accent);filter:brightness(1.1)}
+.badge{display:inline-flex;align-items:center;font-size:13px;font-weight:700;padding:2px 10px;border-radius:99px;border:1px solid var(--line-2);background:var(--sunken);color:var(--text-2);white-space:nowrap}
+.seg{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--r-sm);overflow:hidden;background:var(--sunken)}
+.seg button{border:0;background:transparent;min-height:34px;padding:0 12px;font-weight:700;color:var(--text-2);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-on)}
+
+/* ===== 審稿控制列（只在這張稿上，不是 App 的一部分）===== */
+.ctl{position:sticky;top:env(safe-area-inset-top,0px);z-index:50;background:var(--bg);padding:10px 0;display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;border-bottom:1px solid var(--line)}
+.ctl .grp{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.ctl b{font-size:13px;color:var(--text-3)}
+.note{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-md);padding:14px 16px;display:grid;gap:6px;box-shadow:var(--shadow-1)}
+.note h2{font-size:18px;font-family:var(--f-head)}
+.pages{display:grid;gap:22px;width:100%;min-width:0}
+.pg{display:grid;gap:8px;min-width:0}
+.pg>.lab{font-size:13px;font-weight:700;color:var(--text-3);letter-spacing:.04em}
+.frame{container-type:inline-size;margin:0;border:1px dashed var(--line-2);border-radius:var(--r-lg);overflow:hidden;background:var(--bg);width:100%}
+.frame.m{max-width:375px}
+.skel{padding:14px 16px;display:grid;gap:8px}
+.skel i{display:block;height:44px;border-radius:var(--r-md);background:var(--surface);border:1px solid var(--line)}
+.skel i:nth-child(2){height:78px}
+
+/* ===== 共用：品牌列 ===== */
+.appbar{display:flex;align-items:center;gap:6px 18px;flex-wrap:wrap;padding:8px 16px}
+.brand{font-family:var(--f-head);font-weight:700;font-size:15px;display:inline-flex;align-items:baseline;gap:8px;white-space:nowrap}
+.brand small{font:400 12px var(--f-ui);opacity:.7}
+.nav{display:flex;gap:2px;align-items:center;min-width:0;overflow-x:auto;flex:1 1 auto;scrollbar-width:none}
+.nav a{display:inline-flex;align-items:center;min-height:36px;padding:0 12px;border-radius:var(--r-sm);font-weight:500;font-size:13px;text-decoration:none;color:inherit;white-space:nowrap;cursor:pointer}
+.nav a[aria-current="page"]{font-weight:700}
+.theme{display:inline-flex;gap:2px;border-radius:var(--r-sm);padding:2px;margin-left:auto}
+.theme button{border:0;background:transparent;min-height:30px;padding:0 9px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer}
+@container (max-width:640px){.appbar{padding:8px 12px}.nav{order:3;flex:1 1 100%}.theme{margin-left:auto}}
+
+/* ===== 共用：頁首區的零件 ===== */
+.crumbs{display:flex;flex-wrap:wrap;align-items:center;gap:2px 0;font-size:13px;min-width:0}
+.crumbs a{color:var(--accent-ink);font-weight:700;text-decoration:none;padding:6px 6px;border-radius:6px;cursor:pointer;min-height:32px;display:inline-flex;align-items:center}
+.crumbs a:hover{background:var(--accent-soft)}
+.crumbs .sep{color:var(--text-3);padding:0 1px}
+.crumbs .cur{color:var(--text-3);padding:6px 6px;font-weight:500}
+.crumbs .ret{text-decoration:underline;text-underline-offset:3px}
+.title{display:flex;align-items:center;gap:8px 12px;flex-wrap:wrap;min-width:0}
+.title h1{font-family:var(--f-head);font-size:26px;line-height:1.25;text-wrap:balance}
+.tools{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.saved{display:inline-flex;align-items:center;gap:7px;font-size:13px;color:var(--text-3);white-space:nowrap}
+.saved::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--ok-bar)}
+.undo{display:inline-flex;border:1px solid var(--line-2);border-radius:var(--r-sm);background:var(--surface);overflow:hidden}
+.undo button{border:0;background:transparent;min-height:38px;padding:0 12px;font-weight:700;cursor:pointer}
+.undo button+button{border-left:1px solid var(--line-2);padding:0 9px}
+.undo button:hover{background:var(--sunken)}
+.cap{display:inline-flex;align-items:center;gap:4px;background:var(--sunken);border:1px solid var(--line);border-radius:var(--r-md);padding:3px 3px 3px 12px}
+.cap .undo,.cap .btn{box-shadow:none}
+
+/* ===== 方案 A：路徑＋標題卡 ===== */
+.v-a .appbar{background:var(--surface);border-bottom:1px solid var(--line)}
+.v-a .nav a:hover{background:var(--sunken)}
+.v-a .nav a[aria-current="page"]{background:var(--accent-soft);color:var(--accent-ink)}
+.v-a .theme{background:var(--sunken)}.v-a .theme button[aria-pressed="true"]{background:var(--surface);box-shadow:var(--shadow-1)}
+.v-a .ph{margin:14px 16px 0;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);box-shadow:var(--shadow-1);display:grid}
+.v-a .ph .crumbs{padding:6px 12px;border-bottom:1px solid var(--line);background:var(--sunken);border-radius:var(--r-lg) var(--r-lg) 0 0}
+.v-a .ph .row{display:flex;gap:12px 20px;align-items:center;justify-content:space-between;flex-wrap:wrap;padding:14px 16px}
+.v-a .ph.noc .row{padding-block:16px}
+@container (max-width:640px){.v-a .ph{margin:10px 12px 0}.v-a .ph .row{padding:12px}.v-a .tools{width:100%;justify-content:space-between}}
+
+/* ===== 方案 B：標題優先（返回＝標題上方一行小字）===== */
+.v-b .appbar{border-bottom:1px solid var(--line);background:var(--bg)}
+.v-b .nav a:hover{background:var(--sunken)}
+.v-b .nav a[aria-current="page"]{box-shadow:inset 0 -3px 0 var(--accent);border-radius:0}
+.v-b .theme{background:var(--sunken)}.v-b .theme button[aria-pressed="true"]{background:var(--surface);box-shadow:var(--shadow-1)}
+.v-b .ph{padding:18px 16px 0;display:grid;gap:6px}
+.v-b .back{display:inline-flex;align-items:center;gap:6px;color:var(--accent-ink);font-weight:700;font-size:13px;min-height:32px;cursor:pointer;width:max-content;max-width:100%}
+.v-b .back:hover{text-decoration:underline}
+.v-b .main{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:10px 20px;align-items:end;padding-bottom:16px;border-bottom:1px solid var(--line-2);position:relative}
+.v-b .main::after{content:"";position:absolute;left:0;bottom:-1px;width:56px;height:3px;background:var(--accent)}
+.v-b .title h1{font-size:30px}
+.v-b .meta{display:flex;gap:6px 14px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.v-b .tools{align-self:end}
+@container (max-width:640px){.v-b .main{grid-template-columns:1fr}.v-b .title h1{font-size:26px}.v-b .tools{justify-content:flex-start}}
+
+/* ===== 方案 C：深色品牌列＋兩層頁首 ===== */
+.v-c .appbar{background:var(--bar);color:var(--bar-on);padding-block:6px}
+.v-c .brand small{opacity:.65}
+.v-c .nav a:hover{background:var(--bar-soft)}
+.v-c .nav a[aria-current="page"]{background:var(--bar-on);color:var(--bar)}
+.v-c .theme{background:var(--bar-soft)}.v-c .theme button{color:var(--bar-on)}.v-c .theme button[aria-pressed="true"]{background:var(--bar-on);color:var(--bar)}
+.v-c .ph{padding:12px 16px 0;display:grid;gap:4px}
+.v-c .top{display:flex;gap:6px 16px;align-items:center;justify-content:space-between;flex-wrap:wrap;min-height:40px}
+.v-c .top .crumbs{flex:1 1 220px}
+.v-c .head{display:flex;gap:8px 12px;align-items:center;flex-wrap:wrap;padding:6px 0 14px;border-bottom:1px solid var(--line-2)}
+@container (max-width:640px){.v-c .ph{padding:8px 12px 0}.v-c .top{gap:2px}.v-c .tools{width:100%}}
+</style>
+
+<div class="wrap">
+  <div class="ctl" role="toolbar" aria-label="審稿控制">
+    <div class="grp"><b>方案</b><div class="seg" id="optSeg" role="group" aria-label="頁首方案"><button type="button" data-o="a" aria-pressed="true">A 路徑＋標題卡</button><button type="button" data-o="b" aria-pressed="false">B 標題優先</button><button type="button" data-o="c" aria-pressed="false">C 深色品牌列</button></div></div>
+    <div class="grp"><b>寬度</b><div class="seg" id="wSeg" role="group" aria-label="預覽寬度"><button type="button" data-w="d" aria-pressed="true">桌機</button><button type="button" data-w="m" aria-pressed="false">手機 375</button></div></div>
+    <div class="grp"><b>深淺色</b><div class="seg" id="tSeg" role="group" aria-label="深淺色"><button type="button" data-t="s" aria-pressed="true">系統</button><button type="button" data-t="light" aria-pressed="false">淺</button><button type="button" data-t="dark" aria-pressed="false">深</button></div></div>
+  </div>
+
+  <div class="note" id="optNote"></div>
+  <div id="pages" class="pages"></div>
+
+  <div class="note">
+    <h2>三案共同的規則（不論選哪一案）</h2>
+    <p class="small">①<b>每頁同一個頁首元件</b>，結構固定：品牌列（品牌＋版本、主導覽、深淺色）→ 頁首區（返回路徑、標題、徽章、狀態與工具）；沒有的項目整段拿掉，其餘位置不動。②<b>返回只有一種寫法</b>：路徑的最後一個連結就是返回目標，名稱寫清楚（例：「⑥ 下載」）；根頁（列表、資料夾設定）沒有返回。③<b>狀態與工具成組</b>：「已儲存」「↶ 復原」「設定」靠右同一組，不散落；手機寬度整組換到標題下方。④標題用襯線 26px（B 案 30px），徽章放標題旁；考試名稱只出現一次。⑤全部用專案 tokens，不新增色碼；高度與間距各頁相同。</p>
+    <p class="small muted">本稿取代 v2.28「子頁返回＋標題同一列」與 v2.25 兩層式的分歧寫法；使用者選定一案後，再升版號重發成品、同步 DESIGN.md。成品與假資料：頁面上的考試名稱、資料夾名皆為示範。</p>
+  </div>
+</div>
+
+<script>
+(function(){
+  var EX='分科第一次（示範）',TYPE='高中部・分科',O='a',M=false;
+  var PAGES=[
+    {k:'init',n:'資料夾設定（首頁）',nav:0,crumbs:[],title:'選擇放資料的資料夾',badge:'',tools:'',lead:'第一次使用'},
+    {k:'list',n:'模擬考列表',nav:1,crumbs:[],title:'模擬考',badge:'',folder:'模擬考資料',tools:'list'},
+    {k:'new',n:'新增模擬考',nav:1,crumbs:[['模擬考列表']],title:'新增模擬考',badge:'',tools:''},
+    {k:'step',n:'考試步驟頁（①～⑥）',nav:1,crumbs:[['模擬考列表']],title:EX,badge:TYPE,tools:'full'},
+    {k:'set',n:'共用設定（從步驟⑥進入）',nav:2,crumbs:[['模擬考列表'],[EX],['⑥ 下載']],title:'共用設定',badge:'資料夾層級，所有模擬考共用',tools:'undo'},
+    {k:'cmp',n:'名單比對',nav:1,crumbs:[['模擬考列表'],[EX],['② 考試名單']],title:'名單比對',badge:EX,tools:'undo'},
+    {k:'sub',n:'比對・覆寫等（及個別覆寫等子頁）',nav:1,crumbs:[['模擬考列表'],[EX],['⑥ 下載']],title:'比對・覆寫等',badge:EX,tools:'undo'}
+  ];
+  var DESC={
+    a:['A　路徑＋標題卡','頁首區是一張卡：上面一條「路徑」（模擬考列表 › 考試名稱 › 來源步驟，最後一個連結就是返回），下面是標題與徽章，狀態與工具成一組靠右。品牌列淺色，目前頁用淡藍底。優點：一眼看出「我在哪、從哪來」，所有頁一個樣子；缺點：多一張卡，垂直多佔約 40px。'],
+    b:['B　標題優先','像雜誌的篇首：標題最大（30px），返回縮成標題上方一行小字（「← 回到 ⑥ 下載」），徽章與狀態收在標題下的資訊行，工具靠右對齊標題；底線末端一小段主色當記號。優點：最乾淨、標題最醒目、垂直最省；缺點：路徑只顯示上一層，不是完整路徑。'],
+    c:['C　深色品牌列＋兩層頁首','全站品牌列改成深色窄條（品牌、導覽、深淺色），與頁面內容分得最清楚；頁首區延續 v2.25 兩層：上層路徑＋工具成組、下層標題＋徽章。優點：品牌列有辨識度、改動最小（沿用 v2.25 結構）；缺點：深色條在深色模式與頁面差異較小。']
+  };
+  function esc(t){return String(t).replace(/[&<>"]/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]})}
+  function appbar(p){
+    var nav=['資料夾設定','模擬考列表','共用設定'].map(function(t,i){return '<a tabindex="0"'+(p.nav===i?' aria-current="page"':'')+'>'+t+'</a>'}).join('');
+    return '<div class="appbar"><span class="brand">模擬考小幫手<small>v1.2.2</small></span><nav class="nav" aria-label="主要導覽">'+nav+'</nav><span class="theme" role="group" aria-label="深淺色"><button type="button" aria-pressed="true">系統</button><button type="button" aria-pressed="false">淺</button><button type="button" aria-pressed="false">深</button></span></div>'}
+  function crumbs(p){
+    if(!p.crumbs.length)return '';
+    var h=p.crumbs.map(function(c,i){var last=i===p.crumbs.length-1;return '<a tabindex="0"'+(last?' class="ret"':'')+'>'+esc(c[0])+'</a><span class="sep" aria-hidden="true">›</span>'}).join('');
+    return '<nav class="crumbs" aria-label="返回路徑">'+h+'<span class="cur" aria-current="page">'+esc(p.title)+'</span></nav>'}
+  function undo(){return '<span class="undo"><button type="button">↶ 復原：個別覆寫</button><button type="button" aria-label="可以回頭的步驟">▾</button></span>'}
+  function tools(p,cap){
+    if(p.tools==='list')return '<div class="tools"><button class="btn" type="button">更換資料夾</button><button class="btn" type="button">設定</button><button class="btn btn-primary" type="button">新增模擬考</button></div>';
+    if(!p.tools)return '';
+    var inner=(p.tools==='full'?'<span class="saved">已儲存到資料夾</span>':'')+undo()+(p.tools==='full'?'<button class="btn" type="button">設定</button>':'');
+    return cap?'<div class="cap">'+inner+'</div>':'<div class="tools">'+inner+'</div>'}
+  function badge(p){return p.badge?'<span class="badge">'+esc(p.badge)+'</span>':(p.folder?'<span class="badge">📁 '+esc(p.folder)+'</span>':'')}
+  function head(p){
+    var t=badge(p);
+    if(O==='a'){
+      var c=crumbs(p);
+      return '<header class="ph'+(c?'':' noc')+'">'+c+'<div class="row"><div class="title"><h1>'+esc(p.title)+'</h1>'+t+'</div>'+tools(p,false)+'</div></header>'}
+    if(O==='b'){
+      var last=p.crumbs.length?p.crumbs[p.crumbs.length-1][0]:'';
+      var back=last?'<a class="back" tabindex="0">← 回到 '+(p.crumbs.length>1?'「'+esc(p.crumbs[p.crumbs.length-2][0])+'」':'')+esc(last)+'</a>':'';
+      var meta=(p.badge||p.folder||p.lead)?'<div class="meta">'+(p.lead?'<span class="muted">'+p.lead+'</span>':'')+t+(p.tools==='full'?'<span class="saved">已儲存到資料夾</span>':'')+'</div>':'';
+      var tl=p.tools==='full'?'<div class="tools">'+undo()+'<button class="btn" type="button">設定</button></div>':tools(p,false);
+      return '<header class="ph">'+back+'<div class="main"><div><div class="title"><h1>'+esc(p.title)+'</h1></div>'+meta+'</div>'+tl+'</div></header>'}
+    var cr=crumbs(p),tl2=tools(p,true);
+    if(p.tools==='list')tl2=tools(p,false);
+    return '<header class="ph"><div class="top">'+(cr||'<span></span>')+tl2+'</div><div class="head"><h1 style="font-family:var(--f-head);font-size:26px;line-height:1.25">'+esc(p.title)+'</h1>'+t+'</div></header>'}
+  function render(){
+    document.getElementById('pages').innerHTML=PAGES.map(function(p){
+      return '<section class="pg"><div class="lab">'+esc(p.n)+'</div><div class="frame'+(M?' m':'')+'"><div class="v v-'+O+'">'+appbar(p)+head(p)+'<div class="skel" aria-hidden="true"><i></i><i></i><i></i></div></div></div></section>'}).join('');
+    var d=DESC[O];document.getElementById('optNote').innerHTML='<h2>'+d[0]+'</h2><p class="small">'+d[1]+'</p>'}
+  function seg(id,fn){document.getElementById(id).addEventListener('click',function(e){var b=e.target.closest('button');if(!b)return;[].forEach.call(this.children,function(x){x.setAttribute('aria-pressed',String(x===b))});fn(b)})}
+  seg('optSeg',function(b){O=b.getAttribute('data-o');render()});
+  seg('wSeg',function(b){M=b.getAttribute('data-w')==='m';render()});
+  seg('tSeg',function(b){var t=b.getAttribute('data-t'),r=document.documentElement;if(t==='s')r.removeAttribute('data-theme');else r.setAttribute('data-theme',t)});
+  render();
+})();
+</script>
