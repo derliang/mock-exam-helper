@@ -1,6 +1,6 @@
 /**
  * 不變式檢查（獨立於 src/core/validate.ts 重新實作，避免「用同一把尺量自己」）。
- * 回傳違反的描述；空陣列＝全部成立。編號對應 docs/dispatch/完工-F.md 的不變式清單。
+ * 回傳違反的描述；空陣列＝全部成立。編號對應 docs/archive/dispatch/完工-F.md 的不變式清單。
  */
 import { classroomSeats, parseStudentCode, seatLabel, studentCode } from '../data/helpers';
 import type { Classroom, SeatingResult } from '../data/types';

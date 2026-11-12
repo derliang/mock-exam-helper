@@ -1,7 +1,7 @@
 /**
  * 黃金測試：舊座位表的去識別化版面結構（只有班級人數、每排可用的深位、各排的班級編號區段；
  * 編號＝班級 2 碼＋座號 2 碼，無姓名學號）。舊表上的空格是實體桌位缺口，所以這裡用 seatLayouts 直接給版面。
- * 結論見 docs/dispatch/完工-B.md〈D24 驗證〉。
+ * 結論見 docs/archive/dispatch/完工-B.md〈D24 驗證〉。
  */
 import { describe, expect, it } from 'vitest';
 import { studentCode } from '../data/helpers';

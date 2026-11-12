@@ -1,22 +1,28 @@
 # 模擬考小幫手
 
-學校模擬考的行政小幫手。第一個功能是**考場座位安排**：依學生名單與教室座位配置，自動編排座位、產出 A4 座位表與 A3 座位標籤。
+學校模擬考的行政小幫手。第一個功能是**考場座位安排**：依學生名單與教室座位配置，自動編排座位、產出 A4 座位表與 A3／B4 座位標籤（D74）。
 
-- 純前端 Web App，部署在 GitHub Pages，沒有後端。
-- **本儲存庫與 GitHub Pages 不放任何學生資料。** 學生名單、座位結果都只存在使用者自己電腦的資料夾，程式初始化時由使用者選擇資料夾（File System Access API，需 Chrome 或 Edge）。
+- 純前端 Web App，部署在 GitHub Pages（<https://derliang.github.io/mock-exam-helper/>），沒有後端。
+- **本儲存庫與 GitHub Pages 不放任何學生資料。** 學生名單、座位結果都只存在使用者自己電腦的資料夾，程式初始化時由使用者選擇資料夾（File System Access API；畫面上限使用 Chrome，見 D53）。
 - 以桌機操作為主。
 - 結果必須 100% 正確：排座後由獨立驗證器逐項檢查，沒通過不能匯出。
 
 ## 目前狀態
 
-規劃階段，尚未有程式碼。2026-11-07 完成第一輪需求討論與範例檔分析，結論都寫在 `docs/`：
+已上線，版號見 `package.json` 與網頁頁尾（升版規則見 [CLAUDE.md](CLAUDE.md)〈程式版號〉）。支援學測、會考模擬考的完整流程；分科模擬考的新模型（D99）稿已核可、程式尚未改寫（見 todo D 區）。選用功能（預設關）：領卷清單、考生查詢、出缺席記錄表、列印對位測試頁、會考快速模式。
 
-| 文件 | 內容 |
-|---|---|
-| [docs/requirements.md](docs/requirements.md) | 使用者的原始需求整理 |
-| [docs/decisions.md](docs/decisions.md) | 決定記錄：已定、暫定、已退役、未決 |
-| [docs/sample-analysis.md](docs/sample-analysis.md) | 從既有成果（名單、座位表、標籤）歸納的規則與證據 |
-| [docs/dispatch/待命池規則.md](docs/dispatch/待命池規則.md) | 調度員交接的待命對話規則 |
+待辦看 [docs/todo.md](docs/todo.md)，所有文件的入口是 [docs/README.md](docs/README.md)（文件地圖）。
+
+## 開發
+
+```bash
+npm ci          # 會自動把 git hooks 指到 .githooks（push 前跑型別檢查與測試）
+npm run dev     # 本機開發
+npm test        # vitest
+npm run build   # 型別檢查＋建置到 dist/
+```
+
+推到 `main` 會由 GitHub Actions 自動建置並部署 Pages（`.github/workflows/pages.yml`，只部署、不跑測試；測試在本機 pre-push）。
 
 ## 隱私原則
 
