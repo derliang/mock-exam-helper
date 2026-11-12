@@ -1,6 +1,6 @@
 # 模擬考小幫手
 
-純前端網頁 App（GitHub Pages）。學生資料只存在使用者本機，本 repo 公開，**不得出現任何真實學生姓名、學號、帳號**。需求與決定見 `docs/requirements.md`、`docs/decisions.md`。
+純前端網頁 App（GitHub Pages）。學生資料只存在使用者本機，本 repo 公開，**不得出現任何真實學生姓名、學號、帳號**。需求與決定見 `docs/requirements.md`、`docs/decisions.md`；所有文件的入口是 `docs/README.md`（文件地圖），待辦只看 `docs/todo.md`。`docs/archive/` 是歷史紀錄，不當現行指示。
 
 ## 設計規範
 

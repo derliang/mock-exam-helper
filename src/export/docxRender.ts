@@ -4,7 +4,7 @@
  * boldMode：
  *  - 'embed-bold'（預設）：docx 套件原生寫法，Bold 掛在同一家族的 embedBold，文字用 bold 旗標。
  *  - 'separate-family'：Bold 當另一個字型家族「Noto Sans TC Bold」嵌入，粗體字用該家族（備案）。
- *    兩者待真檔抽驗後擇一（見 docs/dispatch/完工-D.md）。
+ *    兩者待真檔抽驗後擇一（見 docs/archive/dispatch/完工-D.md）。
  */
 import {
   AlignmentType,
