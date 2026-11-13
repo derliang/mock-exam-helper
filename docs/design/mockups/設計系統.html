@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考設計系統 稿 v2.30</title>
+<title>模擬考設計系統 稿 v2.31</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -438,12 +438,28 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .propcard .acts{display:grid;gap:6px;align-content:start;min-width:140px}
 .chartbox{overflow-x:auto;max-width:100%}
 @media(max-width:700px){.astrow{grid-template-columns:1fr 1fr}.propcard{grid-template-columns:auto 1fr}.propcard .acts{grid-column:1/-1;grid-auto-flow:column}}
+/* ===== v2.31 全站品牌列（與原型同一份規則）；.appbar.m ＝ 示範手機寬度（真實網頁用 @media max-width:600px）===== */
+.bbframe{border:1px solid var(--line);border-radius:var(--r-md);overflow:visible;position:relative;background:var(--bg)}
+.appbar{position:relative;display:flex;align-items:center;gap:6px 14px;background:var(--surface);border-bottom:1px solid var(--line);padding:0 16px;min-height:56px;border-radius:var(--r-md) var(--r-md) 0 0}
+.ab-brand{display:inline-flex;align-items:center;gap:10px;font:700 17px/1 var(--f-head);color:var(--text);white-space:nowrap;background:none;border:0;padding:8px 0;cursor:pointer;min-height:44px}
+.ab-logo{width:28px;height:28px;border-radius:var(--r-md);background:var(--accent);color:var(--accent-on);display:grid;place-items:center;flex:none}
+.ab-logo svg{width:18px;height:18px;display:block}
+.ab-ver{font:400 12px var(--f-ui);color:var(--text-3)}
+.ab-nav{display:flex;gap:2px;flex:1;min-width:0;margin-left:8px}
+.ab-nav button{font:inherit;font-weight:500;font-size:14px;white-space:nowrap;min-height:40px;padding:0 12px;border-radius:var(--r-sm);border:1px solid transparent;background:transparent;color:var(--text-2);cursor:pointer}
+.ab-nav button:hover{background:var(--sunken);color:var(--text)}
+.ab-nav button[aria-current="true"]{background:var(--sunken);color:var(--text);font-weight:700;box-shadow:inset 0 -2px 0 var(--text)}
+.ab-tools{display:flex;gap:6px;align-items:center;margin-left:auto}
+.ab-menu{display:none}
+.appbar.m{min-height:52px}.appbar.m .ab-nav{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;gap:2px;margin:0;padding:8px 16px;background:var(--surface);border:1px solid var(--line);border-top:0;box-shadow:var(--shadow-2);z-index:3}.appbar.m.open .ab-nav{display:flex}.appbar.m .ab-nav button{min-height:44px;text-align:left;font-size:15px}.appbar.m .ab-menu{display:inline-flex}.appbar.m .ab-ver{display:none}.appbar.m .ab-theme{padding-inline:10px}
+.psec{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
+details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:pointer;font-weight:700;color:var(--accent-ink);min-height:32px;display:flex;align-items:center}details.more>div{padding:6px 0 2px}
 </style>
 
 <div class="top">
-  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.30・2026-11-13</span></span>
+  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.31・2026-11-13</span></span>
   <nav class="toc" aria-label="目錄">
-    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#ast">分科新模型</a><a href="#paper">座位表與標籤</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
+    <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#ast">分科新模型</a><a href="#paper">座位表與標籤</a><a href="#brandbar">品牌列</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
   </nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">跟隨系統</button>
@@ -629,9 +645,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
           <div class="row"><button class="btn btn-ghost" type="button">← 回到「學測第三次」② 考試名單</button><button class="btn" type="button">↩ 回到 ⑤ 排座與預覽</button></div></div>
         <div><div class="small muted" style="margin-bottom:6px">各頁共用頁首（稿 v2.29，方案 A 路徑＋標題卡）：<b>每一頁同一個元件</b>。上方一條「路徑」（模擬考列表 › 考試名稱 › 來源步驟，<b>最後一個連結就是返回</b>，名稱寫清楚）；下方標題＋徽章；「已儲存／↶ 復原／設定」成組靠右（手機換到標題下方）。沒有的項目整段拿掉，其餘位置不動；根頁（列表、資料夾設定）沒有路徑列。取代 v2.25 兩層與 v2.28 子頁同一列。</div>
           <div style="display:grid;gap:14px">
-          <header class="pghd"><nav class="crumbs" aria-label="返回路徑"><button type="button" class="crumb">模擬考列表</button><span class="sep" aria-hidden="true">›</span><span class="cur">學測第三次</span></nav><div class="ph-row"><div class="ph-title"><h1>學測第三次</h1><span class="badge">高中部・學測</span></div><div class="ph-tools"><div class="ph-cap"><span class="phd-save">已儲存到資料夾</span><button class="btn" type="button">↶ 復原</button><button class="btn" type="button">設定</button></div></div></div></header>
+          <header class="pghd"><nav class="crumbs" aria-label="返回路徑"><button type="button" class="crumb">模擬考列表</button><span class="sep" aria-hidden="true">›</span><span class="cur">學測第三次</span></nav><div class="ph-row"><div class="ph-title"><h1>學測第三次</h1><span class="badge">高中部・學測</span></div><div class="ph-tools"><div class="ph-cap"><span class="phd-save">已儲存到資料夾</span><button class="btn" type="button">↶ 復原</button><button class="btn" type="button">共用設定</button></div></div></div></header>
           <header class="pghd"><nav class="crumbs" aria-label="返回路徑"><button type="button" class="crumb">模擬考列表</button><span class="sep" aria-hidden="true">›</span><button type="button" class="crumb">學測第三次</button><span class="sep" aria-hidden="true">›</span><button type="button" class="crumb">⑥ 下載</button><span class="sep" aria-hidden="true">›</span><span class="cur">比對・覆寫等</span></nav><div class="ph-row"><div class="ph-title"><h1>比對・覆寫等</h1><span class="badge">學測第三次</span></div><div class="ph-tools"><button class="btn" type="button">↶ 復原</button></div></div></header>
-          <header class="pghd noc"><div class="ph-row"><div class="ph-title"><h1>模擬考</h1><span class="badge">📁 模擬考資料</span></div><div class="ph-tools"><button class="btn" type="button">更換資料夾</button><button class="btn" type="button">設定</button><button class="btn btn-primary" type="button">新增模擬考</button></div></div></header>
+          <header class="pghd noc"><div class="ph-row"><div class="ph-title"><h1>模擬考</h1><span class="badge">📁 模擬考資料</span></div><div class="ph-tools"><button class="btn" type="button">更換資料夾</button><button class="btn" type="button">共用設定</button><button class="btn btn-primary" type="button">新增模擬考</button></div></div></header>
           </div></div>
         <div><div class="small muted" style="margin-bottom:6px">模式 ① 警告條（稿 v2.28，學測預備教室；分科不用，會考沒有預備教室）：警告只講事實與影響、不擋下載；「改用模式 ②」是唯一按鈕。</div>
           <div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>同班座號沒有遞增：</b>預備教室「備一」第 2 排的「勤班」座號沒有由小到大，共 3 處。<span class="small muted">想要同班座號一定遞增，請改用模式 ②（監考優先）。</span></span><button class="btn btn-sm" type="button">改用模式 ②</button></div></div>
@@ -790,6 +806,31 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
     </div>
   </section>
 
+  <section id="brandbar">
+    <header><h2>全站品牌列與區塊分區（稿 v2.31）</h2><p>品牌列是每一頁最上面的一條，管「跨頁導覽」；它之下的頁首（<code>ph</code>）管「本頁返回與工具」，兩者不重複。品牌列：左＝標誌＋名稱＋版本（按下回模擬考列表）；中＝主導覽四項（<b>資料夾設定、模擬考列表、選用功能、共用設定</b>），目前所在頁用深色中性底＋底線，不用藍；右＝外觀切換（跟隨系統→淺色→深色）。<b>「共用設定」在品牌列與頁首工具各留一個</b>（使用者 2026-11-13 裁決：列表、資料夾設定頁沒有頁首工具，兩處都留）。品牌列<b>不黏頂</b>（各寬度皆是），黏頂的只有步驟頁的摘要列。手機 ≤600px：導覽收進「選單」鈕，點開成直式清單，每項 44px 高。</p></header>
+    <div class="grid" style="grid-template-columns:1fr">
+      <div class="card"><div class="lab">1280／桌機：導覽四項攤開，目前頁＝模擬考列表</div>
+        <div class="bbframe" style="max-width:1160px"><header class="appbar"><button type="button" class="ab-brand"><span class="ab-logo" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><rect x="2" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="2" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="2" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="23.5" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="2" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="12.75" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/></svg></span>模擬考小幫手<span class="ab-ver">v1.0.0</span></button><nav class="ab-nav" aria-label="主導覽"><button type="button">資料夾設定</button><button type="button" aria-current="true">模擬考列表</button><button type="button">選用功能</button><button type="button">共用設定</button></nav><div class="ab-tools"><button type="button" class="btn btn-sm ab-theme">◐ <span class="t">外觀</span></button></div></header></div></div>
+      <div class="grid" style="grid-template-columns:1fr">
+        <div class="card" style="overflow-x:auto"><div class="lab">820／平板：同桌機，導覽項不換行</div>
+          <div class="bbframe" style="width:780px"><header class="appbar"><button type="button" class="ab-brand"><span class="ab-logo" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><rect x="2" y="2" width="30" height="30" rx="6" fill="currentColor"/></svg></span>模擬考小幫手<span class="ab-ver">v1.0.0</span></button><nav class="ab-nav" aria-label="主導覽"><button type="button">資料夾設定</button><button type="button" aria-current="true">模擬考列表</button><button type="button">選用功能</button><button type="button">共用設定</button></nav><div class="ab-tools"><button type="button" class="btn btn-sm ab-theme">◐ <span class="t">外觀</span></button></div></header></div></div>
+        <div class="card"><div class="lab">375／手機：收合（左）與展開（右）；版本號隱藏、外觀鈕只留圖示</div>
+          <div class="row" style="align-items:flex-start;gap:12px">
+            <div class="bbframe" style="width:375px;max-width:100%"><header class="appbar m"><button type="button" class="ab-brand"><span class="ab-logo" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><rect x="2" y="2" width="30" height="30" rx="6" fill="currentColor"/></svg></span>模擬考小幫手<span class="ab-ver">v1.0.0</span></button><nav class="ab-nav" aria-label="主導覽"><button type="button">資料夾設定</button></nav><div class="ab-tools"><button type="button" class="btn btn-sm ab-theme">◐</button><button type="button" class="btn btn-sm ab-menu" aria-expanded="false">選單</button></div></header></div>
+            <div class="bbframe" style="width:375px;max-width:100%;min-height:290px"><header class="appbar m open"><button type="button" class="ab-brand"><span class="ab-logo" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><rect x="2" y="2" width="30" height="30" rx="6" fill="currentColor"/></svg></span>模擬考小幫手<span class="ab-ver">v1.0.0</span></button><nav class="ab-nav" aria-label="主導覽"><button type="button">資料夾設定</button><button type="button" aria-current="true">模擬考列表</button><button type="button">選用功能</button><button type="button">共用設定</button></nav><div class="ab-tools"><button type="button" class="btn btn-sm ab-theme">◐</button><button type="button" class="btn btn-sm ab-menu" aria-expanded="true">選單</button></div></header></div>
+          </div></div>
+      </div>
+      <div class="card stack"><div class="lab">合併區塊：同一件事一個區塊、區塊內用分隔線上下分區（稿 v2.21 樣板，v2.31 推廣到全站）</div>
+        <div class="card stack" style="background:var(--surface)">
+          <div class="row" style="justify-content:space-between"><h3>示範區塊</h3><span class="badge b-ok">狀態色：綠＝完成</span></div>
+          <p class="small muted">每個區塊只留一行說明。</p>
+          <details class="more"><summary>說明：長說明收在這裡</summary><div>需要時才展開；展開後仍在同一個區塊內，不另開卡片。</div></details>
+          <div class="psec"><div class="lab">第二區（分隔線以下）</div><div class="row"><button class="btn btn-primary btn-sm">操作色：藍＝可按</button><span class="badge b-warn">狀態色：琥珀＝待處理</span><span class="badge">已鎖定＝中性</span></div></div>
+          <div class="psec"><div class="lab">第三區</div><div class="row"><span class="badge b-err">狀態色：紅＝錯誤</span><span class="muted small">班級色只用在班級（座位表、標籤），不拿來表示狀態。</span></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
   <section id="flow">
     <header><h2>引路與防錯（施工G）</h2><p>所有步驟頁共用：常駐摘要列、步驟「第N／6步」、上方「下一步」（永遠可按；前置沒過只用琥珀提示說明＋一鍵跳轉，D47、D58）、破壞性動作二次確認、空狀態、行內驗證。規則見 DESIGN.md 10.7。</p></header>
     <div class="card" style="display:grid;gap:14px">
