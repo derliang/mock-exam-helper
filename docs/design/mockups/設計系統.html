@@ -965,6 +965,15 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       <p class="small muted"><b>名單留痕</b>：匯入預覽的名單，該列「組別」格保留原文並加淡藍徽章「已視為 4 社會組」。</p>
       <div class="scroll"><table class="t compact"><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>名單上的「組別／考科」</th><th>解析出的選考科目</th></tr></thead><tbody><tr><td>恭班</td><td class="n">21</td><td>陳小宇</td><td>5-社會組 <span class="badge b-acc">已視為 4 社會組</span></td><td><span class="badge b-acc">依代碼</span> 數學乙、歷史、地理、公民與社會</td></tr></tbody></table></div>
     </div>
+      <div class="card stack">
+      <h3>④ 方案比較表新增三項指標（v2.34）</h3>
+      <p class="small muted">使用者 2026-11-13 裁示補三項：跨科換座位次數、考場教室數／自習教室數（分列）、需跨教室學生數。<b>只顯示，不參與「較少」粗體標示，也不影響排座順位</b>（排座順序仍是 ⑤ 的固定規則）。列的先後：用到的教室總數 → <b>考場／自習教室數</b> → 被抽離人次 → 離開原班人次 → 跨節換教室次數 → <b>跨科換座位次數</b> → <b>需跨教室學生數</b> → 各考場人數最大落差。三列都放在「取捨指標」群組內，欄寬與其他列相同，375 寬跟著表格橫向捲動。</p>
+      <div class="scroll"><table class="t compact"><thead><tr><th>指標</th><th>少教室優先</th><th>少移動優先</th></tr></thead><tbody>
+        <tr><td>考場教室數／自習教室數<br><span class="small muted">分開算；同一間教室若某時段考試、另一時段自習，兩邊都算</span></td><td class="n">6 間／2 間</td><td class="n">6 間／2 間</td></tr>
+        <tr><td>跨科換座位次數<br><span class="small muted">同一人相鄰兩個考試時段，同一間教室但座位不同</span></td><td class="n">292</td><td class="n">280</td></tr>
+        <tr><td>需跨教室學生數<br><span class="small muted">兩天內所在教室（含原班教室）超過 1 間的學生</span></td><td class="n">159 人</td><td class="n">127 人</td></tr></tbody></table></div>
+      <p class="small muted"><b>已裁示不做</b>（不要再加）：班級公告不列請假者、教室用途限制不做、反向查詢先不做。數字是示範名單算出來的假資料。</p>
+    </div>
   </section>
 
   <section id="paper">

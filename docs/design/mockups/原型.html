@@ -2124,18 +2124,19 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     return map}
   var AST_CACHE={};
   function astMetrics(sim){
-    var out={rooms:0,roomList:[],leaveX:0,leaveS:0,disp:0,changes:0,spread:0,spreadAt:'',labels:0,sameMax:0,sameMulti:0,sections:0,mixRooms:0,mixRows:0,pend:0},rs={},seat={};
+    var out={rooms:0,roomList:[],leaveX:0,leaveS:0,disp:0,changes:0,spread:0,spreadAt:'',labels:0,sameMax:0,sameMulti:0,sections:0,mixRooms:0,mixRows:0,pend:0,examRooms:0,studyRooms:0,reseat:0,crossN:0},rs={},seat={},er={},sr={},sb={};
     sim.per.forEach(function(per){
       per.order.forEach(function(k){rs[k]=1;out.sections++;
-        var m=astLayout(aRoom(k),per.exam[k].list);Object.keys(m).forEach(function(sk){var kk=k+'|'+sk;(seat[kk]=seat[kk]||{})[aid(m[sk])]=1})});
-      per.sorder.forEach(function(k){rs[k]=1});
+        er[k]=1;var m=astLayout(aRoom(k),per.exam[k].list);Object.keys(m).forEach(function(sk){var kk=k+'|'+sk;(seat[kk]=seat[kk]||{})[aid(m[sk])]=1;(sb[aid(m[sk])]=sb[aid(m[sk])]||[]).push([k,kk])})});
+      per.sorder.forEach(function(k){rs[k]=1;sr[k]=1});
       per.pend.forEach(function(u){out.pend+=u.n});
       if(per.order.length>1){var ls=per.order.map(function(k){return per.exam[k].list.length}),sp=Math.max.apply(null,ls)-Math.min.apply(null,ls);if(sp>out.spread){out.spread=sp;out.spreadAt=PL(per.p)+''}}});
-    out.roomList=Object.keys(rs);out.rooms=out.roomList.length;
-    Object.keys(sim.loc).forEach(function(id){var c=+id.split('-')[0],L=sim.loc[id],prev=null;
+    out.roomList=Object.keys(rs);out.rooms=out.roomList.length;out.examRooms=Object.keys(er).length;out.studyRooms=Object.keys(sr).length;
+    Object.keys(sb).forEach(function(id){var L=sb[id];for(var i=1;i<L.length;i++){if(L[i][0]===L[i-1][0]&&L[i][1]!==L[i-1][1])out.reseat++}});
+    Object.keys(sim.loc).forEach(function(id){var c=+id.split('-')[0],L=sim.loc[id],prev=null,seen={};
       L.forEach(function(x,p){var home=(x.t==='h')||(x.t==='x'&&x.r==='c'+c),key=home?'H':x.t+x.r;
         if(!home){if(x.t==='x')out.leaveX++;else{out.leaveS++;out.disp++}}
-        if(prev!==null&&prev!==key)out.changes++;prev=key})});
+        if(prev!==null&&prev!==key)out.changes++;prev=key;seen[key]=1});if(Object.keys(seen).length>1)out.crossN++});
     out.labels=Object.keys(seat).length;
     Object.keys(seat).forEach(function(k){var n=Object.keys(seat[k]).length;if(n>out.sameMax)out.sameMax=n;if(n>1)out.sameMulti++});
     return out}
@@ -2201,9 +2202,12 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var tbl='<div class="scroll"><table class="t compact cmpt"><thead><tr><th>指標</th><th class="'+(A.mode==='few'?'selc':'')+'">少教室優先'+(A.mode==='few'?'（使用中）':'')+'</th><th class="'+(A.mode==='move'?'selc':'')+'">少移動優先'+(A.mode==='move'?'（使用中）':'')+'</th></tr></thead><tbody>'+
       '<tr class="grp"><td colspan="3">取捨指標（越小越好，粗體＝較少）</td></tr>'+
       row('用到的教室總數',function(m){return m.rooms},'有考試或接收抽離自習的教室，兩天去重',1)+
+      row('考場教室數／自習教室數',function(m){return m.examRooms+' 間／'+m.studyRooms+' 間'},'分開算；同一間教室若某時段考試、另一時段自習，兩邊都算，所以兩數相加可能大於上一列',0)+
       row('被抽離的原班非應考者人次',function(m){return m.disp},'原班被徵用成考場，不考的人要離開',1)+
       row('離開原班人次',function(m){return m.leaveX+m.leaveS},'應考者 '+G.few.met.leaveX+'／'+G.move.met.leaveX+'，自習者 '+G.few.met.leaveS+'／'+G.move.met.leaveS+'（少教室／少移動）',1)+
       row('跨節換教室次數',function(m){return m.changes},'同一人相鄰兩個時段所在教室不同（回原班不算換）',1)+
+      row('跨科換座位次數',function(m){return m.reseat},'同一人相鄰兩個考試時段，同一間教室但座位不同（換教室另算在上一列）',0)+
+      row('需跨教室學生數',function(m){return m.crossN+' 人'},'兩天內所在教室（含原班教室）超過 1 間的學生',0)+
       row('各考場人數最大落差',function(m){return m.spread+' 人'},'同一時段多間考場的人數差',0)+
       '<tr class="grp"><td colspan="3">試務複雜度（供比較；數字越小越單純）</td></tr>'+
       row('混科教室數／同排混科排數',function(m){return m.mixRooms+' 間／'+m.mixRows+' 排'},'標準兩天、共 8 個時段，一時段一科，不會混科；文理同節時才會出現（時程調整另稿）',0)+
@@ -2211,10 +2215,11 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       row('同一座位最多幾個人用過',function(m){return m.sameMax+' 人（'+m.sameMulti+' 個座位超過 1 人）'},'同一座位換人坐，標籤要列多節',0)+
       row('發卷區段數',function(m){return m.sections},'每間考場每個時段的科目分段數（單科＝1 段）',1)+
       '</tbody></table></div>';
+    var note3='<p class="small muted"><b>新增三項（稿 v2.34，使用者 2026-11-13 裁示）只顯示，不參與「較少」粗體標示，也不影響排座順位</b>：跨科換座位次數、考場教室數／自習教室數、需跨教室學生數。<b>已裁示不做</b>：班級公告不列請假者、教室用途限制不做、反向查詢先不做（誰在哪間教室的反查不做）。</p>';
     var tie='<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>兩個方案完全同分時（設計員提案，待確認）：</b>固定規則決勝，同樣的資料永遠得到同樣的結果。①用到的教室裡，班級教室依班序（溫→誠）靠前者優先，綜合教室排後；②同一時段裡，考場的編號小者先排；③仍相同才比學號小者先排座。</span><span></span></div>';
     var sched='<div class="alert a-info"><span class="ico" data-i="i"></span><span><b>時程：</b>以這一步最上面「時程推薦」選定並核准的時程為準（預設基準 A：「節次與時長」的分科標準時程，兩天、各 4 個時段、一時段一科）。先比時程指標再排座。</span><span></span></div>';
     return '<div class="card stack"><div><h3>選擇排座模式</h3><p class="small muted">兩種模式都提供，由你選；<b>預設少教室優先</b>，可以隨時切換，切換後 ⑤ 的教室用途表會重排。分科<b>不再使用「X＋科目」標示</b>，也不再有「標少數」的設定。</p></div><div class="mgrid">'+cards+'</div>'+tie+'</div>'+
-      '<div class="card stack"><div><h3>方案比較</h3><p class="small muted">用這份示範名單，兩種模式各算一次。選哪個由你決定，程式只負責把代價算清楚。</p></div>'+tbl+sched+'</div>'}
+      '<div class="card stack"><div><h3>方案比較</h3><p class="small muted">用這份示範名單，兩種模式各算一次。選哪個由你決定，程式只負責把代價算清楚。</p></div>'+tbl+note3+sched+'</div>'}
   /* ---------- ⑤ 分科：時段教室與座位 ---------- */
   function astCell(s,co,dim){return '<div class="cell'+(dim?' dim':'')+'" data-c="'+cc(s.c)+'"><span class="co">'+co+'</span><span class="no">'+aid(s)+'</span><span class="meta"><span class="tg">'+CNAME[s.c]+'</span>'+esc(fakeName(s.c,s.no))+'</span></div>'}
   function astChart(r,map,title,sub,hl){
