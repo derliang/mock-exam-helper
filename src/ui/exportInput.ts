@@ -9,6 +9,7 @@ import type { ExamConfig, ExamEntry, Override } from '../data';
 import type { ExportInput } from '../export';
 import type { preflight } from '../export/plan';
 import type { Doc } from './store';
+import { fillHeader, headerTemplates } from './header';
 
 /** 該次考試的考試名單（②匯入）；沒匯入時為 null */
 export const entriesOf = (doc: Doc, exam: ExamConfig): ExamEntry[] | null => doc.examFiles?.[exam.id]?.entries ?? null;
@@ -38,7 +39,8 @@ export function prepareExport(doc: Doc, exam: ExamConfig): Prepared {
   // 最後輸出邊界再驗一次（與 ⑤ 同一份驗證）：存得下結果不代表驗證通過
   const failed = validationChecks(doc, exam, result).filter((c) => !c.ok);
   if (failed.length) return { ok: false, errors: [`排座驗證未通過：${failed.map((c) => `${c.title}（${c.detail}）`).join('；')}。請先到 ⑤ 處理並重新排座，再回來下載。`] };
-  return { ok: true, warnings: [], input: { settings: doc.settings, exam, students, entries, result } };
+  const tpl = headerTemplates(doc.settings);
+  return { ok: true, warnings: [], input: { settings: doc.settings, exam, students, entries, result, seatHeading: fillHeader(tpl.seat, exam), labelHeading: fillHeader(tpl.label, exam) } };
 }
 
 

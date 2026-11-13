@@ -22,7 +22,7 @@ import {
 } from '../core';
 import { examSubjectPeriods } from '../core/periods';
 import type { Doc, Result } from './store';
-import { roomsMissingTrack } from './rooms';
+import { roomOverLabelText, roomsMissingTrack, roomsOverLabel } from './rooms';
 
 export type StepNo = 1 | 2 | 3 | 4 | 5 | 6;
 
@@ -180,6 +180,9 @@ export function seatingBlockers(doc: Doc, exam: ExamConfig): Blocker[] {
   if (!rooms.some((r) => r.kind === 'class')) out.push({ step: 3, text: '③ 還沒有選班級教室' });
   const noTrack = roomsMissingTrack(rooms, exam.division);
   if (noTrack.length) out.push({ step: 3, text: `③ 班級教室「${noTrack.map((r) => r.name).join('、')}」還沒指定理組／文組` });
+  const paper = doc.settings.defaultLabelPaper;
+  const over = roomsOverLabel(rooms, paper);
+  if (over.length) out.push({ step: 3, text: `③ ${over.map((r) => roomOverLabelText(r, paper)).join('；')}，請在 ③ 改小橫排或深位` });
   const n = effectiveMarkRules(doc, exam).undecided.length;
   if (n) out.push({ step: 4, text: `④ 有 ${n} 項標示接近一半，要先選標「不考」或「加考」` });
   return out;

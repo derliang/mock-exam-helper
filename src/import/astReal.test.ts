@@ -48,8 +48,16 @@ describe('分科：組別代碼表', () => {
     const tr = Object.fromEntries(r.entries.map((e) => [`${e.classNo}-${e.seatNo}`, e.track]));
     expect(tr).toEqual({ '1-1': 'science', '1-2': 'science', '1-3': 'liberal', '2-5': 'science', '4-1': 'liberal', '4-2': 'liberal' });
   });
-  it('不在對照表的代碼（例如只出現過一次的「5-社會組」）進待確認，不猜', () => {
+  it('「5-社會組」（只出現過一次）視為 4 社會組，不進待確認，但在處理紀錄留痕（裁決 12）', () => {
     const s = scanExamSheet([...sheet, ['999999', '3', '04', '03', '丁三', '5-社會組', 'S9', '']], opts);
+    expect(s.review).toEqual([]);
+    expect(s.notices.map((n) => n.message)).toEqual([expect.stringContaining('5-社會組')]);
+    const r = buildEntries(s, opts, { mapping: map(s), rows: {} });
+    expect(r.ready).toBe(true);
+    expect(r.entries.find((e) => e.classNo === 4 && e.seatNo === 3)?.subjectIds).toEqual(['history', 'geography', 'civics']);
+  });
+  it('其他不在對照表的代碼仍進待確認，不猜', () => {
+    const s = scanExamSheet([...sheet, ['999999', '3', '04', '03', '丁三', '7-其他', 'S9', '']], opts);
     expect(s.review.map((x) => x.kind)).toEqual(['bad-group']);
     expect(buildEntries(s, opts, { mapping: map(s), rows: {} }).ready).toBe(false);
   });

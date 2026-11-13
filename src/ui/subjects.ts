@@ -23,7 +23,7 @@ export const AST_DEFAULT_BY_TRACK: Record<'science' | 'liberal', string[]> = {
 
 /**
  * 分科報名「組別」代碼表（大考中心五種組別；真實名單右側附表，114-2 學年名單確認）：
- * 組別格寫「2-自然組-理工類」，取開頭的號碼。沒有「5」：名單出現過「5-社會組」只有一筆，視為筆誤、請使用者確認。
+ * 組別格寫「2-自然組-理工類」，取開頭的號碼。沒有「5」：名單出現過「5-社會組」只有一筆，視為 4 社會組（AST_GROUP_ALIAS），匯入時留痕。
  */
 export const AST_GROUP_TABLE: Record<string, string[]> = {
   '1': ['math-jia', 'physics', 'chemistry', 'biology'], // 自然組—醫學類
@@ -32,6 +32,9 @@ export const AST_GROUP_TABLE: Record<string, string[]> = {
   '9': ['math-yi', 'history', 'geography', 'civics'], // 社會乙組
   '4': ['history', 'geography', 'civics'], // 社會組
 };
+
+/** 名單常見的非標準代碼：「5-社會組」（只出現過一筆）視為 4 社會組（使用者 2026-11-12 裁決 12），匯入時在處理紀錄留痕 */
+export const AST_GROUP_ALIAS: Record<string, string> = { '5': '4' };
 
 /** 分科考生的文理組：考任何自然科（數甲、物理、化學、生物）就是理組，否則文組；沒有科目回 undefined */
 export function astTrackOfSubjects(subjectIds: readonly string[]): 'science' | 'liberal' | undefined {

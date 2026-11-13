@@ -9,6 +9,26 @@ export function seatCap(paper: LabelPaper): number {
   return l.cols * l.rows;
 }
 
+/**
+ * 一張標籤紙每個方向的上限（#147）：標籤欄＝橫排、列＝深位。B4 6 排×8 深位、A3 7 排×7 深位；
+ * 只比總格數（48）會讓 8 排×6 深位通過、到 ⑥ 才排不進標籤。
+ */
+export function seatLimits(paper: LabelPaper): { rows: number; depth: number } {
+  const l = defaultLabelLayout(paper);
+  return { rows: l.cols, depth: l.rows };
+}
+
+/** 橫排或深位超過標籤上限的教室（舊資料、換紙張時可能有） */
+export const roomsOverLabel = (rooms: readonly Classroom[], paper: LabelPaper): Classroom[] => {
+  const lim = seatLimits(paper);
+  return rooms.filter((r) => r.rows > lim.rows || r.depth > lim.depth);
+};
+
+export const roomOverLabelText = (r: Classroom, paper: LabelPaper): string => {
+  const lim = seatLimits(paper);
+  return `「${r.name}」是 ${r.rows} 排×${r.depth} 深位，標籤紙 ${paper} 最多 ${lim.rows} 排×${lim.depth} 深位`;
+};
+
 export const roomCapacity = (r: Classroom): number => r.rows * r.depth;
 
 /** 座標在教室可用座位順序中的序號（0 起）：第 1 排深位 1→depth，再第 2 排 */
@@ -31,9 +51,11 @@ const usableSet = (r: Classroom): Set<string> => new Set(classroomSeats(r).map(s
  * 改橫排數或深位數：總格數不得超過 cap，也不得小於 1。
  * 原本座位全開就維持全開；否則保留原本不排的座位（超出新範圍的丟掉），其餘可用。
  */
-export function resize(r: Classroom, patch: { rows?: number; depth?: number }, cap: number): Classroom {
+export function resize(r: Classroom, patch: { rows?: number; depth?: number }, cap: number, limits?: { rows: number; depth: number }): Classroom {
   const rows = Math.max(1, Math.trunc(patch.rows ?? r.rows));
   const depth = Math.max(1, Math.trunc(patch.depth ?? r.depth));
+  // 每個方向各自的上限（#147）：改大超過上限就擋下；本來就超過的舊資料允許改小
+  if (limits && ((rows > limits.rows && rows > r.rows) || (depth > limits.depth && depth > r.depth))) return r;
   if (rows * depth > Math.max(cap, r.seatCount) && rows * depth > roomCapacity(r)) return r; // 超過上限：擋下
   const wasFull = r.seatCount === roomCapacity(r);
   const total = rows * depth;
@@ -105,7 +127,11 @@ export const roomsOfDivision = (rooms: Classroom[], division: Division, ctx: Roo
 export const newClassRoomIds = (before: Classroom[], after: Classroom[]): string[] =>
   after.filter((r) => r.kind === 'class' && !before.some((b) => b.id === r.id)).map((r) => r.id);
 
-export const removeRoom = (rooms: Classroom[], id: string): Classroom[] => rooms.filter((r) => r.id !== id);
+/** 手動改教室所屬部別（裁決 2、稿 v2.30）：國中部沒有預備教室，預備教室改不過去（回傳原物件） */
+export const setRoomDivision = (r: Classroom, division: Division): Classroom =>
+  r.kind === 'reserve' && division === 'junior' ? r : { ...r, division };
+
+export const removeRoom =(rooms: Classroom[], id: string): Classroom[] => rooms.filter((r) => r.id !== id);
 export const patchRoom = (rooms: Classroom[], id: string, f: (r: Classroom) => Classroom): Classroom[] => rooms.map((r) => (r.id === id ? f(r) : r));
 
 /** 指定教室屬於理組／文組（高中部班級教室必填；預備教室不用，會清掉） */
