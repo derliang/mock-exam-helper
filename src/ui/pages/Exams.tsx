@@ -1,4 +1,4 @@
-import { Badge, Button, EmptyState } from '../components';
+import { Badge, Button, EmptyState, PageHead } from '../components';
 import { examHeadcount, examLevel, examProgress, formatModified, sortExams } from '../examList';
 import { examLabel, lastModified, schoolYear, type Doc } from '../store';
 
@@ -9,13 +9,11 @@ export function Exams(p: {
   const exams = sortExams(p.doc.exams);
   return (
     <section>
-      <div class="pagehead">
-        <h1>模擬考</h1>
-        {p.folder && <span class="folder-chip" title="目前使用的資料夾">{p.folder}</span>}
+      <PageHead title="模擬考" badge={p.folder && <span class="folder-chip" title="目前使用的資料夾">{p.folder}</span>}>
         <Button onClick={p.onChangeFolder}>更換資料夾</Button>
-        <Button onClick={p.onSettings}>設定</Button>
+        <Button onClick={p.onSettings}>共用設定</Button>
         <Button kind="primary" onClick={p.onNew}>新增模擬考</Button>
-      </div>
+      </PageHead>
       {exams.length === 0 ? (
         <EmptyState title="還沒有模擬考" action={<Button kind="primary" onClick={p.onNew}>新增模擬考</Button>}>按「新增模擬考」開始。</EmptyState>
       ) : (

@@ -1,12 +1,12 @@
 import { useState } from 'preact/hooks';
-import { Alert, Badge, Button, EmptyState } from '../components';
+import { Alert, Badge, Button, EmptyState, PageHead } from '../components';
 import { hitLabel, lookupExaminee, searchExaminees } from '../lookup';
 import { examResult, isStale } from '../seating';
 import type { Doc } from '../store';
 import type { StepNo } from '../seating';
 
 /** 考生查詢（選用功能 student-lookup，H4）：輸入編號、座號、學號或姓名，看他每一科在哪間教室、哪個座位 */
-export function Lookup(p: { doc: Doc; examId?: string; onGoStep: (examId: string, step: StepNo) => void; onExams: () => void }) {
+export function Lookup(p: { doc: Doc; examId?: string; onGoStep: (examId: string, step: StepNo) => void; onExams: () => void; crumbs?: { label: string; onClick: () => void }[] }) {
   const { doc } = p;
   const withResult = doc.exams.filter((e) => examResult(doc, e));
   const [examId, setExamId] = useState(p.examId ?? withResult[withResult.length - 1]?.id ?? doc.exams[doc.exams.length - 1]?.id ?? '');
@@ -16,7 +16,7 @@ export function Lookup(p: { doc: Doc; examId?: string; onGoStep: (examId: string
 
   if (!exam) {
     return (
-      <section><h2>考生查詢</h2>
+      <section><PageHead crumbs={p.crumbs ?? []} title="考生查詢" />
         <EmptyState title="還沒有模擬考" action={<Button kind="primary" onClick={p.onExams}>前往模擬考列表</Button>}>先建立模擬考並完成排座，才能查詢考生在哪個座位。</EmptyState>
       </section>
     );
@@ -24,7 +24,7 @@ export function Lookup(p: { doc: Doc; examId?: string; onGoStep: (examId: string
   const result = examResult(doc, exam);
   const header = (
     <>
-      <h2>考生查詢</h2>
+      <PageHead crumbs={p.crumbs ?? []} title="考生查詢" />
       {doc.exams.length > 1 && (
         <div class="field" style="max-width:360px;margin:8px 0"><label for="lk-exam">哪一次考試</label>
           <select id="lk-exam" class="input" value={examId} onChange={(e) => { setExamId(e.currentTarget.value); setPick(''); }}>
