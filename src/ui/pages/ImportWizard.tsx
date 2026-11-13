@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, Track } from '../../data';
-import { AST_DEFAULT_BY_TRACK, AST_GROUP_TABLE, astTrackOfSubjects } from '../subjects';
+import { AST_DEFAULT_BY_TRACK, AST_GROUP_ALIAS, AST_GROUP_TABLE, astTrackOfSubjects } from '../subjects';
 import {
   buildEntries, diffEntries, GROUP_TABLES, IGNORE, prefillMapping, rememberMapping, scanExamSheet,
   type ExamScan, type ReviewItem, type RowDecision, type SavedMarkMap, type ScanOptions, type Sheet,
@@ -18,7 +18,7 @@ export function scanOptionsFor(exam: ExamConfig, classNames: readonly string[], 
     const ids = new Set(exam.subjects.map((s) => s.id));
     const defaultByClass = (n: number): string[] => { const t = trackOf?.(n); return t ? AST_DEFAULT_BY_TRACK[t].filter((x) => ids.has(x)) : []; };
     const groupTable = Object.fromEntries(Object.entries(AST_GROUP_TABLE).map(([k, v]) => [k, v.filter((x) => ids.has(x))]));
-    return { subjects: exam.subjects, classNames, groupAsSubjects: true, groupTable, defaultByClass, trackOfSubjects: astTrackOfSubjects };
+    return { subjects: exam.subjects, classNames, groupAsSubjects: true, groupTable, groupAlias: AST_GROUP_ALIAS, defaultByClass, trackOfSubjects: astTrackOfSubjects };
   }
   const table = GROUP_TABLES[(exam.round ?? 1) >= 3 ? 'second' : 'first'];
   const groupTable = Object.fromEntries(Object.entries(table).map(([k, v]) => [k, v.map((x) => SUBJECT_ID_MAP[x] ?? x).filter((x) => ids.has(x))]));
@@ -107,6 +107,13 @@ export function ImportWizard(p: {
           </tbody></table></div>
           <label class="small" style="display:block;margin-top:8px"><input type="checkbox" checked={remember} onChange={(e) => setRemember(e.currentTarget.checked)} /> 記住科目對應供下次匯入使用</label>
         </>
+      )}
+
+      {scan.notices.length > 0 && (
+        <div style="margin-top:16px"><Alert tone="info">
+          <b>已自動處理（請確認）</b>
+          <ul>{scan.notices.map((n) => <li key={n.row}>第 {n.row} 列：{n.message}</li>)}</ul>
+        </Alert></div>
       )}
 
       {scan.review.length > 0 && (

@@ -103,11 +103,13 @@ describe('校-41 個別覆寫彈窗', () => {
     for (const t of ['到他處考試', '到他處自習', '教務處', '圖書館', '輔導室', '取消', '儲存']) expect(html).toContain(t);
   });
 
-  it('沒有被標示科目的考生也是完整表單：類型、地點、三個地點鈕，儲存不停用，並提醒要等有標示才生效', () => {
+  it('沒有被標示科目的考生：直接擋下並說明（稿 v2.30、裁決 4），不給表單也沒有儲存鈕', () => {
     const { d, e } = seated();
     const html = renderToString(<OverrideModal doc={d} exam={e} result={examResult(d, e)!} code="0101" co="1-1" name="測試甲" onClose={noop} onSave={noop} />);
-    for (const t of ['到他處考試', '到他處自習', '教務處', '圖書館', '輔導室', '取消', '儲存', '才會生效']) expect(html).toContain(t);
-    expect(html).not.toMatch(/<button[^>]*disabled[^>]*>儲存<\/button>/);
+    expect(html).toContain('沒有被標示的科目，不能新增個別覆寫');
+    expect(html).toContain('④ 設定標示與抽離規則');
+    expect(html).not.toContain('>儲存<');
+    expect(html).not.toContain('到他處自習');
   });
 });
 

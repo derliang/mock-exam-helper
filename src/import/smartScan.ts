@@ -13,6 +13,8 @@ export interface ScanOptions {
   subjects: readonly { id: string; name: string }[];
   /** 組別代碼（大寫首字）→ 科目 id；已換成本次考科表的 id */
   groupTable?: Readonly<Record<string, readonly string[]>>;
+  /** 組別代碼別名（大寫首字→對照表裡的代碼）：名單用了表上沒有的代碼時視為別的代碼，並在 ExamScan.notices 留痕（不擋匯入） */
+  groupAlias?: Readonly<Record<string, string>>;
   /** 沒有組別欄時每人的預設科目 */
   defaultSubjectIds?: readonly string[];
   classNames?: readonly string[];
@@ -67,6 +69,8 @@ export interface ExamScan {
   groups: MarkGroup[];
   /** 擋下匯入的問題（找不到表頭、沒有班級欄） */
   problems: string[];
+  /** 不擋匯入、但要讓使用者看見的處理紀錄（例如組別代碼依別名視為另一個） */
+  notices: { row: number; message: string }[];
 }
 
 const NEGATIVE = new Set(['', '×', '✗', '✘', 'X', 'N', 'NO', '否', '0', '-', '—', '無', '缺', '不', '不考']);
@@ -84,11 +88,16 @@ const groupKeyOf = (cell: string): string => normalizeCell(cell).charAt(0).toUpp
  * 組別代碼的鍵。分科的組別格可能是代碼（「2-自然組-理工類」）也可能直接寫科目（「數甲.物理」），
  * 所以分科只有「數字＋橫線」開頭才當代碼，其餘一律是科目文字，鍵為空。
  */
-const codeKey = (cell: string, opts: ScanOptions): string =>
+const rawCodeKey = (cell: string, opts: ScanOptions): string =>
   opts.groupAsSubjects && !/^\s*\d\s*[-－—–]/.test(normalizeCell(cell)) ? '' : groupKeyOf(cell);
+const codeKey = (cell: string, opts: ScanOptions): string => {
+  const k = rawCodeKey(cell, opts);
+  const alias = k ? opts.groupAlias?.[k] : undefined;
+  return alias && !opts.groupTable?.[k] ? alias : k;
+};
 
 export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOptions): ExamScan {
-  const empty = (problems: string[]): ExamScan => ({ header: null, columns: {}, headers: {}, subjectColumns: {}, rows: [], review: [], skipped: [], blankRows: 0, groups: [], problems });
+  const empty = (problems: string[]): ExamScan => ({ header: null, columns: {}, headers: {}, subjectColumns: {}, rows: [], review: [], skipped: [], blankRows: 0, groups: [], problems, notices: [] });
   const header = smartFindHeader(rows);
   if (!header) return empty(['找不到表頭。Excel 必須包含「座號」「姓名」欄。']);
   const col = header.map as Partial<Record<Field, number>>;
@@ -107,7 +116,7 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
     header,
     columns: Object.fromEntries(Object.entries(col).filter(([, v]) => v !== undefined)) as Record<string, number>,
     headers: Object.fromEntries(Object.entries(col).filter(([, v]) => v !== undefined).map(([f, i]) => [f, (header.headers[i as number] ?? '').trim()])),
-    subjectColumns, rows: [], review: [], skipped: [], blankRows: 0, groups: [], problems,
+    subjectColumns, rows: [], review: [], skipped: [], blankRows: 0, groups: [], problems, notices: [],
   };
   const get = (r: readonly string[], f: Field): string => (col[f] === undefined ? '' : (r[col[f] as number] ?? '').trim());
   const seen = new Set<string>();
@@ -165,6 +174,7 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
       continue;
     }
     seen.add(key);
+    if (gk && gk !== rawCodeKey(get(r, 'group'), opts)) out.notices.push({ row: rowNo, message: `組別「${get(r, 'group')}」不在大考中心代碼表，已視為 ${gk} 號組別；若不是筆誤請改正名單。` });
     out.rows.push({ row: rowNo, classNo, seatNo, name, ...(get(r, 'group') ? { groupCode: get(r, 'group') } : {}), ...(note ? { note } : {}), marks });
   }
   const all = [...out.rows, ...out.review].flatMap((x) => x.marks.filter((m) => m.present));

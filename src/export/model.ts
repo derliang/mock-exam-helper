@@ -31,6 +31,9 @@ export interface ExportInput {
   /** 考試名單（各人考哪些科，統計用） */
   entries: ExamEntry[];
   result: SeatingResult;
+  /** 座位表／標籤表頭（共用設定的範本代入本次考試；校-54）。沒給或空白＝用考試名稱（舊行為） */
+  seatHeading?: string;
+  labelHeading?: string;
 }
 
 /** 一個格子上要印的內容 */
@@ -68,6 +71,8 @@ export interface SeatPageModel {
   detachStyle: boolean;
   /** 標題拆開（列印頁版面：考試名稱、教室名稱分開放） */
   examName: string;
+  /** 表頭（校-54）：有值時列印頁頁首直接印它，不再拆「考試名稱＋座位表」 */
+  heading?: string;
   roomName: string;
   /** 頁首小標籤：共幾人、不考／加考各科人數 */
   chips: string[];
@@ -83,6 +88,7 @@ export interface LabelPageModel {
   kind: 'label';
   title: string;
   examName: string;
+  heading?: string;
   roomName: string;
   layout: LabelLayout;
   /** 注意事項框的行（設定頁可改）；空陣列＝不印框 */
@@ -143,7 +149,7 @@ export const PAPER_MM: Record<LabelPaper | 'A4', { w: number; h: number }> = {
 };
 export const mmToTwip = (mm: number): number => Math.round((mm * 1440) / 25.4);
 
-/** 標籤預設格數（D74）：A3 7×7（35mm 正方）、B4 6 欄×8 列 */
+/** 標籤預設格數（D74）：A3 7×7（35mm 正方）、B4 6 排×8 深位 */
 export function defaultLabelLayout(paper: LabelPaper): LabelLayout {
   return paper === 'A3' ? { paper, cols: 7, rows: 7 } : { paper, cols: 6, rows: 8 };
 }
@@ -260,6 +266,7 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
       kind: 'seat',
       title: `${input.exam.name}　${room.name}　座位表`,
       examName: input.exam.name,
+      ...(input.seatHeading?.trim() ? { heading: input.seatHeading.trim() } : {}),
       roomName: room.name,
       chips: [],
       detachStyle: false,
@@ -293,6 +300,7 @@ export function buildSeatPages(input: ExportInput, scope: Scope = 'all'): SeatPa
       kind: 'seat',
       title: `${input.exam.name}　${room.name}　抽離考試（${sname}）`,
       examName: input.exam.name,
+      ...(input.seatHeading?.trim() ? { heading: input.seatHeading.trim() } : {}),
       roomName: `${room.name}　抽離考試（${sname}）`,
       chips: [`共 ${ds.length} 人`],
       detachStyle: true,
@@ -361,6 +369,7 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
       kind: 'label',
       title: `${input.exam.name}　${room.name}`,
       examName: input.exam.name,
+      ...(input.labelHeading?.trim() ? { heading: input.labelHeading.trim() } : {}),
       roomName: room.name,
       layout,
       notes: labelNoteLines(input.settings.labelNotes),
@@ -397,6 +406,7 @@ export function buildLabelPages(input: ExportInput, scope: Scope = 'all'): Label
         kind: 'label',
         title: `${input.exam.name}　${room.name}　抽離考試`,
         examName: input.exam.name,
+        ...(input.labelHeading?.trim() ? { heading: input.labelHeading.trim() } : {}),
         roomName: `${room.name}　抽離考試`,
         layout,
         notes: labelNoteLines(input.settings.labelNotes),

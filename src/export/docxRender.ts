@@ -454,7 +454,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
     },
     footers: { default: pageFooter(opts) },
     children: [
-      headBlock({ widthMm: innerW, h1: page.examName, h2: '座位表', room: page.roomName, h1Pt: 15, roomPt: 16, padX: 6, padY: 1.6 }, mode),
+      headBlock({ widthMm: innerW, h1: page.heading ?? page.examName, ...(page.heading ? {} : { h2: '座位表' }), room: page.roomName, h1Pt: 15, roomPt: 16, padX: 6, padY: 1.6 }, mode),
       spacer(3.5),
       chipTable,
       spacer(4),
@@ -551,7 +551,7 @@ function labelSection(page: LabelPageModel, opts: DocxOptions): ISectionOptions 
     },
     footers: { default: pageFooter(opts) },
     children: [
-      headBlock({ widthMm: gridW, h1: `${page.examName}　標籤`, room: page.roomName, h1Pt: 15, roomPt: 12, padX: 4, padY: 1 }, mode),
+      headBlock({ widthMm: gridW, h1: page.heading ?? `${page.examName}　標籤`, room: page.roomName, h1Pt: 15, roomPt: 12, padX: 4, padY: 1 }, mode),
       spacer(3),
       gridTable,
       ...(lines.length ? [spacer(isB4 ? 5 : 8), note] : []),

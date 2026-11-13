@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { Classroom, Division, ExamConfig, LabelPaper, Track } from '../../data';
 import { roomDivision, seatLabel } from '../../data';
-import { Button, ConfirmButton, Seg, Stepper, Switch } from './index';
+import { Alert, Button, ConfirmButton, Seg, Stepper, Switch } from './index';
 import { confirmCopy } from '../flow';
 import { classColorVars } from '../colors';
-import { addRoom, clickSeat, fillDefaultTracks, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap, setRoomTrack } from '../rooms';
+import { addRoom, clickSeat, fillDefaultTracks, isSeatActive, patchRoom, removeRoom, resize, roomCapacity, seatCap, seatLimits, setRoomDivision, setRoomTrack } from '../rooms';
 
 /**
  * 教室清單與座位表編輯（步驟③與設定頁共用，D69②）：每間一列，點該列或「編輯座位表」就在列下展開，可收合。
@@ -27,6 +27,7 @@ export function RoomList(p: {
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const cap = seatCap(p.paper);
+  const lim = seatLimits(p.paper);
   const junior = p.junior ?? p.division === 'junior';
   const ctx = { classes: p.classes ?? [], exams: p.exams ?? [] };
   // 校-33：只列這個部別的教室；已被本次勾選、卻屬於另一部別的舊資料照樣列出，才關得掉，不會藏著影響排座
@@ -47,7 +48,7 @@ export function RoomList(p: {
   );
   return (
     <div class="rw">
-      <p class="muted small">座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個）。點「▸ 編輯座位」調整座位排列。</p>
+      <p class="muted small">座位上限依標籤紙張：B4 最多 6 排×8 深位（48 座）、A3 最多 7 排×7 深位（49 座）；目前標籤預設紙張 {p.paper}，每間最多 {lim.rows} 排、{lim.depth} 深位、{cap} 座。點「▸ 編輯座位」調整座位排列。</p>
       {addRow}
       {shown.map((r) => {
         const isOpen = open === r.id;
@@ -61,8 +62,8 @@ export function RoomList(p: {
               ) : <RoomBadge room={r} index={shown.indexOf(r)} classes={p.classes} />}
               <div class="field"><label class="small" for={`rn-${r.id}`}>{r.kind === 'class' ? '班級教室' : '預備教室'}</label>
                 <input id={`rn-${r.id}`} class="input" value={r.name} onClick={(e) => e.stopPropagation()} onChange={(e) => upd(r.id, (x) => ({ ...x, name: e.currentTarget.value.trim() || x.name }))} /></div>
-              <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">橫排（左右）</span><Stepper label="橫排" value={r.rows} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { rows: n }, cap))} /></div>
-              <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">深位（前後）</span><Stepper label="深位" value={r.depth} max={cap} onChange={(n) => upd(r.id, (x) => resize(x, { depth: n }, cap))} /></div>
+              <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">橫排（左右）</span><Stepper label="橫排" value={r.rows} max={lim.rows} onChange={(n) => upd(r.id, (x) => resize(x, { rows: n }, cap, lim))} /></div>
+              <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">深位（前後）</span><Stepper label="深位" value={r.depth} max={lim.depth} onChange={(n) => upd(r.id, (x) => resize(x, { depth: n }, cap, lim))} /></div>
               {r.kind === 'class' && !junior && (
                 <div class="field" onClick={(e) => e.stopPropagation()}><span class="label">組別（高中部必選）</span>
                   <Seg<Track> label={`${r.name}組別`} value={(r.track ?? '') as Track} options={[{ value: 'science', label: '理組' }, { value: 'liberal', label: '文組' }]}
@@ -75,7 +76,7 @@ export function RoomList(p: {
                 {r.kind === 'reserve' && <ConfirmButton small copy={confirmCopy.deleteRoom(r.name, !!p.selected?.includes(r.id) || !!p.inUse?.(r.id))} onConfirm={() => p.onChange(removeRoom(p.rooms, r.id))}>刪除</ConfirmButton>}
               </div>
             </div>
-            {isOpen && <SeatGrid room={r} cap={cap} onClose={() => setOpen(null)} onChange={(x) => upd(r.id, () => x)} />}
+            {isOpen && <SeatGrid room={r} cap={cap} lim={lim} onClose={() => setOpen(null)} onChange={(x) => upd(r.id, () => x)} />}
           </div>
         );
       })}
@@ -95,16 +96,18 @@ export function RoomTable(p: {
 }) {
   const [open, setOpen] = useState<string | null>(null);
   const cap = seatCap(p.paper);
+  const lim = seatLimits(p.paper);
   const junior = p.division === 'junior';
   const ctx = { classes: p.classes ?? [], exams: p.exams ?? [] };
   const shown = p.rooms.filter((r) => roomDivision(r, ctx) === p.division && !(junior && r.kind === 'reserve'));
   const upd = (id: string, f: (r: Classroom) => Classroom) => p.onChange(patchRoom(p.rooms, id, (r) => { const x = f(r); return x.division ? x : { ...x, division: p.division }; }));
   return (
     <div class="stack">
-      <p class="muted small">座位上限依標籤紙張：A3 49、B4 48（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個）。點「編輯座位」調整座位排列。</p>
+      <p class="muted small">座位上限依標籤紙張：B4 最多 6 排×8 深位（48 座）、A3 最多 7 排×7 深位（49 座）；目前標籤預設紙張 {p.paper}，每間最多 {lim.rows} 排、{lim.depth} 深位、{cap} 座。點「編輯座位」調整座位排列。</p>
+      <Alert tone="info"><b>所屬部別</b>決定這間教室在高中部或國中部的清單出現。舊資料讀進來時程式會依內容推斷；推斷錯了，直接在這一欄改，改完馬上換到另一個部別的清單。</Alert>
       <div class="scroll">
         <table class="t compact nw">
-          <thead><tr><th>名稱</th><th>類型</th><th>橫排×深位</th><th>可排座位</th><th /></tr></thead>
+          <thead><tr><th>名稱</th><th>類型</th><th>所屬部別</th><th>橫排×深位</th><th>可排座位</th><th /></tr></thead>
           <tbody>
             {shown.map((r) => {
               const isOpen = open === r.id;
@@ -114,6 +117,13 @@ export function RoomTable(p: {
                   <td><input class="input" style="min-width:150px" value={r.name} aria-label={`教室名稱：${r.name}`} onClick={(e) => e.stopPropagation()}
                     onChange={(e) => upd(r.id, (x) => ({ ...x, name: e.currentTarget.value.trim() || x.name }))} /></td>
                   <td>{r.kind === 'reserve' ? '預備教室' : '班級教室'}</td>
+                  <td onClick={(e) => e.stopPropagation()}>
+                    <select class="input" style="min-width:110px" aria-label={`${r.name} 所屬部別`} value={p.division}
+                      onChange={(e) => p.onChange(patchRoom(p.rooms, r.id, (x) => setRoomDivision(x, e.currentTarget.value as Division)))}>
+                      <option value="senior">高中部</option>
+                      <option value="junior" disabled={r.kind === 'reserve'}>國中部</option>
+                    </select>
+                  </td>
                   <td class="n">{r.rows}×{r.depth}</td>
                   <td class="n">{r.seatCount}</td>
                   <td onClick={(e) => e.stopPropagation()}>
@@ -123,10 +133,10 @@ export function RoomTable(p: {
                     </div>
                   </td>
                 </tr>,
-                isOpen && <tr key={`${r.id}-edit`} class="editrow"><td colSpan={5}><SeatGrid room={r} cap={cap} steppers onClose={() => setOpen(null)} onChange={(x) => upd(r.id, () => x)} /></td></tr>,
+                isOpen && <tr key={`${r.id}-edit`} class="editrow"><td colSpan={6}><SeatGrid room={r} cap={cap} lim={lim} steppers onClose={() => setOpen(null)} onChange={(x) => upd(r.id, () => x)} /></td></tr>,
               ];
             })}
-            {shown.length === 0 && <tr><td colSpan={5} class="muted">{junior ? '國中部還沒有教室，請按下方「新增班級教室」。' : '高中部還沒有教室。'}</td></tr>}
+            {shown.length === 0 && <tr><td colSpan={6} class="muted">{junior ? '國中部還沒有教室，請按下方「新增班級教室」。' : '高中部還沒有教室。'}</td></tr>}
           </tbody>
         </table>
       </div>
@@ -146,19 +156,19 @@ function RoomBadge(p: { room: Classroom; index: number; classes?: { name: string
 }
 
 /** 座位表：講臺在下，深位 1 最靠講臺（左側只標數字），橫排標「第N排」，每格印「排-深位」（D49/D50） */
-function SeatGrid(p: { room: Classroom; cap: number; onClose: () => void; onChange: (r: Classroom) => void; /** 設定頁表格版：橫排、深位步進器放在座位表上方（稿 v2.22「同一個編輯畫面」） */ steppers?: boolean }) {
+function SeatGrid(p: { room: Classroom; cap: number; lim: { rows: number; depth: number }; onClose: () => void; onChange: (r: Classroom) => void; /** 設定頁表格版：橫排、深位步進器放在座位表上方（稿 v2.22「同一個編輯畫面」） */ steppers?: boolean }) {
   const { room } = p;
   const depths = Array.from({ length: room.depth }, (_, i) => room.depth - i); // 上到下：深位大→小
   const rows = Array.from({ length: room.rows }, (_, i) => i + 1);
   return (
     <div class="roomedit prev">
       <div class="row" style="justify-content:space-between"><div><h4>編輯座位表：{room.name}</h4>
-        <p class="small muted">橫排 {room.rows} × 深位 {room.depth} ＝ {roomCapacity(room)} 個座位，可排 {room.seatCount}、不排 {roomCapacity(room) - room.seatCount}。一間教室最多 {p.cap} 個座位。座位只能多、不能少；不納入預備教室。</p></div>
+        <p class="small muted">橫排 {room.rows} × 深位 {room.depth} ＝ {roomCapacity(room)} 個座位，可排 {room.seatCount}、不排 {roomCapacity(room) - room.seatCount}。一間教室最多 {p.lim.rows} 排×{p.lim.depth} 深位（{p.cap} 個座位）。座位只能多、不能少；不納入預備教室。</p></div>
         <Button small onClick={p.onClose}>收合</Button></div>
       {p.steppers && (
         <div class="row">
-          <div class="field" style="gap:2px"><span class="small muted">橫排（左右）</span><Stepper label="橫排" value={room.rows} max={p.cap} onChange={(n) => p.onChange(resize(room, { rows: n }, p.cap))} /></div>
-          <div class="field" style="gap:2px"><span class="small muted">深位（前後）</span><Stepper label="深位" value={room.depth} max={p.cap} onChange={(n) => p.onChange(resize(room, { depth: n }, p.cap))} /></div>
+          <div class="field" style="gap:2px"><span class="small muted">橫排（左右）</span><Stepper label="橫排" value={room.rows} max={p.lim.rows} onChange={(n) => p.onChange(resize(room, { rows: n }, p.cap, p.lim))} /></div>
+          <div class="field" style="gap:2px"><span class="small muted">深位（前後）</span><Stepper label="深位" value={room.depth} max={p.lim.depth} onChange={(n) => p.onChange(resize(room, { depth: n }, p.cap, p.lim))} /></div>
         </div>
       )}
       <p class="muted small">座標是「排－深位」。點座位切換「可排／不排」（不排會打斜線，例如壞掉的桌椅或走道）；不排的座位不會安排考生，人由前往後連續坐。</p>

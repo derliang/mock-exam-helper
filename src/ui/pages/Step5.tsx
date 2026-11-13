@@ -249,6 +249,10 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   );
 }
 
+/** 校-41：沒有被標示科目的考生不能新增個別覆寫（稿 v2.30）：他每科都照原座位考，覆寫不會有作用 */
+export const noMarkOverrideReason = (code: string, name: string): string =>
+  `${code}${name ? ` ${name}` : ''} 沒有被標示的科目，不能新增個別覆寫：他每一科都照原座位考，覆寫不會有任何作用。要改去向，請先到 ④ 設定標示與抽離規則。`;
+
 export function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingResult; code: string; co: string; name: string; onClose: () => void; onSave: (d: Doc) => void }) {
   const cur = examOverrides(p.doc, p.exam).find((o) => o.code === p.code);
   const [place, setPlace] = useState(cur?.location ?? '');
@@ -277,9 +281,10 @@ export function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingRe
       actions={<>
         {cur && <Button kind="danger" onClick={() => p.onSave(afterOverrideChange(removeOverride(p.doc, p.exam, p.code), p.exam, now()))}>移除覆寫</Button>}
         <Button onClick={p.onClose}>取消</Button>
-        <Button kind="primary" onClick={save}>儲存</Button>
+        {!(marks.length === 0 && !cur) && <Button kind="primary" onClick={save}>儲存</Button>}
       </>}
     >
+      {marks.length === 0 && !cur ? <Alert tone="danger">{noMarkOverrideReason(p.code, p.name)}</Alert> : <>
       <p class="small muted">原座位 {p.co} 不變，只改這個人被標示的那幾節考科要到哪裡。</p>
       {(
           <>
@@ -311,6 +316,7 @@ export function OverrideModal(p: { doc: Doc; exam: ExamConfig; result: SeatingRe
             </div>
           </>
         )}
+      </>}
     </Modal>
   );
 }
@@ -328,6 +334,7 @@ function ManageOverridesModal(p: {
     const c = code.trim();
     const a = p.result.assignments.find((x) => x.code === c && classRoomIds.has(x.classroomId));
     if (!a) { setErr('找不到這個考生編號（班級兩碼加座號兩碼，例如 0305），或這位考生沒有座位'); return; }
+    if (!p.result.marks.some((m) => m.code === c)) { setErr(noMarkOverrideReason(c, p.names.get(c) ?? '')); return; }
     p.onPick(c, seatLabel(a));
   };
   return (
