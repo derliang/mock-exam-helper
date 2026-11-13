@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考設計系統 稿 v2.32</title>
+<title>模擬考設計系統 稿 v2.33</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -454,7 +454,7 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .appbar.m{min-height:52px}.appbar.m .ab-nav{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;gap:2px;margin:0;padding:8px 16px;background:var(--surface);border:1px solid var(--line);border-top:0;box-shadow:var(--shadow-2);z-index:3}.appbar.m.open .ab-nav{display:flex}.appbar.m .ab-nav button{min-height:44px;text-align:left;font-size:15px}.appbar.m .ab-menu{display:inline-flex}.appbar.m .ab-ver{display:none}.appbar.m .ab-theme{padding-inline:10px}
 .psec{border-top:1px solid var(--line);padding-top:16px;display:grid;gap:12px}
 details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:pointer;font-weight:700;color:var(--accent-ink);min-height:32px;display:flex;align-items:center}details.more>div{padding:6px 0 2px}
-/* 分科下一批（稿 v2.32）：階段條、時程候選、鎖定、標籤與班級公告 */
+/* 分科下一批（稿 v2.33）：階段條、時程候選、鎖定、標籤與班級公告 */
 .stg{display:flex;flex-wrap:wrap;gap:8px;list-style:none;margin:0;padding:0}
 .stg li{display:flex;align-items:center;gap:8px;min-height:44px;padding:6px 16px 6px 8px;border:1.5px solid var(--line);border-radius:999px;color:var(--text-3);font-weight:700;background:var(--surface)}
 .stg li.done{color:var(--text-2)}
@@ -492,7 +492,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 </style>
 
 <div class="top">
-  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.32・2026-11-13</span></span>
+  <span class="brand">模擬考小幫手 設計系統 <span class="badge b-acc">稿 v2.33・2026-11-13</span></span>
   <nav class="toc" aria-label="目錄">
     <a href="#color">色彩</a><a href="#type">字型</a><a href="#base">間距圓角</a><a href="#comp">元件</a><a href="#steps">步驟導覽</a><a href="#special">專屬元件</a><a href="#ast">分科新模型</a><a href="#ast2">分科下一批</a><a href="#paper">座位表與標籤</a><a href="#brandbar">品牌列</a><a href="#footer">頁尾</a><a href="#align">對位測試頁</a><a href="#open">待確認</a>
   </nav>
@@ -842,7 +842,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
   </section>
 
   <section id="brandbar">
-    <header><h2>全站品牌列與區塊分區（稿 v2.32）</h2><p>品牌列是每一頁最上面的一條，管「跨頁導覽」；它之下的頁首（<code>ph</code>）管「本頁返回與工具」，兩者不重複。品牌列：左＝標誌＋名稱＋版本（按下回模擬考列表）；中＝主導覽四項（<b>資料夾設定、模擬考列表、選用功能、共用設定</b>），目前所在頁用深色中性底＋底線，不用藍；右＝外觀切換（跟隨系統→淺色→深色）。<b>「共用設定」在品牌列與頁首工具各留一個</b>（使用者 2026-11-13 裁決：列表、資料夾設定頁沒有頁首工具，兩處都留）。品牌列<b>不黏頂</b>（各寬度皆是），黏頂的只有步驟頁的摘要列。手機 ≤600px：導覽收進「選單」鈕，點開成直式清單，每項 44px 高。</p></header>
+    <header><h2>全站品牌列與區塊分區（稿 v2.33）</h2><p>品牌列是每一頁最上面的一條，管「跨頁導覽」；它之下的頁首（<code>ph</code>）管「本頁返回與工具」，兩者不重複。品牌列：左＝標誌＋名稱＋版本（按下回模擬考列表）；中＝主導覽四項（<b>資料夾設定、模擬考列表、選用功能、共用設定</b>），目前所在頁用深色中性底＋底線，不用藍；右＝外觀切換（跟隨系統→淺色→深色）。<b>「共用設定」在品牌列與頁首工具各留一個</b>（使用者 2026-11-13 裁決：列表、資料夾設定頁沒有頁首工具，兩處都留）。品牌列<b>不黏頂</b>（各寬度皆是），黏頂的只有步驟頁的摘要列。手機 ≤600px：導覽收進「選單」鈕，點開成直式清單，每項 44px 高。</p></header>
     <div class="grid" style="grid-template-columns:1fr">
       <div class="card"><div class="lab">1280／桌機：導覽四項攤開，目前頁＝模擬考列表</div>
         <div class="bbframe" style="max-width:1160px"><header class="appbar"><button type="button" class="ab-brand"><span class="ab-logo" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><rect x="2" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="2" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="2" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="23.5" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="2" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="12.75" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/></svg></span>模擬考小幫手<span class="ab-ver">v1.0.0</span></button><nav class="ab-nav" aria-label="主導覽"><button type="button">資料夾設定</button><button type="button" aria-current="true">模擬考列表</button><button type="button">選用功能</button><button type="button">共用設定</button></nav><div class="ab-tools"><button type="button" class="btn btn-sm ab-theme">◐ <span class="t">外觀</span></button></div></header></div></div>
@@ -881,7 +881,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
   </section>
 
   <section id="ast2">
-    <header><h2>分科下一批元件（D99，稿 v2.32）</h2><p>標籤與班級公告、時程推薦、鎖定與版本、請假、跨次沿用、應試編號。全部用假資料；完整流程看原型「分科第一次（示範）」的步驟③④⑤⑥。顏色分工不變：狀態色（綠、琥珀、紅）、操作色（藍）、班級色只用在班級；「已鎖定」「目前階段」用中性深色，不用藍。</p></header>
+    <header><h2>分科下一批元件（D99，稿 v2.33）</h2><p>標籤與班級公告、時程推薦、鎖定與版本、請假、跨次沿用、應試編號。全部用假資料；完整流程看原型「分科第一次（示範）」的步驟③④⑤⑥。顏色分工不變：狀態色（綠、琥珀、紅）、操作色（藍）、班級色只用在班級；「已鎖定」「目前階段」用中性深色，不用藍。</p></header>
     <div class="card stack">
       <h3>階段條（規劃中／確認定案／已公告）</h3>
       <p class="small muted">目前階段＝深色中性膠囊（不用藍，藍是操作色）；已走過＝淡字加勾；還沒到＝淡字。每個膠囊至少 44px 高。</p>
@@ -943,6 +943,20 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
       <p class="small muted"><b>請假</b>只用來估算自習人數，排座與容量檢核仍用報名全數，不會多排人。<b>跨次沿用</b>：同教室同座位優先、做不到同教室，座號依序與同排同班優先，沿用數字用四格呈現（沒沿用＝琥珀）。<b>匯入檢查</b>沿用「待確認的列」，上方五格統計：重複名單、缺欄、學號與班座號不符、不存在的科目、跨科選考（分科），不新增預覽畫面。</p>
       <div class="stats"><div class="ok"><small>同教室同座位</small><strong>148 人</strong></div><div class="ok"><small>同教室不同座位</small><strong>63 人</strong></div><div><small>不同教室</small><strong>41 人</strong></div><div class="warn"><small>沒沿用（衝突）</small><strong>14 人</strong></div></div>
       <div class="stats"><div class="warn"><small>重複名單</small><strong>1</strong></div><div class="warn"><small>缺欄</small><strong>2</strong></div><div class="warn"><small>學號與班座號不符</small><strong>1</strong></div><div class="warn"><small>不存在的科目</small><strong>1</strong></div><div class="warn"><small>跨科選考</small><strong>2</strong></div></div>
+    </div>
+    <div class="card stack">
+      <h3>匯入精靈步驟數：分科三段、學測與會考四段（v2.33）</h3>
+      <p class="small muted">分科的名單不再有 X 或＋標示，每人考哪幾科直接讀考科欄，所以<b>略過「科目標示的寫法」</b>；段落編號跟著重排。學測、會考不變。確認匯入在分科永遠可按，學測要先選好寫法才能按。</p>
+      <div class="small"><b>分科</b></div>
+      <div class="seg" role="group" aria-label="分科匯入三段" style="max-width:100%;overflow-x:auto"><button type="button" aria-pressed="true">① 欄位對應</button><button type="button" aria-pressed="false">② 待確認的列</button><button type="button" aria-pressed="false">③ 匯入預覽</button></div>
+      <div class="small"><b>學測</b></div>
+      <div class="seg" role="group" aria-label="學測匯入四段" style="max-width:100%;overflow-x:auto"><button type="button" aria-pressed="true">① 欄位對應</button><button type="button" aria-pressed="false">② 科目標示的寫法</button><button type="button" aria-pressed="false">③ 待確認的列</button><button type="button" aria-pressed="false">④ 匯入預覽</button></div>
+    </div>
+    <div class="card stack">
+      <h3>每間考場監考人數（可改）與名單預覽選填欄</h3>
+      <p class="small muted"><b>監考人數</b>預設 2 人，管理者可改（1～6）；改了立刻重算時程候選的「監考人力」，只影響人力指標、不影響排座。已改成非預設時徽章改成藍淡「已改」。<b>名單預覽的「應試編號」「特殊需求」欄</b>：名單有匯入才出現，沒匯入就不顯示該欄。</p>
+      <div class="row" style="gap:10px;padding:10px 12px;border:1px solid var(--line);border-radius:10px"><span class="label" style="margin:0">每間考場監考人數</span><div class="row" style="gap:6px;flex-wrap:nowrap"><button type="button" class="btn btn-sm" aria-label="監考人數減一">−</button><b class="num" style="min-width:56px;text-align:center">3 人</b><button type="button" class="btn btn-sm" aria-label="監考人數加一">＋</button></div><span class="badge b-acc">已改</span><span class="small muted" style="flex:1 1 220px">所需監考人力＝考場數×這個人數。</span></div>
+      <div class="scroll"><table class="t compact nw"><thead><tr><th>班級</th><th>座號</th><th>姓名</th><th>應試編號</th><th>名單上的「組別／考科」</th><th>解析出的選考科目</th><th>特殊需求</th></tr></thead><tbody><tr><td>溫</td><td class="n">5</td><td>曾小明</td><td class="n">15010501</td><td>物理、化學</td><td>物理、化學、數甲</td><td><span class="badge">大字卷</span></td></tr></tbody></table></div>
     </div>
   </section>
 
