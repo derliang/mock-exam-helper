@@ -6,7 +6,7 @@ import './featureRegister/alignment';
 import './featureRegister/quick';
 import { Footer } from './components/Footer';
 import { StepSide, hasSide } from './pages/StepSide';
-import { Alert, Button, EmptyState, PageHead, Seg, StepNav, StepNextContext, SummaryBar, TopBar, UndoGroup } from './components';
+import { Alert, Button, EmptyState, PageHead, Seg, StepNav, StepNextContext, SummaryBar, UndoGroup } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, type NavState, type Route } from './nav';
@@ -107,6 +107,18 @@ export function App() {
   const lastExam = hist.present.exams.find((e) => e.id === lastExamId);
   const hasFolder = r.page !== 'init' || repo.hasFolder();
   const stepExam = r.page === 'step' ? hist.present.exams.find((e) => e.id === r.examId) : undefined;
+  // 路徑列（稿 v2.29）：模擬考列表 › 考試名稱 › 來源步驟；最後一個連結＝返回
+  const listCrumb = { label: '模擬考列表', onClick: () => go({ page: 'exams' }) };
+  const retCrumbs = (): { label: string; onClick: () => void }[] => {
+    const last = gnav.back[gnav.back.length - 1];
+    if (!last || last.route.page === 'exams') return [];
+    if (last.route.page === 'step') {
+      const lr = last.route;
+      return [{ label: hist.present.exams.find((e) => e.id === lr.examId)?.name ?? '模擬考', onClick: () => go({ page: 'step', examId: lr.examId, step: 1 }) }, { label: stepTitle(lr.step), onClick: back }];
+    }
+    return [{ label: last.label, onClick: back }];
+  };
+  const pathCrumbs = [listCrumb, ...retCrumbs()];
   const undoCtl = <UndoGroup undoLabel={nextUndoLabel(hist)} onUndo={() => { setStaleNote(undefined); onUndo(); }} steps={undoSteps(hist)} onUndoTo={onUndoTo} />;
 
   useEffect(() => {
@@ -137,17 +149,16 @@ export function App() {
       </header>
       <main class="wrap">
         {stepExam && r.page === 'step' && (
-          <PageHead back={{ label: '模擬考列表', onClick: () => go({ page: 'exams' }) }} title={stepExam.name} badge={examLabel(stepExam)} status="已儲存到資料夾">
+          <PageHead crumbs={[listCrumb]} title={stepExam.name} badge={examLabel(stepExam)} status="已儲存到資料夾">
             {undoCtl}
-            <Button onClick={() => go2({ page: 'settings', division: stepExam.division }, { route: r, label: pageName(r, hist.present) })}>設定</Button>
+            <Button onClick={() => go2({ page: 'settings', division: stepExam.division }, { route: r, label: pageName(r, hist.present) })}>共用設定</Button>
           </PageHead>
         )}
         {r.page === 'settings' && (
-          <PageHead back={backLabel(gnav) ? { label: `回到 ${backLabel(gnav)!}`, onClick: back } : { label: '模擬考列表', onClick: () => go({ page: 'exams' }) }} title="共用設定" badge="資料夾層級，所有模擬考共用">
+          <PageHead crumbs={pathCrumbs} title="共用設定" badge="資料夾層級，所有模擬考共用">
             {undoCtl}
           </PageHead>
         )}
-        {r.page !== 'init' && r.page !== 'copyright' && r.page !== 'privacy' && r.page !== 'settings' && !(stepExam && r.page === 'step') && <TopBar backLabel={backLabel(gnav)} onBack={back} />}
         {staleNote && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{staleNote}</Alert></div>}
         {r.page === 'privacy' && <Privacy {...(backLabel(gnav) ? { backLabel: backLabel(gnav)! } : {})} onBack={() => (gnav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} onCopyright={() => go2({ page: 'copyright' }, { route: r, label: pageName(r, hist.present) })} />}
         {r.page === 'copyright' && <Copyright onPrivacy={() => go2({ page: 'privacy' }, { route: r, label: pageName(r, hist.present) })} {...(backLabel(gnav) ? { backLabel: backLabel(gnav)! } : {})} onBack={() => (gnav.back.length ? back() : go({ page: hasFolder ? 'exams' : 'init' }))} />}
@@ -156,7 +167,7 @@ export function App() {
         {warning && r.page !== 'init' && <div style="margin-bottom:12px"><Alert tone="warn">{warning}</Alert></div>}
         {r.page === 'exams' && <Exams doc={hist.present} folder={repo.folderName?.()} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} onNew={() => go({ page: 'new' })} onSettings={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} onChangeFolder={() => void changeFolder()} />}
         {r.page === 'new' && <NewExam doc={hist.present} onCancel={() => go({ page: 'exams' })} onCreate={(d, examId) => { edit(d); go({ page: 'step', examId, step: 1 }); }} />}
-        {r.page === 'lookup' && <Lookup doc={hist.present} examId={r.examId} onGoStep={(examId, step) => go({ page: 'step', examId, step })} onExams={() => go({ page: 'exams' })} />}
+        {r.page === 'lookup' && <Lookup doc={hist.present} examId={r.examId} crumbs={pathCrumbs} onGoStep={(examId, step) => go({ page: 'step', examId, step })} onExams={() => go({ page: 'exams' })} />}
         {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} {...(r.division ? { division: r.division } : {})} />}
         {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRooms={(division) => go2({ page: 'settings', tab: 'rooms', division }, { route: r, label: pageName(r, hist.present) })} onToRoster={(division) => go2({ page: 'settings', tab: 'roster', division }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onExams={() => go({ page: 'exams' })} />}
         {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}

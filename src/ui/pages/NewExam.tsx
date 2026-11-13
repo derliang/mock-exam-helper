@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { ExamKind, Semester } from '../../data';
-import { Alert, Button } from '../components';
+import { Alert, Button, PageHead } from '../components';
 import { checkExamName } from '../flow';
 import { defaultSemester, newExam, previousExam, schoolYear, suggestExamName, type Doc } from '../store';
 
@@ -40,9 +40,9 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
 
   return (
     <section>
-      <div class="pagehead"><Button kind="ghost" onClick={p.onCancel}>← 回模擬考列表</Button></div>
+      <PageHead crumbs={[{ label: '模擬考列表', onClick: p.onCancel }]} title="新增模擬考" />
       <div class="stack" style="max-width:860px">
-        <div><h1>新增模擬考</h1><p class="muted">先選類型，類型決定科目表、組別對照表和標示規則。</p></div>
+        <p class="muted">先選類型，類型決定科目表、組別對照表和標示規則。</p>
 
         <div class="card stack"><div class="lab">1　選類型</div>
           <div class="typegrid">

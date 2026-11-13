@@ -98,7 +98,7 @@ export function StepNav(p: { steps: { no: number; name: string; state: StepState
   const need = p.steps.filter((x) => x.state !== 'skip').length; // 國中部沒有的步驟不算進總步數
   return (
     <>
-    <p class="stepprog" aria-live="polite">{cur ? `第 ${cur.no} 步（共 ${p.steps.length} 步）` : `共 ${need} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
+    <p class="stepprog" aria-live="polite">{cur ? `第 ${cur.no}／${p.steps.length} 步` : `共 ${need} 步`}　已完成 {p.steps.filter((s) => s.state === 'done').length} 步</p>
     <ol class="steps" aria-label="步驟">
       {p.steps.map((s) => {
         const tag = mark[s.state];
@@ -143,18 +143,27 @@ export function UndoGroup(p: {
   );
 }
 
-/** 工作區頁首（稿 v2.25，兩層）：上層＝左「← 返回」、右「已儲存」「↶ 復原」「設定」；下層＝h1＋徽章；整塊底下一條細線 */
-export function PageHead(p: { back?: { label: string; onClick: () => void }; title: string; badge?: ComponentChildren; status?: string; children?: ComponentChildren }): JSX.Element {
+/**
+ * 各頁共用單一頁首（稿 v2.29，方案 A 路徑＋標題卡）：上方路徑（最後一個連結＝返回，名稱寫清楚；根頁沒有路徑列），
+ * 下方標題＋徽章，右側「已儲存／↶ 復原／共用設定」成組（手機換到標題下方）；沒有的項目整段拿掉。
+ */
+export function PageHead(p: { crumbs?: { label: string; onClick: () => void }[]; title: string; badge?: ComponentChildren; status?: string; children?: ComponentChildren }): JSX.Element {
+  const crumbs = p.crumbs ?? [];
+  const tools = p.status ? <span class="ph-cap"><span class="phd-save">{p.status}</span>{p.children}</span> : p.children;
   return (
-    <header class="phd">
-      <div class="phd-top">
-        <span class="phd-back">{p.back && <Button kind="ghost" onClick={p.back.onClick}>← {p.back.label}</Button>}</span>
-        {p.status && <span class="phd-save">{p.status}</span>}
-        {p.children && <span class="phd-tools">{p.children}</span>}
-      </div>
-      <div class="phd-title">
-        <h1>{p.title}</h1>
-        {p.badge && <span class="badge">{p.badge}</span>}
+    <header class={`pghd${crumbs.length ? '' : ' noc'}`}>
+      {crumbs.length > 0 && (
+        <nav class="crumbs" aria-label="返回路徑">
+          {crumbs.map((c) => <><button type="button" class="crumb" onClick={c.onClick}>{c.label}</button><span class="sep" aria-hidden="true">›</span></>)}
+          <span class="cur" aria-current="page">{p.title}</span>
+        </nav>
+      )}
+      <div class="ph-row">
+        <div class="ph-title">
+          <h1>{p.title}</h1>
+          {p.badge && (typeof p.badge === 'string' ? <span class="badge">{p.badge}</span> : p.badge)}
+        </div>
+        {tools && <div class="ph-tools">{tools}</div>}
       </div>
     </header>
   );
