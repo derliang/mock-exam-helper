@@ -50,7 +50,7 @@ export function RosterIO(p: { doc: Doc; division: Division; onChange: (d: Doc) =
     <>
       <FormatButton kind="xls" onClick={() => setTpl(true)}>下載名單範本</FormatButton>
       <FormatButton kind="xls" onClick={() => input.current?.click()}>匯入學生名單</FormatButton>
-      <FormatButton kind="xls" onClick={async () => downloadBytes(`${DIV_NAME[p.division]}學生名單.xlsx`, await writeXlsx(exportRows(p.doc.rosters[p.division]), '學生名單'), XLSX_MIME)}>下載 Excel</FormatButton>
+      <FormatButton kind="xls" onClick={async () => downloadBytes(`${DIV_NAME[p.division]}學生名單.xlsx`, await writeXlsx(exportRows(p.doc.rosters[p.division]), '學生名單'), XLSX_MIME)}>匯出學生名單</FormatButton>
       <input ref={input} type="file" accept=".xlsx" hidden aria-label="選擇學生名單 Excel 檔"
         onChange={(e) => { const f = e.currentTarget.files?.[0]; e.currentTarget.value = ''; if (f) void onFile(f); }} />
       {tpl && (

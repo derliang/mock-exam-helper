@@ -20,7 +20,7 @@ function markText(r: MarkRow): string {
 /** 狀態徽章三種（稿 v2.31，裁決顏色分工）：已採用系統建議（可改）綠／已鎖定中性（藍是操作色）／接近一半琥珀 */
 function StateBadge(p: { r: MarkRow }) {
   if (p.r.state === 'undecided') return <Badge tone="warn">接近一半</Badge>;
-  if (p.r.state === 'locked') return <Badge>已鎖定</Badge>;
+  if (p.r.state === 'locked') return <Badge>已手動指定</Badge>;
   return <Badge tone="ok">已採用系統建議（可改）</Badge>;
 }
 
@@ -114,7 +114,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         {rows.filter((r) => r.nearHalf).map((r) => (
           <div class="stack" style="gap:8px" key={`near-${r.track}/${r.subjectId}`}>
             <Alert tone={r.state === 'undecided' ? 'warn' : 'info'}>
-              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊，選完會鎖定，不由程式替你決定。{r.state === 'locked' && r.mode && <><br />已鎖定：標「{r.mode === 'mark-absent' ? 'X' : '＋'}{subjectShort(r.subjectName)}」。</>}
+              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊，選完就以你的選擇為準（可隨時改回自動判斷），不由程式替你決定。{r.state === 'locked' && r.mode && <><br />已手動指定：標「{r.mode === 'mark-absent' ? 'X' : '＋'}{subjectShort(r.subjectName)}」。</>}
             </Alert>
             <div class="btnrow">
               <Seg<MarkMode | ''>
@@ -126,7 +126,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                   { value: 'mark-extra', label: `標「＋${subjectShort(r.subjectName)}」考的 ${r.taking} 人` },
                 ]}
               />
-              {r.state === 'locked' && <Button kind="ghost" small onClick={() => choose(r, undefined)}>解除鎖定</Button>}
+              {r.state === 'locked' && <Button kind="ghost" small onClick={() => choose(r, undefined)}>改回自動判斷</Button>}
             </div>
           </div>
         ))}

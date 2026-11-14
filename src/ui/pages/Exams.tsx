@@ -26,7 +26,7 @@ export function Exams(p: {
                   <h3>{e.name}</h3>
                   <div class="meta">
                     <Badge>{examLabel(e)}</Badge>
-                    <span>{schoolYear(new Date(e.createdAt))} 學年・{examLevel(e)}・{examHeadcount(p.doc, e)} 人</span>
+                    <span>{schoolYear(new Date(e.createdAt))} 學年・{examLevel(e)}・{examHeadcount(p.doc, e) > 0 ? `${examHeadcount(p.doc, e)} 人` : '尚未匯入名單'}</span>
                   </div>
                 </div>
                 <div>

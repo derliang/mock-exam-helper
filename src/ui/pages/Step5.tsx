@@ -166,7 +166,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           <p class="small muted">不開放拖曳換座位：會破壞「同班編號沿座位遞增」的規則。{senior && '「個別覆寫」不是換座位，只改指定考科的去處。'}</p>
           {stat && (
             <div>
-              <div class="lab">座位表統計</div>
+              <div class="lab">本教室各科應考人數</div>
               <div class="scroll">
                 <table class="t compact">
                   <thead><tr><th>項目</th>{stat.classes.map((c) => <th key={c.no}>{c.name}</th>)}<th>合計</th></tr></thead>
@@ -327,7 +327,7 @@ function ManageOverridesModal(p: {
         : list.map((o) => (
           <div class="blk-row" key={o.code}>
             <span><b>{o.code}</b>　{p.names.get(o.code) ?? ''}　→　{o.location}（{o.purpose === 'exam' ? '考試' : '自習'}）{p.notes.has(o.code) && <>　<Badge tone="warn">{p.notes.get(o.code)}</Badge></>}</span>
-            <Button small onClick={() => p.onRemove(o.code)}>移除</Button>
+            <Button small onClick={() => p.onRemove(o.code)}>移除此設定</Button>
           </div>
         ))}
       <div class={`field${err ? ' err' : ''}`}>

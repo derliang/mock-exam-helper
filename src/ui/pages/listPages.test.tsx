@@ -24,7 +24,7 @@ describe('模擬考列表頁', () => {
     for (const t of ['更換資料夾', '設定', '新增模擬考', '最後修改', '步完成', '進度條圖例']) expect(html).toContain(t);
     expect(html).toContain('高中部・學測');
     expect(html).toContain('國中部・會考');
-    expect(html).toMatch(/115 學年・高三・\d+ 人/);
+    expect(html).toMatch(/115 學年・高三・(\d+ 人|尚未匯入名單)/);
     expect((html.match(/class="dots"/g) ?? []).length).toBe(2);
     // 新到舊：會考（11 月）在學測（10 月）前面
     expect(html.indexOf('會考第一次')).toBeLessThan(html.indexOf('學測第一次'));

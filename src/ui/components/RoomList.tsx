@@ -186,7 +186,7 @@ function SeatGrid(p: { room: Classroom; cap: number; lim: { rows: number; depth:
             }))}
           </div>
         </div>
-        <p class="muted small" style="margin-top:6px">↑ 後　深位 {room.depth}～1，由前（講臺）往後　｜　橫排：第 1～{room.rows} 排（左到右）</p>
+        <p class="muted small" style="margin-top:6px">圖的下方是講臺：深位 1 最靠前、{room.depth} 最後面；橫排第 1～{room.rows} 排，由左到右。</p>
         <p class="small" style="margin-top:4px;text-align:center"><b>▔▔ 講臺 ▔▔</b></p>
       </div>
     </div>
