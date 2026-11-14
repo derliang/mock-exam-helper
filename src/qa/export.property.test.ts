@@ -63,7 +63,7 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
       const { input } = x;
       const nameOf = new Map(input.students.map((s) => [studentCode(s.classNo, s.seatNo), s.name]));
       const seatPages = buildSeatPages(input);
-      const mainPages = seatPages.filter((p) => !p.detachStyle);
+      const mainPages = seatPages.filter((p) => !p.slotMode);
 
       // INV-13 每間有人的班級教室一頁；頁上格子＝該教室的 assignments，座標、編號、姓名逐筆相同；總數＝考生數
       let cellTotal = 0;
@@ -94,12 +94,13 @@ describe('輸出版面模型與排座結果逐筆一致', () => {
           expect(c.tags.length, `seed=${seed} ${c.code}`).toBe(n);
         }
 
-      // INV-15 抽離考試頁：每個（教室，科目）一頁，格子＝結果裡的抽離考試座位
+      // INV-15 預備教室時段版（稿 v2.28）：每間有抽離考試的預備教室一頁；每個抽離考試座位都有格子且格內至少一行
       const examDetach = input.result.detaches.filter((d) => d.purpose === 'exam');
-      const detachPages = seatPages.filter((p) => p.detachStyle);
-      expect(detachPages.reduce((a, p) => a + p.cells.size, 0), `seed=${seed}`).toBe(examDetach.length);
+      const detachPages = seatPages.filter((p) => p.slotMode);
+      const examRoomIds = new Set(examDetach.map((d) => d.roomId));
+      expect(detachPages.length, `seed=${seed}`).toBe(examRoomIds.size);
       for (const d of examDetach) {
-        const hit = detachPages.some((p) => p.cells.get(seatLabel(d.seat!))?.code === d.code && p.title.includes(input.settings.classrooms.find((c) => c.id === d.roomId)!.name));
+        const hit = detachPages.some((p) => (p.cells.get(seatLabel(d.seat!))?.periodLines?.length ?? 0) > 0 && p.roomName === input.settings.classrooms.find((c) => c.id === d.roomId)!.name);
         expect(hit, `seed=${seed} 抽離 ${d.code}`).toBe(true);
       }
 
@@ -161,7 +162,8 @@ describe('姓名來源不同步的保險（缺陷 F-1 回歸）', () => {
     const x = exportInputOf(3)!;
     expect(x).toBeTruthy();
     const input = { ...x.input, students: [] };
-    for (const p of buildSeatPages(input)) for (const c of p.cells.values()) expect(c.name, c.code).not.toBe('');
+    // 預備教室時段版（稿 v2.28）只印科目＋班座號、不印姓名，不在此檢查
+    for (const p of buildSeatPages(input).filter((q) => !q.slotMode)) for (const c of p.cells.values()) expect(c.name, c.code).not.toBe('');
     // 預備教室合併標籤（D94-5）只印節次＋科目＋班座號、不印姓名，不在此檢查
     for (const p of buildLabelPages(input)) for (const c of p.cells) if (!c.periodLines) expect(c.name, c.code).not.toBe('');
     for (const r of buildDetachList(input).rows) expect(r.name, r.code).not.toBe('');
@@ -178,7 +180,7 @@ describe('匯出統計＝畫面統計（含單人特例，缺陷 F-5 回歸）',
       checked++;
       const { input } = x;
       const sp = specialOf(input.result);
-      for (const p of buildSeatPages(input).filter((q) => !q.detachStyle)) {
+      for (const p of buildSeatPages(input).filter((q) => !q.slotMode)) {
         const room = input.settings.classrooms.find((c) => p.title.includes(c.name + '　'))!;
         const screen = roomStats(room.id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches, sp);
         const without = roomStats(room.id, input.result.assignments, input.entries, input.exam.subjects, input.result.detaches);

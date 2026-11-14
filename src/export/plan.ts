@@ -86,7 +86,7 @@ export function planFiles(input: ExportInput, o: ExportOptions): PlannedFile[] {
   if (parts.seat) out.push({ key: 'seat', name: `${base}-座位表.${ext}`, desc: `${parts.seat.length} 頁（每間班級教室一頁，A4）`, pages: parts.seat.length });
   if (parts.label) out.push({ key: 'label', name: `${base}-標籤（${o.paper}）.${ext}`, desc: `${parts.label.length} 張紙（每間班級教室一張，${o.paper}）`, pages: parts.label.length });
   if (parts.study) out.push({ key: 'study', name: `${base}-抽離自習名單.${ext}`, desc: `${parts.study.length} 頁（每科一頁，A4）`, pages: parts.study.length });
-  if (parts.reserveSeat) out.push({ key: 'reserveSeat', name: `${base}-預備教室座位表.${ext}`, desc: `${parts.reserveSeat.length} 頁（每科每間預備教室一頁，A4）`, pages: parts.reserveSeat.length });
+  if (parts.reserveSeat) out.push({ key: 'reserveSeat', name: `${base}-預備教室座位表.${ext}`, desc: `${parts.reserveSeat.length} 頁（每間預備教室一頁，時段版，A4）`, pages: parts.reserveSeat.length });
   if (parts.reserveLabel) out.push({ key: 'reserveLabel', name: `${base}-預備教室標籤（${o.paper}）.${ext}`, desc: `${parts.reserveLabel.length} 張紙（${o.paper}）`, pages: parts.reserveLabel.length });
   return out;
 }

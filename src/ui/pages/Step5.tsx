@@ -2,7 +2,7 @@ import { useState } from 'preact/hooks';
 import type { ExamConfig, SeatingResult } from '../../data';
 import { seatLabel, studentCode } from '../../data';
 import { mixedMarkCodes, overridePurpose } from '../../core/detach';
-import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StatsBar, StepHead } from '../components';
+import { Alert, Badge, Button, ConfirmButton, Modal, More, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
 import { ChartLegend, SeatChart } from '../components/SeatChart';
 import {
@@ -29,7 +29,7 @@ function SeatError(p: { errors: string[]; onStep: (n: StepNo) => void }) {
 }
 
 /** ⑤ 排座與預覽（DESIGN 10.4、原型 v5） */
-export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => void; onStep: (n: StepNo) => void }) {
+export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => void; onStep: (n: StepNo) => void; onReserve?: () => void }) {
   const { doc, exam } = p;
   const [err, setErr] = useState<string[] | null>(null);
   const [roomId, setRoomId] = useState('');
@@ -37,7 +37,6 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const [pullKey, setPullKey] = useState('');
   const [editing, setEditing] = useState<{ code: string; co: string } | null>(null);
   const [managing, setManaging] = useState(false);
-  const [showPull, setShowPull] = useState(false);
 
   const blockers = seatingBlockers(doc, exam);
   const result = examResult(doc, exam);
@@ -96,18 +95,13 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const names = nameMapOf(doc, exam);
   const summary = detachSummary(exam, result);
   const pulls = summary.flatMap((s) => s.examRooms.map((r) => ({ key: `${s.subjectId}|${r.roomId}`, subjectId: s.subjectId, name: s.name, roomId: r.roomId })));
-  const pull = pulls.find((x) => x.key === pullKey) ?? pulls[0];
-  const pullRoom = pull && rooms.find((r) => r.id === pull.roomId);
-  const pullModel = pull && pullRoom ? detachChartModel(doc, exam, result, pullRoom, pull.subjectId) : null;
   const model = room ? chartModel(doc, exam, result, room) : null;
   const present = model ? [...new Set(model.lines.flat().flatMap((c) => (c.kind === 'student' ? [c.classNo] : [])))].sort((a, b) => a - b) : [];
   const stat = room ? roomStatTable(doc, exam, result, room.id) : null;
   const vcode = <div class="vcode">產生 {taipei(result.generatedAt)}　資料版本 {result.dataVersion}（名單或設定改了，版本碼就會變）</div>;
 
-  return (
-    <section class="stack">
-      <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
-      <StatsBar items={[
+  const statsBar = (
+    <StatsBar items={[
         { label: '考生', value: seatableEntries(doc, exam).length },
         { label: '座位', value: seats },
         { label: '禁用', value: classRooms.reduce((a, r) => a + roomCapacity(r) - r.seatCount, 0) },
@@ -115,6 +109,11 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         ...(senior ? [{ label: '預備教室', value: `${rooms.length - classRooms.length} 間` }] : []),
         { label: '驗證', value: stale ? '需重新排座' : allPass ? '通過' : '不通過', bad: !stale && !allPass },
       ]} />
+  );
+
+  return (
+    <section class="stack">
+      <StepHead title="⑤ 排座與預覽">排座、看座位表與統計；名單或設定改了要重新排座。</StepHead>
       {stale && (
         <div class="stale-banner" role="status">
           <Badge tone="warn">需重新排座</Badge>名單或設定在排座之後有修改，座位表是舊的；驗證與下載要等重新排座。
@@ -125,6 +124,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       {resSel && (
         <div class="card stack">
+          {statsBar}
           <div><h3>座位表預覽</h3><p class="small muted">預備教室只排「抽離考試」的人；抽離自習不排座位、不印標籤，只出名單。</p></div>
           <Seg label="教室" value={resSel.id} onChange={(v) => { setRoomId(v); setOnly(''); }} options={roomOptions} />
           {(() => {
@@ -143,6 +143,7 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
       {room && model && (
         <div class="card stack">
+          {statsBar}
           <div class="btnrow" style="justify-content:space-between">
             <div><h3>座位表預覽</h3><p class="small muted">班級色；橫排（左右）與深位（前後）；點任一格可做個別覆寫。</p></div>
             <ConfirmButton kind="default" copy={confirmCopy.reseat(overrides.length)} onConfirm={run}>重新排座</ConfirmButton>
@@ -180,61 +181,43 @@ export function Step5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <div class="card stack">
         <div class="btnrow" style="justify-content:space-between">
           <div><h3>驗證</h3><p class="small muted">任何一項不通過不能下載。</p></div>
-          {checks ? <Badge tone={allPass ? 'ok' : 'danger'}>{allPass ? '通過' : `${pass}／${checks.length} 項通過`}</Badge> : <Badge tone="warn">待重排</Badge>}
+          {checks ? <Badge tone={allPass ? 'ok' : 'danger'}>{`${pass}／${checks.length} 項通過`}</Badge> : <Badge tone="warn">待重排</Badge>}
         </div>
         {checks
-          ? checks.map((c) => <Alert key={c.title} tone={c.ok ? 'ok' : 'danger'}><b>{c.title}</b>　{c.detail}</Alert>)
+          ? (
+            <More open={!allPass} title={allPass ? `全部通過；看 ${checks.length} 項檢查內容` : `有 ${checks.length - pass} 項沒通過，已自動展開`}>
+              <div class="stack" style="gap:8px">
+                {checks.map((c) => <Alert key={c.title} tone={c.ok ? 'ok' : 'danger'}><b>{c.title}</b>　{c.detail}</Alert>)}
+              </div>
+            </More>
+          )
           : <Alert tone="warn">需要重新排座：名單或設定已變更，舊座位表不能下載，重新排座後才會驗證。</Alert>}
       </div>
 
-      {senior && <div class="card stack">
-        <div class="btnrow" style="justify-content:space-between">
-          <div><h3>個別覆寫（單人特例）</h3><p class="small muted">保留原教室座位（不是換座位），只把這個人被標示的那幾節考科改到自填地點，不佔預備教室；改了會自動重排並再驗證。在上面的座位表點考生就能設定。</p></div>
-          <Button disabled={stale} onClick={() => setManaging(true)}>管理覆寫</Button>
-        </div>
-        {overrides.length === 0
-          ? <p class="small muted">目前沒有個別覆寫。</p>
-          : overrides.map((o) => (
-            <div class="blk-row" key={o.code}>
-              <span><b>{o.code}</b>　{names.get(o.code) ?? ''}　→　{o.location}{notes.has(o.code) && <>　<Badge tone="warn">{notes.get(o.code)}</Badge></>}</span>
-              <Button small onClick={() => p.onChange(afterOverrideChange(removeOverride(doc, exam, o.code), exam, new Date().toISOString()))}>移除此設定</Button>
-            </div>
-          ))}
-      </div>}
-
       {senior && (
         <div class="card stack">
+          <div class="lab">進階</div>
           <div class="btnrow" style="justify-content:space-between">
-            <div><h3>預備教室與抽離</h3><p class="small muted">標「X」的人這科不考，該節改到自習地點（只出名單）；標「＋」的人這科要考，該節改到預備教室。與座位表同一份資料。</p></div>
-            {pull && <Button onClick={() => setShowPull((v) => !v)}>{showPull ? '收合' : '查看'}</Button>}
+            <div>
+              <h3>個別覆寫（單人特例）</h3><p class="small muted">只改指定考科的去處，不換座位。</p>
+              <More title="說明：覆寫怎麼運作">保留原教室座位並標註地點，不佔預備教室；改了會自動重排並再驗證。在上面的座位表點考生就能設定。</More>
+            </div>
+            <Button disabled={stale} onClick={() => setManaging(true)}>管理覆寫</Button>
           </div>
-          {summary.length === 0
-            ? <p class="small muted">這次沒有人要抽離。</p>
-            : (
-              <div class="scroll">
-                <table class="t compact">
-                  <thead><tr><th>科目</th><th>抽離考試</th><th>抽離自習</th><th>單人特例</th></tr></thead>
-                  <tbody>{summary.map((s) => (
-                    <tr key={s.subjectId}>
-                      <td><b>{s.name}</b></td>
-                      <td>{s.examRooms.length ? s.examRooms.map((r) => `${rooms.find((x) => x.id === r.roomId)?.name ?? r.roomId} ${r.count} 人`).join('、') : '—'}</td>
-                      <td>{s.study ? `${s.study} 人` : '—'}</td><td>{s.special ? `${s.special} 人` : '—'}</td>
-                    </tr>
-                  ))}</tbody>
-                </table>
+          {overrides.length === 0
+            ? <p class="small muted">目前沒有個別覆寫。</p>
+            : overrides.map((o) => (
+              <div class="blk-row" key={o.code}>
+                <span><b>{o.code}</b>　{names.get(o.code) ?? ''}　→　{o.location}{notes.has(o.code) && <>　<Badge tone="warn">{notes.get(o.code)}</Badge></>}</span>
+                <Button small onClick={() => p.onChange(afterOverrideChange(removeOverride(doc, exam, o.code), exam, new Date().toISOString()))}>移除此設定</Button>
               </div>
-            )}
-          {showPull && pull && pullRoom && pullModel && (
-            <>
-              {pulls.length > 1 && <Seg label="抽離考試座位表" value={pull.key} onChange={setPullKey} options={pulls.map((x) => ({ value: x.key, label: `${x.name}・${rooms.find((r) => r.id === x.roomId)?.name ?? x.roomId}` }))} />}
-              <SeatChart
-                model={pullModel}
-                title={`【${exam.name}】抽離考試（＋${pull.name}）座位表`}
-                sub={`${pullRoom.name}　考生 ${pullModel.count} 人`}
-                pull
-              />
-            </>
-          )}
+            ))}
+          <div class="psec">
+            <div class="btnrow" style="justify-content:space-between">
+              <div><h3>預備教室與抽離</h3><p class="small muted">被標「X」的人抽離自習、被標「＋」的人抽離考試，與座位表同一份資料。{summary.length === 0 && '這次沒有人要抽離。'}</p></div>
+              {p.onReserve && <Button onClick={p.onReserve}>查看</Button>}
+            </div>
+          </div>
         </div>
       )}
 

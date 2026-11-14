@@ -24,6 +24,7 @@ import { Step3 } from './pages/Step3';
 import { Step4 } from './pages/Step4';
 import { Step5 } from './pages/Step5';
 import { Step6 } from './pages/Step6';
+import { ReservePage } from './pages/ReservePage';
 import { createFsRepository, isFsAccessSupported, SwitchBlockedError } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
 import { examLabel, stampModified, type Doc } from './store';
@@ -119,6 +120,8 @@ export function App() {
     return [{ label: last.label, onClick: back }];
   };
   const pathCrumbs = [listCrumb, ...retCrumbs()];
+  // 預備教室與抽離（H-9）：模擬考列表 › 考試名稱 › ⑤ 排座與預覽；最後一個連結＝返回（回到 ⑤）
+  const reserveCrumbs = (examId: string) => [listCrumb, { label: hist.present.exams.find((e) => e.id === examId)?.name ?? '模擬考', onClick: () => go({ page: 'step', examId, step: 1 }) }, { label: stepTitle(5), onClick: () => go({ page: 'step', examId, step: 5 }) }];
   // 全站品牌列導覽（稿 v2.31）：資料夾設定、模擬考列表、（已開啟的選用功能頁）、選用功能、共用設定
   const inSettings = r.page === 'settings';
   // 已在共用設定時只換分頁，不再疊一筆「回到」
@@ -170,8 +173,9 @@ export function App() {
         {r.page === 'new' && <NewExam doc={hist.present} onCancel={() => go({ page: 'exams' })} onCreate={(d, examId) => { edit(d); go({ page: 'step', examId, step: 1 }); }} />}
         {r.page === 'lookup' && <Lookup doc={hist.present} examId={r.examId} crumbs={pathCrumbs} onGoStep={(examId, step) => go({ page: 'step', examId, step })} onExams={() => go({ page: 'exams' })} />}
         {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} onTab={(tab) => setNav((s) => (s.route.page === 'settings' ? { ...s, route: { ...s.route, tab } } : s))} {...(r.division ? { division: r.division } : {})} />}
-        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRooms={(division) => go2({ page: 'settings', tab: 'rooms', division }, { route: r, label: pageName(r, hist.present) })} onToRoster={(division) => go2({ page: 'settings', tab: 'roster', division }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onFix={(step) => go2({ page: 'step', examId: r.examId, step }, { route: r, label: pageName(r, hist.present) })} ret={retStep} onRet={back} onExams={() => go({ page: 'exams' })} />}
-        {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
+        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRooms={(division) => go2({ page: 'settings', tab: 'rooms', division }, { route: r, label: pageName(r, hist.present) })} onToRoster={(division) => go2({ page: 'settings', tab: 'roster', division }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onFix={(step) => go2({ page: 'step', examId: r.examId, step }, { route: r, label: pageName(r, hist.present) })} onReserve={() => go({ page: 'reserve', examId: r.examId })} ret={retStep} onRet={back} onExams={() => go({ page: 'exams' })} />}
+        {r.page === 'reserve' && <ReservePage doc={hist.present} examId={r.examId} crumbs={reserveCrumbs(r.examId)} onGoStep={(step) => go({ page: 'step', examId: r.examId, step })} onExams={() => go({ page: 'exams' })} />}
+        {(r.page === 'reconcile' || r.page === 'override') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
       <Footer onCopyright={() => r.page !== 'copyright' && go2({ page: 'copyright' }, { route: r, label: pageName(r, hist.present) })} onPrivacy={() => r.page !== 'privacy' && go2({ page: 'privacy' }, { route: r, label: pageName(r, hist.present) })} />
     </FeatureContext.Provider>
@@ -187,12 +191,13 @@ export function pageName(r: Route, doc: Doc): string {
     case 'lookup': return '考生查詢';
     case 'copyright': return '使用授權';
     case 'privacy': return '隱私權政策';
+    case 'reserve': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」預備教室與抽離`;
     case 'step': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」${stepTitle(r.step)}`;
     default: return '上一頁';
   }
 }
 
-function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: (division: 'senior' | 'junior') => void; onToRooms: (division: 'senior' | 'junior') => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onFix: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; ret?: number | undefined; onRet: () => void; onExams: () => void }) {
+function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: (division: 'senior' | 'junior') => void; onToRooms: (division: 'senior' | 'junior') => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onFix: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onReserve: () => void; ret?: number | undefined; onRet: () => void; onExams: () => void }) {
   const exam = p.doc.exams.find((e) => e.id === p.route.examId);
   if (!exam) {
     return <section><h2>{stepTitle(p.route.step)}</h2><EmptyState title="找不到這個模擬考" action={<Button kind="primary" onClick={p.onExams}>回模擬考列表</Button>}>它可能已被刪除，或資料夾換了。</EmptyState></section>;
@@ -212,7 +217,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
           : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
           : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />
           : step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} />
-          : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} />
+          : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} onReserve={p.onReserve} />
           : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onFix(n)} onExams={p.onExams} />}
         {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange, onStep: p.onFix })}</div>)}
       </div>

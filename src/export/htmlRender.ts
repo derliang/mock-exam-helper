@@ -4,7 +4,7 @@
  * 座位表與標籤的樣式照設計系統成品頁「座位表與標籤」稿件（docs/design/mockups/設計系統.html #paper）：
  * 改這裡的版面要同步改稿件，反之亦然。
  */
-import { footerText, groupMarks, labelBoxMm, labelGrid, PAPER_MM, periodLineFontPt, SEAT_PAGE, seatGeometry, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
+import { footerText, groupMarks, labelBoxMm, labelGrid, PAPER_MM, periodLineFontPt, SEAT_PAGE, seatGeometry, SLOT_TIP, type CellModel, type LabelPageModel, type ListPageModel, type SeatPageModel, type TablePageModel } from './model';
 
 export interface HtmlOptions {
   generatedAt: string;
@@ -57,8 +57,8 @@ function seatHtml(p: SeatPageModel, o: HtmlOptions): string {
 <div class="pp-hd"><div><div class="pp-h1">${esc(p.heading ?? p.examName)}</div>${p.heading ? '' : '<div class="pp-h2">座位表</div>'}</div><span class="pp-room">${esc(p.roomName)}</span></div>
 <div class="pp-chips">${chips}</div>
 <div class="pp-wrapg" style="margin-top:4mm"><div class="pp-ay" style="grid-template-rows:repeat(${p.depth},${mm(ch)})">${ay}</div><div><div class="pp-grid" style="grid-template-columns:repeat(${p.rows},${mm(cw)})">${cells}</div><div class="pp-ax" style="grid-template-columns:repeat(${p.rows},${mm(cw)})">${ax}</div></div></div>
-<div class="pp-bottom"><span class="l">共 ${p.stats.total} 人</span><span class="pp-pod">講臺</span><span></span></div>
-${stHtml}
+<div class="pp-bottom"><span class="l">${p.slotMode ? `已使用 ${p.cells.size} 格` : `共 ${p.stats.total} 人`}</span><span class="pp-pod">講臺</span><span></span></div>
+${p.slotMode ? `<div class="pp-sltip">${esc(SLOT_TIP)}</div>` : stHtml}
 <div class="pp-foot">${esc(footerText(o.generatedAt, o.dataVersion))}</div></section>`;
 }
 
@@ -158,6 +158,7 @@ footer { font-size: 8pt; color: #555; text-align: right; margin-top: 3mm }
 .pp .pp-ax{display:grid;font-size:7pt;font-weight:700;color:var(--gray);text-align:center;margin-top:.8mm}
 .pp .pp-wrapg{display:grid;grid-template-columns:5mm auto;justify-content:center;gap:0 1.5mm}
 .pp .pp-ay{display:grid;font-size:7pt;font-weight:700;color:var(--gray);align-items:center;justify-items:end}
+.pp .pp-sltip{margin-top:5mm;font-size:11pt;color:#4A463A;line-height:1.5}
 .pp .pp-st{width:100%;border-collapse:collapse;font-size:13pt;margin-top:5mm}
 .pp .pp-st th,.pp .pp-st td{border:.3mm solid var(--cut);padding:.8mm 2mm;text-align:center}
 .pp .pp-st th{background:#F3EEDD;font-weight:700}

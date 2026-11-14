@@ -39,12 +39,16 @@ describe('頁尾（D66）', () => {
 });
 
 describe('版面模型', () => {
-  it('座位表：每間教室一頁，預備教室依抽離科目另成柔和單色頁（UI-23）', () => {
+  it('座位表：每間班級教室一頁，預備教室一間一頁（時段版，稿 v2.28）', () => {
     const pages = buildSeatPages(makeFixture());
-    expect(pages.map((p) => p.detachStyle)).toEqual([false, false, true]);
+    expect(pages.map((p) => !!p.slotMode)).toEqual([false, false, true]);
     expect(pages[0]!.cells.get('1-1')!.code).toBe('0101');
-    expect(pages[2]!.title).toContain('抽離考試（英文）');
+    expect(pages[2]!.title).toContain('座位表（時段版）');
     expect(pages[2]!.cells.size).toBe(2);
+    // 格內每行一個時段（科目＋班座號），只含抽離考試
+    const lines = [...pages[2]!.cells.values()].flatMap((c) => c.periodLines ?? []);
+    expect(lines.length).toBeGreaterThan(0);
+    expect(lines.every((l) => l.text.includes('英文'))).toBe(true);
   });
 
   it('統計依該教室計算（D40）', () => {
@@ -281,11 +285,12 @@ describe('PDF 列印 HTML：照稿件版面（設計系統成品頁「座位表�
     expect(h8).toContain('height:33.6mm');
   });
 
-  it('抽離考試座位表：柔和單色、小標「抽離考試 科目」', () => {
+  it('預備教室座位表（時段版）：白底、格內每行一個時段、頁尾有格內說明、沒有統計表', () => {
     const f = makeFixture();
-    const p = buildSeatPages(f).find((x) => x.detachStyle)!;
+    const p = buildSeatPages(f).find((x) => x.slotMode)!;
     const h = renderPrintHtml({ seat: [p] }, meta);
-    expect(h).toContain('#E6EBF7');
-    expect(h).toContain('抽離考試 英文');
+    expect(h).toContain('pp-pll');
+    expect(h).toContain('格內每一行是一個時段');
+    expect(h).not.toContain('<table class="pp-st">');
   });
 });

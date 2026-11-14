@@ -1,5 +1,5 @@
 import { useState } from 'preact/hooks';
-import { Alert } from '../components';
+import { Alert, More } from '../components';
 import type { Repository } from '../repository';
 
 /** 初始化：選資料夾 ＋ 拖拉資料夾（UI-03）。標題列不借用進度條樣式（UI-01/02） */
@@ -36,7 +36,8 @@ export function Init(p: { repo: Repository; fsSupported: boolean; onRestore?: ()
       </div>
       <div class="card stack">
         <h2 style="font-size:18px">選擇資料儲存資料夾</h2>
-        <p class="muted">學生名單與座位結果只存在你的電腦，本網站不會把它們上傳到網路。請選一個你找得到的資料夾；若這個資料夾由雲端硬碟同步，同步軟體仍可能把檔案上傳。下次開啟時會先嘗試沿用這個資料夾，瀏覽器可能要你重新授權。</p>
+        <p class="muted">學生名單與座位結果只存在你的電腦，本網站不會把它們上傳到網路。請選一個你找得到的資料夾。</p>
+        <More title="說明：雲端硬碟與授權">若這個資料夾由雲端硬碟同步，同步軟體仍可能把檔案上傳。下次開啟時會先嘗試沿用這個資料夾，瀏覽器可能要你重新授權。</More>
         <div
           class={`dropzone${over ? ' over' : ''}`} tabIndex={0} role="button"
           aria-label="將資料夾拖曳至此，或按一下選擇資料夾"

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, Participation, RosterDiff, RosterDiffChoice } from '../../data';
 import { allResolved, applyDiffs, compareRosters, diffsStale, isResolved, readXlsx, refreshDiffs, validateResolved, type Sheet } from '../../import';
-import { Alert, Badge, Button, ClassChip, ConfirmButton, Seg, StatsBar, StepHead } from '../components';
+import { Alert, Badge, Button, ClassChip, ConfirmButton, More, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
 import { addClass, diffOptions, rosterName, syncDiffs, updateExam, type Doc } from '../store';
 import { ImportWizard, scanOptionsFor } from './ImportWizard';
@@ -114,10 +114,11 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     return (
       <section class="stack" style="max-width:860px">
         <div class="card stephead"><div><h2>名單比對</h2><p class="small muted">② 考試名單：和共用學生名單逐筆比對。</p></div></div>
-        <Alert tone="info">
-          匯入「{exam.name}」考試名單後，和共用學生名單比對，找到 <b>{diffs.length}</b> 筆差異。每一筆選一種處理方式（多數是：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯）；全部處理完才能繼續排座。
-        </Alert>
-        <StatsBar items={[{ label: '差異', value: diffs.length }, { label: '已處理', value: resolved }, { label: '未處理', value: diffs.length - resolved, bad: diffs.length - resolved > 0 }]} />
+        <div class="card stack">
+          <p>匯入「{exam.name}」考試名單後，和共用學生名單比對，找到 <b>{diffs.length}</b> 筆差異；全部處理完才能繼續排座。</p>
+          <More title="說明：每一筆怎麼處理">每一筆選一種處理方式（多數是：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯）。</More>
+          <StatsBar items={[{ label: '差異', value: diffs.length }, { label: '已處理', value: resolved }, { label: '未處理', value: diffs.length - resolved, bad: diffs.length - resolved > 0 }]} />
+        </div>
         {diffs.map((d, i) => {
           const picked = isResolved(d);
           const nc = d.kind === 'new-class';
@@ -148,7 +149,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                   setChoice(d.code, v, v === 'manual' ? d.edited : undefined, v === 'remap-class' ? (d.targetClassNo ?? classes[0]?.no) : undefined);
                 }}
                 options={optionsOf(d).map((v) => ({ value: v, label: nc && v === 'add-class' ? `新增班級「${clsLabel(cno)}」` : nc && v === 'skip-class' ? `不匯入這班（${members.length} 人）` : CHOICE_TEXT[v] }))} />
-              {nc && <span class="hint">選「新增班級」會當場在班級資料多一班（名稱先用「{clsLabel(cno)}」，之後可到共用設定改），不用先離開去設定頁。</span>}
+              {nc && <More title="說明：新增班級會怎樣"><span class="hint">選「新增班級」會當場在班級資料多一班（名稱先用「{clsLabel(cno)}」，之後可到共用設定改），不用先離開去設定頁。</span></More>}
               {nc && d.choice === 'remap-class' && (
                 <div class="field"><label>這班的人改到哪一班
                   <select class="input" value={String(d.targetClassNo ?? '')} onChange={(e) => setChoice(d.code, 'remap-class', undefined, Number(e.currentTarget.value))}>
