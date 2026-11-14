@@ -35,9 +35,9 @@ describe('列表：進度條', () => {
 });
 
 describe('列表：人數、排序、時間', () => {
-  it('沒匯入名單時用該部別學生名單人數', () => {
+  it('沒匯入本次考試名單時人數是 0（不拿共用學生名單充數）', () => {
     const d = withExam('gsat', 'A');
-    expect(examHeadcount(d, d.exams[0]!)).toBe(d.rosters.senior.length);
+    expect(examHeadcount(d, d.exams[0]!)).toBe(0);
   });
   it('依最後修改由新到舊；沒有 updatedAt 用 createdAt', () => {
     const a = withExam('gsat', 'A', new Date('2026-10-01T00:00:00Z')).exams[0]!;

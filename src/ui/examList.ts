@@ -41,10 +41,9 @@ export function examProgress(doc: Doc, exam: ExamConfig): ExamProgress {
   };
 }
 
-/** 人數：已匯入考試名單就用名單，否則先用該部別學生名單的人數 */
+/** 本次考試的考生人數（Q2：只看本次考試名單；還沒匯入回 0，畫面顯示「尚未匯入名單」，不拿共用學生名單充數） */
 export function examHeadcount(doc: Doc, exam: ExamConfig): number {
-  const n = examEntries(doc, exam).length;
-  return n > 0 ? n : doc.rosters[exam.division].length;
+  return examEntries(doc, exam).length;
 }
 
 export const examLevel = (exam: ExamConfig): string => (exam.division === 'senior' ? '高三' : '國三');

@@ -1,5 +1,5 @@
 /** ② 考試名單的純邏輯：匯入結果 → 該次考試的考試名單；從活頁簿挑出最像名單的工作表 */
-import type { ExamConfig, ExamEntry, Student } from '../data';
+import type { ExamConfig, ExamEntry, RosterDiff, Student } from '../data';
 import { parseExamList, parseRoster, type ExamListResult, type RosterResult, type Sheet } from '../import';
 
 /** 解析器的科目代碼 → 考科表的科目 id（見 subjects.ts） */
@@ -46,3 +46,35 @@ export const FIELD_LABEL: Record<string, string> = {
 };
 
 export const rosterOf = (students: readonly Student[]): number => students.length;
+
+// ───── Q5（Issue #185）：名單比對「以…為準」套用前預告 ─────
+
+const whoText = (x?: { classNo: number; seatNo: number; name: string }): string =>
+  x ? `${String(x.classNo).padStart(2, '0')} 班 ${x.seatNo} 號「${x.name}」` : '這位';
+
+/**
+ * 選了「以考試名單為準／以學生名單為準」之後，套用時兩份名單各會怎樣（對照 `applyDiffs`）。
+ * 回傳一句白話預告；沒有對應（手動編輯、新增班級類）回 undefined。
+ * 已知限制：以學生名單為準時，考試名單裡這位的考科與 X／＋ 標示會被丟掉（只有姓名等不同時才保留）。
+ */
+export function previewChoice(d: RosterDiff, choice: 'use-exam' | 'use-roster'): string | undefined {
+  if (d.kind === 'new-class') return undefined;
+  if (d.kind === 'only-in-exam') {
+    return choice === 'use-exam'
+      ? `學生名單會新增 ${whoText(d.exam)}；考試名單不變。`
+      : `考試名單會移除 ${whoText(d.exam)}（連同他的考科與 X／＋ 標示），他不排座；學生名單不變。`;
+  }
+  if (d.kind === 'only-in-roster') {
+    return choice === 'use-exam'
+      ? `學生名單會移除 ${whoText(d.roster)}；考試名單不變。`
+      : `考試名單會補上 ${whoText(d.roster)}，但沒有任何考科（要之後另行設定）；學生名單不變。`;
+  }
+  if (d.kind === 'group-diff') {
+    return choice === 'use-exam'
+      ? `學生名單的組別會改成考試名單的「${d.groups?.exam ?? ''}」；考試名單不變。`
+      : `考試名單的組別會改成學生名單的「${d.groups?.roster ?? ''}」，查得到該組別的考科時一併重設這位的考科，原本的 X／＋ 標示會丟掉。`;
+  }
+  return choice === 'use-exam'
+    ? `學生名單會改成考試名單的寫法（${whoText(d.exam)}）；考試名單不變。`
+    : `考試名單會改成學生名單的寫法（${whoText(d.roster)}），考科維持；學生名單不變。`;
+}

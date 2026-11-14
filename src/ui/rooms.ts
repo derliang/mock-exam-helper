@@ -103,7 +103,7 @@ export type SeatCheck = { level: 'block' | 'ok' | 'warn'; message: string };
 
 /** 狀態檢核（DESIGN 10.4）：少於考生＝擋下；多於考生＝允許並提示空位留在最後 */
 export function checkSeats(classSeats: number, students: number): SeatCheck {
-  if (students === 0) return { level: 'warn', message: '還沒有考生，請先建立學生名單。' };
+  if (students === 0) return { level: 'warn', message: '尚無本次考生資料，請先完成「② 考試名單」。' };
   if (classSeats < students) return { level: 'block', message: `座位 ${classSeats} 少於考生 ${students}，還差 ${students - classSeats} 個，不能排座。` };
   if (classSeats > students) return { level: 'ok', message: `座位 ${classSeats}、考生 ${students}：空位 ${classSeats - students} 個，會留在最後面（由前往後連續排，中間不空位）。` };
   return { level: 'ok', message: `座位 ${classSeats} 等於考生 ${students}，剛好。` };

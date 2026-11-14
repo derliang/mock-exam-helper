@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, Participation, RosterDiff, RosterDiffChoice } from '../../data';
 import { allResolved, applyDiffs, compareRosters, diffsStale, isResolved, readXlsx, refreshDiffs, validateResolved, type Sheet } from '../../import';
-import { Alert, Badge, Button, ClassChip, ConfirmButton, More, Seg, StatsBar, StepHead } from '../components';
+import { Alert, Badge, Button, ClassChip, ConfirmButton, More, PageHead, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
 import { addClass, diffOptions, rosterName, syncDiffs, updateExam, type Doc } from '../store';
+import { previewChoice } from '../step2';
 import { ImportWizard, scanOptionsFor } from './ImportWizard';
 
 /** 差異卡標題（稿 v2.34 H-6 的 7 種情形；「班級或座號不同」「姓名不同」由兩邊內容判斷） */
@@ -113,7 +114,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   if (entries && diffs.length > 0 && showCmp) {
     return (
       <section class="stack" style="max-width:860px">
-        <div class="card stephead"><div><h2>名單比對</h2><p class="small muted">② 考試名單：和共用學生名單逐筆比對。</p></div></div>
+        <PageHead crumbs={[{ label: `「${exam.name}」② 考試名單`, onClick: () => setShowCmp(false) }]} title="名單比對" badge={exam.name} />
         <div class="card stack">
           <p>匯入「{exam.name}」考試名單後，和共用學生名單比對，找到 <b>{diffs.length}</b> 筆差異；全部處理完才能繼續排座。</p>
           <More title="說明：每一筆怎麼處理">每一筆選一種處理方式（多數是：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯）。</More>
@@ -149,6 +150,13 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                   setChoice(d.code, v, v === 'manual' ? d.edited : undefined, v === 'remap-class' ? (d.targetClassNo ?? classes[0]?.no) : undefined);
                 }}
                 options={optionsOf(d).map((v) => ({ value: v, label: nc && v === 'add-class' ? `新增班級「${clsLabel(cno)}」` : nc && v === 'skip-class' ? `不匯入這班（${members.length} 人）` : CHOICE_TEXT[v] }))} />
+              {!nc && (
+                <ul class="hint diff-preview" aria-label="選擇後的結果預告" style="margin:0;padding-left:18px">
+                  {(['use-exam', 'use-roster'] as const).map((v) => (
+                    <li key={v}>{d.choice === v ? <b>{CHOICE_TEXT[v]}（已選）：</b> : <>{CHOICE_TEXT[v]}：</>}{previewChoice(d, v)}</li>
+                  ))}
+                </ul>
+              )}
               {nc && <More title="說明：新增班級會怎樣"><span class="hint">選「新增班級」會當場在班級資料多一班（名稱先用「{clsLabel(cno)}」，之後可到共用設定改），不用先離開去設定頁。</span></More>}
               {nc && d.choice === 'remap-class' && (
                 <div class="field"><label>這班的人改到哪一班
@@ -229,7 +237,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           <div class="row" style="gap:8px"><span class="label" style="margin:0">誰會參加</span>
             <Seg<Participation> label="參加模式" value={exam.participation}
               onChange={(v) => { const r = updateExam(doc, exam.id, { participation: v }); if (r.ok) p.onChange(syncDiffs(r.doc)); }}
-              options={[{ value: 'all', label: '全員參加' }, { value: 'partial', label: '部分參加' }]} />
+              options={[{ value: 'all', label: '全部學生參加' }, { value: 'partial', label: '只有部分學生參加' }]} />
           </div>
         </div>
         <p class="small muted">{exam.participation === 'partial'
