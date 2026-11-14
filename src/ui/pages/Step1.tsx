@@ -1,6 +1,6 @@
 import { useState } from 'preact/hooks';
 import type { ExamConfig, Semester, Subject } from '../../data';
-import { Alert, Badge, Button, ConfirmButton, Modal, Seg, StepHead } from '../components';
+import { Alert, Badge, Button, ConfirmButton, Modal, More, Seg, StepHead } from '../components';
 import { carryMode, carryRows, carrySource, resumeCarry, stopCarry } from '../carry';
 import { confirmCopy } from '../flow';
 import { updateExam, examLabel, KIND_LABEL, type Doc } from '../store';
@@ -58,9 +58,9 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             <span class="hint">第 1、2 次數學是單一科，第 3 次起分為數學A、數學B</span></div>
         )}
         {err && <Alert tone="danger">{err}</Alert>}
-      </div>
 
-      <div class="card stack">
+      {/* 稿 v2.31：三張卡合成一張卡，區塊內上下分區：基本資料（含次別）／考科表／沿用上次 */}
+      <div class="psec">
         <div class="row" style="justify-content:space-between">
           <div><h3>考科表</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除</p></div>
           {!fixed && (
@@ -90,10 +90,10 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             ))}
           </tbody>
         </table></div>
-        <p class="small muted">{fixed ? '會考每科都考，沒有選考。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</p>
+        <More title="說明：「誰要考」的意思">{fixed ? '會考每科都考，沒有選考。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</More>
       </div>
 
-      <div class="card stack">
+      <div class="psec">
         <div><h3>沿用上次的設定</h3><p class="small muted">新增時自動帶入，不用手動複製</p></div>
         {mode === 'off' && (
           <Alert tone="warn" action={prev && <Button small onClick={() => p.onChange(resumeCarry(doc, exam))}>恢復沿用</Button>}>
@@ -116,6 +116,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             </table></div>
           </>
         )}
+      </div>
       </div>
 
       {editing && <SubjectModal exam={exam} id={editing.id} onClose={() => setEditing(null)}

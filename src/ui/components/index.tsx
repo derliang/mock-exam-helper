@@ -344,3 +344,8 @@ export function FormatPick<T extends 'word' | 'pdf'>(p: { value: T; onChange: (v
 export function FormatButton(p: { kind: FormatKind; onClick: () => void; children: ComponentChildren }) {
   return <button type="button" class={`btn btn-fmt ${FMT_CLASS[p.kind]}`} onClick={p.onClick}><FormatIcon kind={p.kind} />{p.children}</button>;
 }
+
+/** 收合說明（稿 v2.31，DESIGN 10.12）：每個區塊只留一行說明，長說明收進這裡 */
+export function More(p: { title: string; children: ComponentChildren }) {
+  return <details class="more"><summary>{p.title}</summary><div>{p.children}</div></details>;
+}

@@ -35,11 +35,12 @@ export function PrepCard(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
           <div class="alert a-warn" role="status">
             <span aria-hidden="true">⚠</span>
             <div>
-              {warnings.slice(0, 3).map((w) => <div key={w}>{w}。</div>)}
-              {warnings.length > 3 && <div class="small muted">…共 {warnings.length} 項</div>}
-              這是為了讓同一個人每節都坐同一格，不影響下載。<span class="small muted">想要嚴格遞增，請改選「監考優先」。</span>
+              <b>同班座號沒有遞增（模式 ① 才會出現，學測）：</b>
+              {warnings.slice(0, 3).map((w) => <span key={w}>{w}。</span>)}
+              {warnings.length > 3 && <span class="small muted">…共 {warnings.length} 項。</span>}
+              這是為了讓同一個人每個時段都坐同一格，不影響下載。<span class="small muted">想要同班座號一定遞增，請改用模式 ②（監考優先）；改了之後同一個人不保證每個時段坐同一格。</span>
             </div>
-            <button type="button" class="btn btn-sm" onClick={() => set('proctor')}>改成監考優先</button>
+            <button type="button" class="btn btn-sm" onClick={() => set('proctor')}>改用模式 ②</button>
           </div>
         )}
       </div>
@@ -47,9 +48,9 @@ export function PrepCard(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
         <div class="stack">
           <div><h4 class="sh">合併標籤（範例）</h4><p class="small muted">預備教室每個座位一張。同一個座位在不同節由不同人使用時，各節列在同一張，只貼一次；每節一行、同字級，印「節次＋科目＋班座號」，不印時間。抽離自習不排座位、不印標籤，只出名單。</p></div>
           <div class="plbls">
-            <div class="plbl"><div class="plh"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第 5 節</small><span>歷史　勤 07</span></div></div>
-            <div class="plbl"><div class="plh"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第 1 節</small><span>物理　勇 12</span></div><div class="pl"><small>第 7 節</small><span>數乙　勇 12</span></div></div>
-            <div class="plbl"><div class="plh"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第 2 節</small><span>化學　誠 03</span></div><div class="pl"><small>第 6 節</small><span>地理　勤 21</span></div></div>
+            <div class="plbl"><div class="plh"><span>備一</span><span>座位 1-1</span></div><div class="pl"><small>第二天 時段一</small><span>歷史　勤 07</span></div></div>
+            <div class="plbl"><div class="plh"><span>備一</span><span>座位 1-2</span></div><div class="pl"><small>第一天 時段一</small><span>物理　勇 12</span></div><div class="pl"><small>第二天 時段三</small><span>數乙　勇 12</span></div></div>
+            <div class="plbl"><div class="plh"><span>備一</span><span>座位 2-1</span></div><div class="pl"><small>第一天 時段二</small><span>化學　誠 03</span></div><div class="pl"><small>第二天 時段二</small><span>地理　勤 21</span></div></div>
           </div>
           <p class="small muted">第 2 張：同一個人（勇班 12 號）跨節坐同一格。第 3 張：兩個不同的人共用同一格。</p>
         </div>
