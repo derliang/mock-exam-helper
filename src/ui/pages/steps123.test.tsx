@@ -44,7 +44,7 @@ describe('步驟① 考科表與誰要考', () => {
   it('頁面：卡片、誰要考欄、學期下拉、次別 5 以上仍有選中項、參加方式不在這步', () => {
     const { doc, second } = twoGsat();
     const html = renderToString(<Step1 doc={doc} exam={second} onChange={noop} />);
-    for (const t of ['考科表', '誰要考', '依組別代碼決定', '每位考生都考', '新增考科', '沿用上次的設定', '不沿用，從空白開始', '已自動帶入「<b>學測第一次</b>」', 'termcards']) expect(html).toContain(t);
+    for (const t of ['本次考科', '誰要考', '依組別代碼決定', '每位考生都考', '新增考科', '沿用上次的設定', '不沿用，從空白開始', '已自動帶入「<b>學測第一次</b>」', 'termcards']) expect(html).toContain(t);
     expect(html).not.toContain('全部學生參加');
     expect(html).not.toContain('還原預設'); // 還沒自訂才不出現
     const fifth = { ...second, round: 5 };

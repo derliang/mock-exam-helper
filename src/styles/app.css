@@ -956,3 +956,10 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 .ut td button[data-lock]::after{content:"鎖";position:absolute;top:2px;right:2px;background:var(--surface);color:var(--text);border:1px solid var(--text);font-size:10px;font-weight:700;line-height:1;padding:1px 3px;border-radius:3px}
 .mgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
 .mcard{min-width:0}
+@media (max-width:560px){.seg.cmpseg{display:flex;flex-direction:column;width:100%}.seg.cmpseg button{text-align:left;border-top:1px solid var(--line-2)}.seg.cmpseg button:first-child{border-top:0}}
+/* A-1：有左側步驟條時（約 761～1100px）中欄不夠寬，摘要列逐項也用窄版兩欄，說明文字不被擠成細欄 */
+@media (max-width:1100px){.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
+/* A-11：手機寬度頁尾維持橫排換行（名稱、版本、版權同一行，隱私權換下一行），不再四項各一行 */
+@media (max-width:560px){.pfoot{flex-direction:row;gap:2px 10px}}
+/* A-6：手機寬度考科表改成卡片式列（科目＋誰要考在左、編輯／刪除在右），編輯鈕不被擠到畫面外 */
+@media (max-width:560px){.subj-t,.subj-t tbody{display:block}.subj-t thead{display:none}.subj-t tr{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 8px;align-items:center;padding:8px 0;border-bottom:1px solid var(--line)}.subj-t td{border:0;padding:2px 0}.subj-t td:nth-child(2){grid-column:1;grid-row:2;color:var(--text-2);font-size:14px}.subj-t td:nth-child(3){grid-column:2;grid-row:1/3}}
