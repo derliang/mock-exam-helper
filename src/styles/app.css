@@ -954,3 +954,5 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 .lkm{position:absolute;top:1px;right:1px;background:var(--text);color:var(--surface);font-size:10px;font-weight:700;line-height:1;padding:2px 3px;border-radius:3px}
 .ut td button[data-lock]{position:relative}
 .ut td button[data-lock]::after{content:"鎖";position:absolute;top:2px;right:2px;background:var(--surface);color:var(--text);border:1px solid var(--text);font-size:10px;font-weight:700;line-height:1;padding:1px 3px;border-radius:3px}
+.mgrid{grid-template-columns:repeat(auto-fit,minmax(min(100%,280px),1fr))}
+.mcard{min-width:0}
