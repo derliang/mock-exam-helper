@@ -143,7 +143,14 @@ describe('分科輸出：擋下與畫面', () => {
   });
   it('⑥ 畫面：可以下載時出現五個項目與驗證通過；不能時顯示擋下原因', () => {
     const { doc, exam } = fixture();
-    const html = renderToString(<AstStep6 doc={doc} exam={exam} onGoStep={noop} />);
+    // AST-3：規劃中只能預覽、不能下載（D101②）；定案後才通過
+    const draft = renderToString(<AstStep6 doc={doc} exam={exam} onGoStep={noop} />);
+    expect(draft).toContain('規劃中：只能預覽，不能下載正式檔');
+    expect(draft).toMatch(/<button[^>]*btn-lg[^>]*disabled/);
+    const fin = updateExam(doc, exam.id, { astPhase: 'final' });
+    if (!fin.ok) throw new Error();
+    const html = renderToString(<AstStep6 doc={fin.doc} exam={fin.doc.exams.find((x) => x.id === exam.id)!} onGoStep={noop} />);
+    expect(html).not.toMatch(/<button[^>]*btn-lg[^>]*disabled/);
     for (const t of ['整合標籤', '班級公告', '每節教室用途表', '每科試務清冊', '自習教室名單與布置標籤工作表', '方案通過驗證']) expect(html).toContain(t);
     const u = updateExam(doc, exam.id, { classroomIds: [] });
     if (!u.ok) throw new Error();

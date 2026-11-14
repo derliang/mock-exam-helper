@@ -7,12 +7,14 @@ import { AST_STEP_BLURBS } from '../nav';
 import { normColor } from '../colors';
 import { updateExam, type Doc } from '../store';
 import { examEntries } from '../seating';
+import { PhaseCard, PhaseGuard } from './AstRelease';
+import { LockCard, seatLockOf, toggleSeatLock } from './AstLocks';
 import { astModeOf, astPlan, awayStudy, astSlots, MODE_LABEL, slotRoster, usageCell, withApproval, withoutApproval, type AstPlan, type AstSlot } from './model';
 
 const KIND_TEXT: Record<string, string> = { exam: '考', study: '自習', borrow: '借用自習', pending: '待核可', home: '原班', none: '—' };
 
 /** 考場座位圖（深位 1 靠講臺在下，排由左到右）；格子沿用班級色，停用／沒有的座位畫斜線 */
-function RoomChart(p: { doc: Doc; plan: AstPlan; slot: AstSlot; roomId: string; roomName: string; room: Classroom | undefined; only: number }) {
+function RoomChart(p: { doc: Doc; plan: AstPlan; slot: AstSlot; roomId: string; roomName: string; room: Classroom | undefined; only: number; lockMode?: boolean; locked?: ReadonlySet<string>; onSeat?: (code: string, row: number, depth: number) => void }) {
   const { room } = p;
   const cols = room ? room.rows : 0;
   if (!room || cols === 0) return <p class="small muted">找不到這間教室的座位資料。</p>;
@@ -34,10 +36,14 @@ function RoomChart(p: { doc: Doc; plan: AstPlan; slot: AstSlot; roomId: string; 
       const s = student.get(e.code);
       const cls = classes.get(Number(e.code.slice(0, 2)));
       const dim = p.only > 0 && Number(e.code.slice(0, 2)) !== p.only;
+      const lk = p.locked?.has(e.code) ?? false;
+      const act = p.lockMode && p.onSeat ? { role: 'button' as const, tabIndex: 0, onClick: () => p.onSeat!(e.code, c, d), onKeyDown: (ev: KeyboardEvent) => { if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); p.onSeat!(e.code, c, d); } } } : {};
       cells.push(
-        <div key={key} class={`cell${dim ? ' dim' : ''}`} data-c={cls ? normColor(cls.colorIndex) : 1} aria-label={`${e.code} ${cls?.name ?? ''} ${s?.name ?? ''}，座位 ${key}`}>
+        <div key={key} class={`cell${dim ? ' dim' : ''}${lk ? ' locked' : ''}${p.lockMode ? ' lockable' : ''}`} data-c={cls ? normColor(cls.colorIndex) : 1}
+          aria-label={`${e.code} ${cls?.name ?? ''} ${s?.name ?? ''}，座位 ${key}${p.lockMode ? (lk ? '，已鎖定，點一下解除' : '，點一下鎖定') : lk ? '，已鎖定' : ''}`} {...(p.lockMode ? { 'aria-pressed': lk } : {})} {...act}>
           <span class="co">{key}</span><span class="no">{e.code}</span>
           <span class="meta"><span class="tg">{cls?.name ?? ''}</span>{s?.name ?? ''}</span>
+          {lk && <span class="lkm">鎖</span>}
         </div>,
       );
     }
@@ -65,6 +71,7 @@ export function AstStep5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
   const plan = astPlan(doc, exam);
   const [sel, setSel] = useState<{ slot: number; room?: string }>({ slot: 0 });
   const [only, setOnly] = useState(0);
+  const [lockMode, setLockMode] = useState(false);
 
   if (examEntries(doc, exam).length === 0) {
     return (
@@ -100,6 +107,7 @@ export function AstStep5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
   const studyTotal = awayStudy(plan, slot.id).length + (plan.out.unplaced?.filter((u) => u.slotId === slot.id).length ?? 0);
   const patchApprovals = (a: { slotId: string; roomId: string }[]) => { const r = updateExam(doc, exam.id, { astApprovals: a }); if (r.ok) p.onChange(r.doc); };
   const slotOf = (id: string) => slots.find((s) => s.id === id);
+  const lockedUse = new Set((exam.astLocks?.rooms ?? []).map((l) => `${l.slotId}|${l.roomId}`));
 
   // 硬性限制檢查（DESIGN 10.14）：由方案輸出直接數，不通過就不輸出看似成功的結果
   let seatOver = 0; let capOver = 0; let both = 0;
@@ -122,6 +130,8 @@ export function AstStep5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
   return (
     <section class="stack">
       <StepHead title="⑤ 時段教室與座位" blurb={AST_STEP_BLURBS[4]} />
+      <PhaseCard doc={doc} exam={exam} onChange={p.onChange} />
+      <PhaseGuard exam={exam}>
 
       <div class="card stack">
         <div><h3>各時段教室用途</h3><p class="small muted">每一格是一間教室在那個時段的用途。點一格看那個時段的考場與座位圖；點上面的時段看整個時段。</p></div>
@@ -146,7 +156,7 @@ export function AstStep5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
                     const cls = c.kind === 'exam' ? 'u-ex' : c.kind === 'study' ? 'u-st' : c.kind === 'borrow' ? 'u-bor' : c.kind === 'pending' ? 'u-pend' : c.kind === 'home' ? 'u-home' : '';
                     return (
                       <td class={cls} key={s.id}>
-                        <button type="button" aria-pressed={sel.slot === i && roomId === r.id} aria-label={`${roomName(r.id)}，${s.label} ${s.subjectLabel}：${KIND_TEXT[c.kind]}${c.count ? ` ${c.count} 人` : ''}`}
+                        <button type="button" aria-pressed={sel.slot === i && roomId === r.id} {...(lockedUse.has(`${s.id}|${r.id}`) ? { 'data-lock': '1' } : {})} aria-label={`${roomName(r.id)}，${s.label} ${s.subjectLabel}：${KIND_TEXT[c.kind]}${c.count ? ` ${c.count} 人` : ''}${lockedUse.has(`${s.id}|${r.id}`) ? '，已鎖定' : ''}`}
                           onClick={() => setSel({ slot: i, ...(c.kind === 'exam' ? { room: r.id } : {}) })}>
                           <span>{c.kind === 'exam' ? `考 ${c.subjectLabel}` : KIND_TEXT[c.kind]}</span>{c.count > 0 && <b>{c.kind === 'pending' ? `+${c.count}` : c.count}</b>}
                         </button>
@@ -230,7 +240,8 @@ export function AstStep5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
                 <button type="button" key={c} aria-pressed={only === c} onClick={() => setOnly(c)}>只看{classes.get(c) ?? c}</button>
               ))}
             </div>
-            <RoomChart doc={doc} plan={plan} slot={slot} roomId={roomId} roomName={roomName(roomId)} room={roomData.get(roomId)} only={only} />
+            <RoomChart doc={doc} plan={plan} slot={slot} roomId={roomId} roomName={roomName(roomId)} room={roomData.get(roomId)} only={only} lockMode={lockMode} locked={seatLockOf(exam, slot.id, roomId)}
+              onSeat={(code, row, depth) => { const r = updateExam(doc, exam.id, { astLocks: toggleSeatLock(exam, { slotId: slot.id, code, roomId, row, depth }) }); if (r.ok) p.onChange(r.doc); }} />
           </>
         )}
         {!roomId && <p class="small muted">這個時段沒有考場。</p>}
@@ -248,6 +259,9 @@ export function AstStep5(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
         {check(plan.errors.length === 0, '全量規則驗證（座號依序、同排同班、文理組、混科分區…）', plan.errors.length ? `${plan.errors.length} 項不通過` : '全部通過')}
         {plan.errors.length > 0 && <ul class="small errnote">{plan.errors.slice(0, 8).map((e) => <li key={e}>{e}</li>)}{plan.errors.length > 8 && <li>…另有 {plan.errors.length - 8} 項</li>}</ul>}
       </div>
+
+      <LockCard doc={doc} exam={exam} plan={plan} slot={slot} roomId={roomId} roomName={roomName} classes={classes} lockMode={lockMode} onLockMode={setLockMode} onChange={p.onChange} frozen={exam.astPhase !== undefined && exam.astPhase !== 'planning'} />
+      </PhaseGuard>
     </section>
   );
 }

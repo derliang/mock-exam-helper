@@ -6,6 +6,8 @@ import { AST_STEP_BLURBS } from '../nav';
 import { addRoom, newClassRoomIds, patchRoom, seatCap, seatLimits } from '../rooms';
 import { setClassTrack, updateExam, type Doc } from '../store';
 import { classColorVars } from '../colors';
+import { PhaseGuard } from './AstRelease';
+import { LeaveCard } from './AstLeave';
 import { astCapacity, astModeOf, astPlan, MODE_LABEL } from './model';
 import { isSeatOff, resetStudyCapacity, rowDepthsOf, stepRowDepth, stepStudyCapacity, studyAdjust, toggleSeat } from './roomEdit';
 
@@ -130,6 +132,7 @@ export function AstStep3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
   return (
     <section class="stack">
       <StepHead title="③ 教室與自習空間" blurb={AST_STEP_BLURBS[2]} />
+      <PhaseGuard exam={exam}>
 
       <div class="card stack">
         <div>
@@ -213,6 +216,8 @@ export function AstStep3(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => 
           {classRooms.length === 0 && <p class="small muted">高中部還沒有班級教室，請到共用設定新增。</p>}
         </div>
       </div>
+      </PhaseGuard>
+      <LeaveCard doc={doc} exam={exam} onChange={p.onChange} />
     </section>
   );
 }
