@@ -17,8 +17,27 @@ export function seatLabel(pos: SeatPos): string {
   return `${pos.row}-${pos.depth}`;
 }
 
-/** 教室設定是否合法：整數、座位數 1..rows*depth（D72：空位只在最後） */
+/**
+ * 第 row 排（1 起）有幾個深位（D99 第三輪第 2 點：每排深位數可不同）。
+ * 沒設 `rowDepths`（舊資料）或該排沒寫＝`depth`；超過 `depth` 的值以 `depth` 為上限（depth 是最大深位數）。
+ */
+export function rowDepthOf(c: Pick<Classroom, 'depth' | 'rowDepths'>, row: number): number {
+  const d = c.rowDepths?.[row - 1];
+  return d === undefined ? c.depth : Math.max(0, Math.min(c.depth, d));
+}
+
+/** 座位圖上實際存在的座位格數（含停用的）：每排深位數加總；舊資料＝rows*depth */
+export function seatSlotCount(c: Pick<Classroom, 'rows' | 'depth' | 'rowDepths'>): number {
+  let n = 0;
+  for (let row = 1; row <= c.rows; row++) n += rowDepthOf(c, row);
+  return n;
+}
+
+/** 教室設定是否合法：整數、座位數 1..座位格數（D72：空位只在最後）；rowDepths 若有，長度須等於 rows、每排 1..depth */
 export function isValidClassroom(c: Classroom): boolean {
+  const rowsOk =
+    c.rowDepths === undefined ||
+    (c.rowDepths.length === c.rows && c.rowDepths.every((d) => Number.isInteger(d) && d >= 1 && d <= c.depth));
   return (
     Number.isInteger(c.rows) &&
     Number.isInteger(c.depth) &&
@@ -26,16 +45,19 @@ export function isValidClassroom(c: Classroom): boolean {
     c.rows >= 1 &&
     c.depth >= 1 &&
     c.seatCount >= 1 &&
-    c.seatCount <= c.rows * c.depth
+    rowsOk &&
+    c.seatCount <= seatSlotCount(c) &&
+    (c.studyCapacity === undefined || (Number.isInteger(c.studyCapacity) && c.studyCapacity >= 0))
   );
 }
 
-/** 依序列出可用座位：第 1 排深位 1→depth，再第 2 排…，跳過使用者指定不排的座位，取前 seatCount 個 */
+/** 依序列出可用座位：第 1 排深位 1→該排深位數，再第 2 排…，跳過使用者指定不排的座位，取前 seatCount 個 */
 export function classroomSeats(c: Classroom): SeatPos[] {
   const seats: SeatPos[] = [];
   const off = new Set(c.disabled ?? []);
   for (let row = 1; row <= c.rows; row++) {
-    for (let depth = 1; depth <= c.depth; depth++) {
+    const depthN = rowDepthOf(c, row);
+    for (let depth = 1; depth <= depthN; depth++) {
       if (seats.length >= c.seatCount) return seats;
       if (off.has(`${row}-${depth}`)) continue;
       seats.push({ row, depth });
@@ -44,9 +66,17 @@ export function classroomSeats(c: Classroom): SeatPos[] {
   return seats;
 }
 
-/** 不排的座位數 */
+/** 不排的座位數（座位格裡沒排的；每排深位數不同時，不存在的深位不算） */
 export function emptySeatCount(c: Classroom): number {
-  return c.rows * c.depth - c.seatCount;
+  return seatSlotCount(c) - c.seatCount;
+}
+
+/**
+ * 自習容量（D99 第一輪第 7 點）：沒設＝可用座位數（seatCount）。管理者可手動調高或調低；程式不得自行調大，
+ * 所以這裡只讀、不改寫存檔。
+ */
+export function studyCapacityOf(c: Pick<Classroom, 'seatCount' | 'studyCapacity'>): number {
+  return c.studyCapacity ?? c.seatCount;
 }
 
 /** 推斷教室部別要看的既有資訊：班級資料（名稱對得上哪個部別）與各次考試選用了哪些教室 */

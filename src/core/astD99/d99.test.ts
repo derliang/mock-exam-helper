@@ -1,18 +1,18 @@
 /**
  * 分科座位新模型驗收測試（D99；規格案例 T-01～T-14、T-21～T-23）。全部匿名假資料。
  *
- * 狀態：排座引擎尚未重寫（docs/todo.md「D99 新模型待辦」）。
- * - 「驗證器」區（checkPlan、labelsOf）已經是真的程式，用手工組出的方案實測，現在就綠。
- * - 「引擎」區用 it.fails 標記：斷言是真的，引擎接上（設 PLANNER）後會轉成「it.fails 意外通過」報錯，
- *   提醒把 it.fails 改成 it。T-02 依 D99 第三輪改寫（平均分配取代 40＋2）。
- * - 少移動優先模式的案例只有 it.todo：該模式的細節要等引擎設計。
+ * 狀態：引擎已接上（engine.ts planD99，AST-1）；原本 16 個 it.fails 全部改回 it。T-02 依 D99 第三輪改寫（平均分配取代 40＋2）。
+ * - 「驗證器」區（checkPlan、labelsOf）用手工組出的方案實測。
+ * - AST-1 調整了三處測試資料（斷言一字未改），原因是原資料在 D99 規則下不可能有合規方案或不會出現題目描述的情境，
+ *   細節見 docs/dispatch/完工-AST-1.md〈測試資料調整〉：驗證器 T-11、引擎 T-02、引擎 T-13。
  */
 import { describe, expect, it } from 'vitest';
 import { checkPlan, codeOf, labelsOf, type PlanInput, type PlanOutput, type Planner } from './contract';
 import { classRoom, grid, makeClass, makeStudents, reserveRoom } from './fixtures';
+import { planD99 } from './engine';
 
 /** 引擎接上後把這裡換成真的函式，並把下面的 it.fails 改回 it */
-const PLANNER: Planner | undefined = undefined as Planner | undefined;
+const PLANNER: Planner | undefined = planD99;
 const plan = (input: PlanInput): PlanOutput => {
   if (!PLANNER) throw new Error('D99 排座引擎尚未實作');
   return PLANNER(input);
@@ -71,7 +71,8 @@ describe('D99 驗證器：硬性限制（T-22、T-23、T-11 的判定邏輯）',
     expect(checkPlan(input, { ...good, study: [] }).length).toBeGreaterThan(0);
   });
   it('T-11：同一座位不同節換人不算衝突，整合標籤一座位一張並列出各節考生', () => {
-    const shared: PlanInput = { ...input, rooms: [classRoom(1, grid(1, 2)), classRoom(2, grid(1, 2))] };
+    // 第二節 0101 在 C2（他班原班）自習：AST-1 補上「他班原班自習須許可」的檢查後，這個手工方案要開許可才合規
+    const shared: PlanInput = { ...input, allowOtherClassStudy: true, rooms: [classRoom(1, grid(1, 2)), classRoom(2, grid(1, 2))] };
     const out: PlanOutput = {
       ...good,
       exams: [
@@ -92,10 +93,10 @@ describe('D99 驗證器：硬性限制（T-22、T-23、T-11 的判定邏輯）',
 });
 
 // ───────────────────────── 引擎（待實作）─────────────────────────
-describe('D99 引擎驗收（尚未實作：it.fails）', () => {
+describe('D99 引擎驗收', () => {
   const rooms3 = [classRoom(1), classRoom(2), classRoom(3)];
 
-  it.fails('T-01：三班共 150 人、物理 40 人、單室足夠 → 集中成一間考場，不徵用全部三間原班', () => {
+  it('T-01：三班共 150 人、物理 40 人、單室足夠 → 集中成一間考場，不徵用全部三間原班', () => {
     // 預備教室 60 座；物理 14＋13＋13＝40 人
     const students = [
       ...makeClass(1, 50, (n) => (n <= 14 ? PHY : {})),
@@ -108,9 +109,11 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     expect(examRooms(out, 's1')).toHaveLength(1);
   });
 
-  it.fails('T-02（D99 改寫）：同科 42 人、常規教室 40 座 → 兩間考場人數盡量平均、以整班為單位，不出現 40＋2', () => {
+  it('T-02（D99 改寫）：同科 42 人、常規教室 40 座 → 兩間考場人數盡量平均、以整班為單位，不出現 40＋2', () => {
     const students = [...makeClass(1, 40, (n) => (n <= 21 ? PHY : {})), ...makeClass(2, 40, (n) => (n <= 21 ? PHY : {})), ...makeClass(3, 40)];
-    const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(5, 8)), classRoom(2, grid(5, 8)), classRoom(3, grid(5, 8)), reserveRoom('R1', grid(5, 6))], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
+    // 資料調整（AST-1）：綜合教室自習容量 30→40（管理者手動調高）。原資料任選兩間考場時，被抽離的不考者都多於可去的自習容量，
+    // 在「自習預設只送綜合教室」下沒有任何合規方案；調高後才有「兩間考場」的合規解
+    const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(5, 8)), classRoom(2, grid(5, 8)), classRoom(3, grid(5, 8)), reserveRoom('R1', grid(5, 6), 40)], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
     const out = plan(input);
     expect(checkPlan(input, out)).toEqual([]);
     const sizes = examRooms(out, 's1').map((r) => out.exams.filter((e) => e.roomId === r).length);
@@ -122,9 +125,27 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
       expect(where.size).toBe(1);
     }
   });
-  it.todo('T-02（少移動優先）：同一資料在少移動優先下，離開原班人次最少者優先，平均分配排在其後（D99 第三輪第 1 點）');
+  it('T-02（少移動優先）：同一資料在兩種模式結果不同——少移動優先以離開原班人次為先，平均分配排在其後（D99 第三輪第 1 點）', () => {
+    // 甲班 40 人中 30 人考物理、乙班 40 人中 12 人考；42 人放不進一間 40 座，至少兩間考場
+    const students = [...makeClass(1, 40, (n) => (n <= 30 ? PHY : {})), ...makeClass(2, 40, (n) => (n <= 12 ? PHY : {}))];
+    const rooms = [classRoom(1, grid(5, 8)), classRoom(2, grid(5, 8)), reserveRoom('R1', grid(5, 6)), reserveRoom('R2', grid(5, 8))];
+    const base = { rooms, slots: [{ id: 's1', subjectIds: ['phy'] }], students };
+    const few = plan({ ...base, mode: 'fewest-rooms' });
+    const least = plan({ ...base, mode: 'least-movement' });
+    expect(checkPlan({ ...base, mode: 'fewest-rooms' }, few)).toEqual([]);
+    expect(checkPlan({ ...base, mode: 'least-movement' }, least)).toEqual([]);
+    // 少教室優先：兩間綜合教室當考場，沒有人被抽離，教室總數 2
+    expect(few.metrics?.roomsTotal).toBe(2);
+    expect(few.metrics?.displaced).toBe(0);
+    // 少移動優先：甲班 30 人留在原班考，離開原班人次較少，但教室多一間
+    expect(least.metrics!.leaveHome).toBeLessThan(few.metrics!.leaveHome);
+    expect(least.exams.filter((e) => e.code.startsWith('01')).every((e) => e.roomId === 'C1')).toBe(true);
+    expect(least.metrics!.roomsTotal).toBeGreaterThan(few.metrics!.roomsTotal);
+    // 平均排在離開原班之後：整班為單位 30 對 12，不為了平均拆班或把甲班移出原班
+    expect(least.metrics!.balanceGap).toBe(18);
+  });
 
-  it.fails('T-03：同科含文理跨組加考者 → 所有實際選考者都有位置', () => {
+  it('T-03：同科含文理跨組加考者 → 所有實際選考者都有位置', () => {
     const students = [
       ...makeClass(1, 30, (n) => ({ s1: 'phy', ...(n <= 3 ? { s2: 'his' } : {}) })), // 理組班，前 3 人加考歷史
       ...makeClass(2, 30, (n) => ({ s2: n <= 25 ? 'his' : 'geo' })),
@@ -135,7 +156,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     expect(out.exams.filter((e) => e.slotId === 's2')).toHaveLength(30 + 3);
   });
 
-  it.fails('T-04：一班多數考、一班少數考 → 以整體成本決定誰留原班；少數者集中，多數留原班的班不被徵用', () => {
+  it('T-04：一班多數考、一班少數考 → 以整體成本決定誰留原班；少數者集中，多數留原班的班不被徵用', () => {
     // 甲班 36 人中 30 人考化學；乙班 36 人中 4 人考化學。只需一間考場
     const students = [...makeClass(1, 36, (n) => (n <= 30 ? { s1: 'chem' } : {})), ...makeClass(2, 36, (n) => (n <= 4 ? { s1: 'chem' } : {}))];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(6, 7)), classRoom(2, grid(6, 7)), reserveRoom('R1', grid(6, 7))], slots: [{ id: 's1', subjectIds: ['chem'] }], students };
@@ -148,7 +169,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     }
   });
 
-  it.fails('T-05：同班選考座號 01、03、08、12、15、22、35 → 座位依選考者座號排序，不要求連號', () => {
+  it('T-05：同班選考座號 01、03、08、12、15、22、35 → 座位依選考者座號排序，不要求連號', () => {
     const students = [...makeStudents(1, [1, 3, 8, 12, 15, 22, 35], PHY), ...makeClass(1, 40).filter((s) => ![1, 3, 8, 12, 15, 22, 35].includes(s.seatNo))];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1), reserveRoom('R1', grid(7, 7))], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
     const out = plan(input);
@@ -157,7 +178,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     expect(ordered).toEqual(['0101', '0103', '0108', '0112', '0115', '0122', '0135']);
   });
 
-  it.fails('T-06：不規則座位圖（有排只有 5 位、有停用座位）→ 不假設一排 7 位，不排在不存在的座位', () => {
+  it('T-06：不規則座位圖（有排只有 5 位、有停用座位）→ 不假設一排 7 位，不排在不存在的座位', () => {
     const irregular = grid(4, 7).filter((s) => !(s.row === 2 && s.depth > 5) && !(s.row === 3 && s.depth === 4));
     const students = makeClass(1, 20, () => PHY);
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, irregular)], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
@@ -166,7 +187,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     expect(out.exams).toHaveLength(20);
   });
 
-  it.fails('T-07：同排班級不足排滿 → 另一班以連續區段接續，不逐身位交錯', () => {
+  it('T-07：同排班級不足排滿 → 另一班以連續區段接續，不逐身位交錯', () => {
     // 一排 7 位：甲班 9 人、乙班 5 人，同一間考場
     const students = [...makeClass(1, 9, () => PHY), ...makeClass(2, 5, () => PHY)];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(2, 7))], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
@@ -179,7 +200,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     }
   });
 
-  it.fails('T-08：兩科同時段、座位充足 → 不同科分排（同排不混科），容許留空', () => {
+  it('T-08：兩科同時段、座位充足 → 不同科分排（同排不混科），容許留空', () => {
     const students = [...makeClass(1, 20, () => ({ s1: 'phy' })), ...makeClass(2, 20, () => ({ s1: 'his' }))];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(6, 7)), classRoom(2), reserveRoom('R1', grid(7, 7))], slots: [{ id: 's1', subjectIds: ['phy', 'his'] }], students };
     const out = plan(input);
@@ -190,7 +211,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     for (const subs of byRow.values()) expect(subs.size).toBe(1);
   });
 
-  it.fails('T-09：兩科同時段、分排就必須增開一室 → 同排連續分區，標出混科的排', () => {
+  it('T-09：兩科同時段、分排就必須增開一室 → 同排連續分區，標出混科的排', () => {
     // 只有一間 4 排×5 位的教室：12 人＋8 人，分排需 3＋2＝5 排 > 4 排
     const students = [...makeClass(1, 12, () => ({ s1: 'phy' })), ...makeClass(2, 8, () => ({ s1: 'his' }))];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(4, 5)), classRoom(2, grid(1, 1))], slots: [{ id: 's1', subjectIds: ['phy', 'his'] }], students };
@@ -204,7 +225,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     }
   });
 
-  it.fails('T-10：一名考生三節都在綜合教室 → 盡量同座位', () => {
+  it('T-10：一名考生三節都在綜合教室 → 盡量同座位', () => {
     const takes = { s1: 'phy', s2: 'chem', s3: 'bio' };
     const students = [...makeStudents(1, [5], takes), ...makeClass(1, 10).filter((s) => s.seatNo !== 5)];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(1, 3)), reserveRoom('R1', grid(2, 5))], slots: ['s1', 's2', 's3'].map((id, i) => ({ id, subjectIds: [['phy', 'chem', 'bio'][i]!] })), students };
@@ -213,9 +234,29 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     const seats = new Set(out.exams.filter((e) => e.code === '0105').map((e) => `${e.roomId}:${e.row}-${e.depth}`));
     expect(seats.size).toBe(1);
   });
-  it.todo('T-10（衝突時）：跨科同座位與座號依序／試務安全衝突時，後者優先（要等引擎有座號依序規則後構造衝突資料）');
+  it('T-10（衝突時）：跨科同座位與座號依序衝突時，座號依序優先', () => {
+    // 0105 第一節獨自考物理坐 1-1；第二節化學與 0101、0102 同場，座號依序他應坐在兩人之後，不能為了同座位插到最前面
+    const students = [
+      ...makeStudents(1, [1, 2], { s2: 'chem' }),
+      ...makeStudents(1, [3, 4], {}),
+      ...makeStudents(1, [5], { s1: 'phy', s2: 'chem' }),
+    ];
+    const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(1, 5)), reserveRoom('R1', grid(1, 3))], slots: [{ id: 's1', subjectIds: ['phy'] }, { id: 's2', subjectIds: ['chem'] }], students };
+    const out = plan(input);
+    expect(checkPlan(input, out)).toEqual([]);
+    const s2 = out.exams.filter((e) => e.slotId === 's2').sort((a, b) => a.row - b.row || a.depth - b.depth).map((e) => e.code);
+    expect(s2).toEqual(['0101', '0102', '0105']);
+  });
+  it('T-10（不衝突時）：同一考場後一節人少、原座位空著 → 移回同一座位（不改變排內順序）', () => {
+    const students = [...makeStudents(1, [1, 2], { s1: 'phy' }), ...makeStudents(1, [5], { s1: 'phy', s2: 'chem' }), ...makeStudents(1, [3, 4], {})];
+    const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(1, 5)), reserveRoom('R1', grid(1, 3))], slots: [{ id: 's1', subjectIds: ['phy'] }, { id: 's2', subjectIds: ['chem'] }], students };
+    const out = plan(input);
+    expect(checkPlan(input, out)).toEqual([]);
+    const seats = new Set(out.exams.filter((e) => e.code === '0105').map((e) => `${e.roomId}:${e.row}-${e.depth}`));
+    expect(seats.size).toBe(1);
+  });
 
-  it.fails('T-11（引擎）：同一座位不同節換人 → 無衝突，每個座位只需一張整合標籤', () => {
+  it('T-11（引擎）：同一座位不同節換人 → 無衝突，每個座位只需一張整合標籤', () => {
     const students = [...makeClass(1, 10, (n) => (n <= 5 ? { s1: 'phy' } : { s2: 'his' }))];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(2, 5)), reserveRoom('R1', grid(2, 5))], slots: [{ id: 's1', subjectIds: ['phy'] }, { id: 's2', subjectIds: ['his'] }], students };
     const out = plan(input);
@@ -223,7 +264,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     expect(labelsOf(out).size).toBeLessThanOrEqual(5);
   });
 
-  it.fails('T-12：被徵用原班的部分學生不考 → 只分配自習教室、不分配座位，且容量合規', () => {
+  it('T-12：被徵用原班的部分學生不考 → 只分配自習教室、不分配座位，且容量合規', () => {
     const students = makeClass(1, 30, (n) => (n <= 20 ? PHY : {}));
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(5, 6)), reserveRoom('R1', grid(5, 6))], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
     const out = plan(input);
@@ -232,10 +273,12 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     expect(out.exams.every((e) => out.study.every((s) => s.code !== e.code))).toBe(true);
   });
 
-  it.fails('T-13：綜合教室自習容量不足 → 不靜默超收，提出「改用某班原班教室」待核准的替代方案', () => {
-    const students = [...makeClass(1, 30, (n) => (n <= 5 ? PHY : {})), ...makeClass(2, 30)];
-    // 甲班被徵用為考場，25 位不考者要去綜合教室，但綜合教室自習容量只有 10
-    const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(5, 6)), classRoom(2, grid(5, 6)), reserveRoom('R1', grid(2, 5), 10)], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
+  it('T-13：綜合教室自習容量不足 → 不靜默超收，提出「改用某班原班教室」待核准的替代方案', () => {
+    // 資料調整（AST-1）：物理 5→15 人、乙班教室 30→49 座。原資料 5 人放得進 10 座的綜合教室，少教室優先會直接用綜合教室當考場、
+    // 沒人被抽離，題目情境不會出現；乙班原班坐滿 30 人時也沒有空位可提替代方案
+    const students = [...makeClass(1, 30, (n) => (n <= 15 ? PHY : {})), ...makeClass(2, 30)];
+    // 甲班被徵用為考場，15 位不考者要去綜合教室，但綜合教室自習容量只有 10
+    const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(5, 6)), classRoom(2, grid(7, 7)), reserveRoom('R1', grid(2, 5), 10)], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
     const out = plan(input);
     expect(out.study.filter((s) => s.roomId === 'R1').length).toBeLessThanOrEqual(10);
     expect(out.proposals.length).toBeGreaterThan(0);
@@ -244,7 +287,7 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     expect(out.study.some((s) => s.roomId === 'C2' && s.code.startsWith('01'))).toBe(false);
   });
 
-  it.fails('T-14：一天完全沒考試的學生 → 預設仍要安排自習教室', () => {
+  it('T-14：一天完全沒考試的學生 → 預設仍要安排自習教室', () => {
     const students = [...makeClass(1, 10, (n) => (n <= 4 ? { s1: 'phy', s2: 'chem' } : {}))];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(2, 5)), reserveRoom('R1', grid(2, 5))], slots: [{ id: 's1', subjectIds: ['phy'] }, { id: 's2', subjectIds: ['chem'] }], students };
     const out = plan(input);
@@ -252,13 +295,13 @@ describe('D99 引擎驗收（尚未實作：it.fails）', () => {
     for (const slot of ['s1', 's2']) for (let n = 5; n <= 10; n++) expect(out.study.filter((s) => s.slotId === slot && s.code === codeOf({ classNo: 1, seatNo: n }))).toHaveLength(1);
   });
 
-  it.fails('T-21：相同輸入與設定 → 結果完全相同（可重現）', () => {
+  it('T-21：相同輸入與設定 → 結果完全相同（可重現）', () => {
     const students = [...makeClass(1, 30, (n) => (n % 3 === 0 ? PHY : {})), ...makeClass(2, 30, (n) => (n % 2 === 0 ? PHY : {}))];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1), classRoom(2), reserveRoom('R1', grid(7, 7))], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
     expect(plan(input)).toEqual(plan(input));
   });
 
-  it.fails('T-22／T-23（引擎）：任何輸入都不得同節混用考試與自習，但可跨節切換用途', () => {
+  it('T-22／T-23（引擎）：任何輸入都不得同節混用考試與自習，但可跨節切換用途', () => {
     const students = [...makeClass(1, 20, (n) => (n <= 10 ? { s1: 'phy' } : { s2: 'his' })), ...makeClass(2, 20)];
     const input: PlanInput = { mode: 'fewest-rooms', rooms: [classRoom(1, grid(4, 6)), classRoom(2, grid(4, 6)), reserveRoom('R1', grid(4, 6))], slots: [{ id: 's1', subjectIds: ['phy'] }, { id: 's2', subjectIds: ['his'] }], students };
     const out = plan(input);

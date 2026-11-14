@@ -69,6 +69,16 @@ export interface Classroom {
   seatCount: number;
   /** 使用者指定「不排」的座位，格式「排-深位」，例 "2-3"；沒有就不設。seatCount 要同步成 rows*depth 減去它的數量 */
   disabled?: string[];
+  /**
+   * 每排的深位數（D99 第三輪第 2 點：每排深位數可不同），長度＝rows、每個值 1..depth；`depth` 仍是最大深位數。
+   * 舊存檔沒有這個欄位＝每排都是 depth（不需遷移）。seatCount 要同步成各排加總減去 disabled 的數量。
+   */
+  rowDepths?: number[];
+  /**
+   * 自習容量（D99 第一輪第 7 點）：沒設＝seatCount。管理者可手動調高或調低，程式不得自行調大；
+   * 舊存檔沒有這個欄位（不需遷移），讀取一律經 `studyCapacityOf`。
+   */
+  studyCapacity?: number;
   /** 高中部班級教室所屬組別；國中部、預備教室不設（D4/D10） */
   track?: Track;
   /**
