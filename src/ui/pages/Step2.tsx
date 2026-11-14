@@ -1,18 +1,25 @@
 import { useEffect, useRef, useState } from 'preact/hooks';
 import type { ExamConfig, ExamEntry, Participation, RosterDiff, RosterDiffChoice } from '../../data';
-import { allResolved, applyDiffs, compareRosters, diffsStale, readXlsx, refreshDiffs, validateResolved, type Sheet } from '../../import';
+import { allResolved, applyDiffs, compareRosters, diffsStale, isResolved, readXlsx, refreshDiffs, validateResolved, type Sheet } from '../../import';
 import { Alert, Badge, Button, ClassChip, ConfirmButton, Seg, StatsBar, StepHead } from '../components';
 import { confirmCopy } from '../flow';
-import { rosterName, syncDiffs, updateExam, type Doc } from '../store';
-import { ImportWizard } from './ImportWizard';
+import { addClass, diffOptions, rosterName, syncDiffs, updateExam, type Doc } from '../store';
+import { ImportWizard, scanOptionsFor } from './ImportWizard';
 
-const KIND_TEXT: Record<RosterDiff['kind'], string> = {
-  'only-in-exam': '考試名單有，學生名單沒有',
-  'only-in-roster': '學生名單有，考試名單沒有',
-  mismatch: '班級、座號或姓名不一致',
+/** 差異卡標題（稿 v2.34 H-6 的 7 種情形；「班級或座號不同」「姓名不同」由兩邊內容判斷） */
+const titleOf = (d: RosterDiff): string => {
+  if (d.kind === 'only-in-exam') return '考試名單有，學生名單沒有';
+  if (d.kind === 'only-in-roster') return '學生名單有，考試名單沒有';
+  if (d.kind === 'group-diff') return '同一人的組別不同';
+  if (d.kind === 'new-class') return '考試名單有這個班級，班級資料沒有';
+  return d.exam && d.roster && d.exam.classNo === d.roster.classNo && d.exam.seatNo === d.roster.seatNo ? '同一人的姓名不同' : '同一人的班級或座號不同';
 };
-const CHOICE_TEXT: Record<RosterDiffChoice, string> = { 'use-exam': '以考試名單為準', 'use-roster': '以學生名單為準', manual: '手動修正' };
-
+const CHOICE_TEXT: Record<RosterDiffChoice, string> = {
+  'use-exam': '以考試名單為準', 'use-roster': '以學生名單為準', manual: '手動編輯',
+  'add-class': '新增班級', 'remap-class': '改成既有班級', 'skip-class': '不匯入這班',
+};
+const optionsOf = (d: RosterDiff): RosterDiffChoice[] =>
+  d.kind === 'new-class' ? ['add-class', 'remap-class', 'skip-class'] : d.kind === 'group-diff' ? ['use-exam', 'use-roster'] : ['use-exam', 'use-roster', 'manual'];
 
 /**
  * ② 考試名單（D63）：匯入大考中心格式名單 → 與學生名單比對（D42/D54/D64）。
@@ -36,12 +43,13 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
 
   const fullyAbsent = entries ? entries.filter((e) => e.subjectIds.length === 0).length : 0;
   const classNames = doc.settings.classes.filter((c) => c.division === exam.division).map((c) => c.name);
-  const compare = (list: ExamEntry[]) => compareRosters(roster, list, exam.participation);
+  const dopts = diffOptions(doc, exam);
+  const compare = (list: ExamEntry[]) => compareRosters(roster, list, exam.participation, dopts);
 
   // 共用名單、考試名單、參加方式任一改變，已存的差異就過期：重算並只沿用內容完全相同的選擇（#60）
-  const stale = !!entries && diffsStale(diffs, refreshDiffs(roster, entries, exam.participation, diffs));
+  const stale = !!entries && diffsStale(diffs, refreshDiffs(roster, entries, exam.participation, diffs, dopts));
   useEffect(() => {
-    if (entries && stale) save({ diffs: refreshDiffs(roster, entries, exam.participation, diffs) });
+    if (entries && stale) save({ diffs: refreshDiffs(roster, entries, exam.participation, diffs, dopts) });
   }, [stale, roster, entries, exam.participation]);
 
   const onFile = async (file: File) => {
@@ -63,21 +71,29 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     setShowCmp(d.length > 0); // 有差異就直接進逐筆比對（原型：匯入並比對）
   };
 
-  const setChoice = (code: string, choice: RosterDiffChoice, edited?: RosterDiff['edited']) =>
-    save({ diffs: diffs.map((d) => (d.code === code ? { ...d, choice, edited } : d)) });
+  const setChoice = (code: string, choice: RosterDiffChoice, edited?: RosterDiff['edited'], targetClassNo?: number) =>
+    save({ diffs: diffs.map((d) => (d.code === code ? { ...d, choice, edited, targetClassNo } : d)) });
 
   /** 全部處理完才套用：學生名單與考試名單依選擇更新（一次 onChange，可復原） */
   const apply = (): boolean => {
     if (!entries) return false;
-    const r = applyDiffs(roster, entries, diffs);
-    const bad = validateResolved(r, new Set(classes.map((c) => c.no)));
+    const groupTable = scanOptionsFor(exam, []).groupTable;
+    const r = applyDiffs(roster, entries, diffs, { subjectsOfGroup: (k) => groupTable?.[k] });
+    const bad = validateResolved(r, new Set([...classes.map((c) => c.no), ...r.addedClasses]));
     if (bad) { setApplyErr(bad); return false; } // 有碰撞就不寫入任何一份名單（#67）
+    // 選了「新增班級」：先把班級加進班級資料（名稱先用「第NN班」，可到共用設定改），任一班加不成就整批不套用
+    let next: Doc = { ...doc, rosters: { ...doc.rosters, [exam.division]: r.students } };
+    for (const no of r.addedClasses) {
+      const added = addClass(next, exam.division, { no });
+      if (!added.ok) { setApplyErr(added.error); return false; }
+      next = added.doc;
+    }
     setApplyErr('');
-    save({ entries: r.entries, diffs: [] }, { rosters: { ...doc.rosters, [exam.division]: r.students } });
+    p.onChange({ ...next, examFiles: { ...doc.examFiles, [exam.id]: { ...files, entries: r.entries, diffs: [] } } });
     return true;
   };
 
-  const resolved = diffs.filter((d) => d.choice !== undefined && (d.choice !== 'manual' || d.edited)).length;
+  const resolved = diffs.filter(isResolved).length;
   /** 會考全員參加：沒匯入名單時，學生名單就是考試名單，這一步視為完成 */
   const bcctAll = exam.kind === 'bcct' && entries === null;
   const done = bcctAll ? roster.length > 0 : entries !== null && diffs.length === 0;
@@ -85,6 +101,8 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const classes = doc.settings.classes.filter((c) => c.division === exam.division);
   /** 「恭班 45 號　張小翔」：班名＋座號＋姓名（原型寫法） */
   const who = (x?: { classNo: number; seatNo: number; name: string }) => (x ? `${classes.find((c) => c.no === x.classNo)?.name ?? x.classNo}班 ${x.seatNo} 號　${x.name}` : "—");
+  const gtext = (g?: string) => (g ? `　組別 ${g}` : '');
+  const clsLabel = (no: number) => `第${String(no).padStart(2, '0')}班`;
   const perClass = classes.map((c) => ({ c, n: roster.filter((s) => s.classNo === c.no).length }));
   const filePick = (
     <input ref={input} type="file" accept=".xlsx" hidden aria-label="選擇考試名單 Excel 檔"
@@ -97,29 +115,65 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       <section class="stack" style="max-width:860px">
         <div class="card stephead"><div><h2>名單比對</h2><p class="small muted">② 考試名單：和共用學生名單逐筆比對。</p></div></div>
         <Alert tone="info">
-          匯入「{exam.name}」考試名單後，和共用學生名單比對，找到 <b>{diffs.length}</b> 筆差異。每一筆三選一：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯；全部處理完才能繼續排座。
+          匯入「{exam.name}」考試名單後，和共用學生名單比對，找到 <b>{diffs.length}</b> 筆差異。每一筆選一種處理方式（多數是：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯）；全部處理完才能繼續排座。
         </Alert>
         <StatsBar items={[{ label: '差異', value: diffs.length }, { label: '已處理', value: resolved }, { label: '未處理', value: diffs.length - resolved, bad: diffs.length - resolved > 0 }]} />
         {diffs.map((d, i) => {
-          const picked = d.choice !== undefined && (d.choice !== 'manual' || d.edited);
+          const picked = isResolved(d);
+          const nc = d.kind === 'new-class';
+          const members = d.members ?? [];
+          const cno = members[0]?.classNo ?? 0;
           return (
             <div class="card stack" style="gap:12px" key={d.code}>
               <div class="row" style="justify-content:space-between">
-                <Badge tone="warn">{`${i + 1}／${diffs.length}　${KIND_TEXT[d.kind]}`}</Badge>
+                <Badge tone="warn">{`${i + 1}／${diffs.length}　${titleOf(d)}`}</Badge>
                 {picked ? <Badge tone="ok">{`已選：${CHOICE_TEXT[d.choice as RosterDiffChoice]}`}</Badge> : <Badge>未處理</Badge>}
               </div>
               <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))">
-                <div class="fact"><b>考試名單</b>{d.exam ? who(d.exam) : '（沒有這個人）'}</div>
-                <div class="fact"><b>學生名單</b>{d.roster ? who(d.roster) : '（沒有這個人）'}</div>
+                {nc ? (
+                  <>
+                    <div class="fact"><b>考試名單</b>{`${clsLabel(cno)} ${members.length} 人（${members.map((m) => `${m.seatNo} 號　${m.name}`).join('、')}）`}</div>
+                    <div class="fact"><b>學生名單</b>{`（班級資料沒有「${clsLabel(cno)}」）`}</div>
+                  </>
+                ) : (
+                  <>
+                    <div class="fact"><b>考試名單</b>{d.exam ? who(d.exam) + (d.kind === 'group-diff' ? gtext(d.groups?.exam) : '') : '（沒有這個人）'}</div>
+                    <div class="fact"><b>學生名單</b>{d.roster ? who(d.roster) + (d.kind === 'group-diff' ? gtext(d.groups?.roster) : '') : '（沒有這個人）'}</div>
+                  </>
+                )}
               </div>
               <Seg<RosterDiffChoice> label={`第 ${i + 1} 筆處理方式`} value={(d.choice ?? '') as RosterDiffChoice}
-                onChange={(v) => { setEditing(v === 'manual' ? d.code : null); setChoice(d.code, v, v === 'manual' ? d.edited : undefined); }}
-                options={[{ value: 'use-exam', label: CHOICE_TEXT['use-exam'] }, { value: 'use-roster', label: CHOICE_TEXT['use-roster'] }, { value: 'manual', label: CHOICE_TEXT.manual }]} />
+                onChange={(v) => {
+                  setEditing(v === 'manual' ? d.code : null);
+                  setChoice(d.code, v, v === 'manual' ? d.edited : undefined, v === 'remap-class' ? (d.targetClassNo ?? classes[0]?.no) : undefined);
+                }}
+                options={optionsOf(d).map((v) => ({ value: v, label: nc && v === 'add-class' ? `新增班級「${clsLabel(cno)}」` : nc && v === 'skip-class' ? `不匯入這班（${members.length} 人）` : CHOICE_TEXT[v] }))} />
+              {nc && <span class="hint">選「新增班級」會當場在班級資料多一班（名稱先用「{clsLabel(cno)}」，之後可到共用設定改），不用先離開去設定頁。</span>}
+              {nc && d.choice === 'remap-class' && (
+                <div class="field"><label>這班的人改到哪一班
+                  <select class="input" value={String(d.targetClassNo ?? '')} onChange={(e) => setChoice(d.code, 'remap-class', undefined, Number(e.currentTarget.value))}>
+                    {classes.map((c) => <option key={c.no} value={String(c.no)}>{c.name}（{String(c.no).padStart(2, '0')}）</option>)}
+                  </select></label>
+                  <span class="hint">座號照原樣帶過去；目標班級同座號已有人時，套用會擋下並指出是哪兩人。</span></div>
+              )}
               {d.choice === 'manual' && (editing === d.code || !d.edited) && <Editor diff={d} classNos={classes.map((c) => c.no)} onSave={(e) => { setChoice(d.code, 'manual', e); setEditing(null); }} />}
               {d.choice === 'manual' && d.edited && editing !== d.code && <div class="hint">已改為 {who(d.edited)}　<Button small onClick={() => setEditing(d.code)}>再改</Button></div>}
             </div>
           );
         })}
+        {fullyAbsent > 0 && (
+          <div class="card stack" style="gap:12px">
+            <div class="row" style="justify-content:space-between">
+              <Badge tone="warn">{`${fullyAbsent} 人全科缺考`}</Badge>
+              <Badge tone="ok">{`目前：${exam.seatFullyAbsent ? '仍排座' : '列入缺考清單，不排座'}`}</Badge>
+            </div>
+            <div class="fact"><b>考試名單</b>{(entries ?? []).filter((e) => e.subjectIds.length === 0).map((e) => who(e)).join('、')}（備註：全科缺考）</div>
+            <Seg<'list' | 'seat'> label="全科缺考處理方式" value={exam.seatFullyAbsent ? 'seat' : 'list'}
+              onChange={(v) => { const r = updateExam(doc, exam.id, { seatFullyAbsent: v === 'seat' }); if (r.ok) p.onChange(r.doc); }}
+              options={[{ value: 'list', label: '列入缺考清單，不排座' }, { value: 'seat', label: '仍排座' }]} />
+            <span class="hint">全科缺考的人不佔座位，座位表與領卷份數都不含；也可以改成仍排座。這一項已有預設，不必選也能繼續。</span>
+          </div>
+        )}
         {applyErr && <Alert tone="danger"><b>沒有套用，兩份名單都維持原樣。</b>{applyErr}</Alert>}
         <div class="row" style="justify-content:flex-end">
           <Button onClick={() => setShowCmp(false)}>先不處理</Button>

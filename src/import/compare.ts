@@ -16,17 +16,40 @@ export interface CompareResult {
   notParticipating: number;
 }
 
+export interface CompareOptions {
+  /** 班級資料裡有的班級序號；有給時，考試名單裡不在其中的班級整班歸為 new-class（一班一筆） */
+  classNos?: ReadonlySet<number>;
+  /** 偵測「組別不同」（只用於學測類的高中部：分科的組別是考科文字、國中部不分組） */
+  groups?: boolean;
+}
+
+/** 組別代碼取首字大寫（與匯入時 groupKey 同一寫法），兩邊任一沒填就不比 */
+const groupKeyOf = (g?: string): string => (g ?? '').trim().charAt(0).toUpperCase();
+
 export function compareRosters(
   roster: readonly Student[],
   entries: readonly ExamEntry[],
   participation: Participation,
+  opts: CompareOptions = {},
 ): CompareResult {
   const byCode = new Map(roster.map((s) => [codeOf(s), s]));
   const matched = new Set<string>();
   const diffs: RosterDiff[] = [];
   const unmatchedEntries: ExamEntry[] = [];
 
+  // 班級資料沒有的班級：整班一筆（新增班級／改成既有班級／不匯入這班），不再逐人列為差異
+  const unknown = new Map<number, ExamEntry[]>();
+  const known: ExamEntry[] = [];
   for (const e of entries) {
+    if (opts.classNos && !opts.classNos.has(e.classNo)) {
+      unknown.set(e.classNo, [...(unknown.get(e.classNo) ?? []), e]);
+    } else known.push(e);
+  }
+  for (const [no, list] of unknown) {
+    diffs.push({ kind: 'new-class', code: `new-class-${no}`, members: list.map(id).sort((a, b) => a.seatNo - b.seatNo) });
+  }
+
+  for (const e of known) {
     const c = codeOf(e);
     const s = byCode.get(c);
     if (!s) {
@@ -36,6 +59,9 @@ export function compareRosters(
     matched.add(c);
     if (s.name.trim() !== e.name.trim()) {
       diffs.push({ kind: 'mismatch', code: c, exam: id(e), roster: id(s) });
+    } else if (opts.groups) {
+      const ge = groupKeyOf(e.groupCode), gs = groupKeyOf(s.groupCode);
+      if (ge && gs && ge !== gs) diffs.push({ kind: 'group-diff', code: c, exam: id(e), roster: id(s), groups: { exam: ge, roster: gs } });
     }
   }
   let leftover = roster.filter((s) => !matched.has(codeOf(s)));
@@ -63,12 +89,27 @@ export function compareRosters(
 
 /** 全部差異都已選擇（manual 需有 edited）才能繼續排座 */
 export function allResolved(diffs: readonly RosterDiff[]): boolean {
-  return diffs.every((d) => d.choice !== undefined && (d.choice !== 'manual' || d.edited !== undefined));
+  return diffs.every(isResolved);
+}
+
+/** 單筆是否已處理：手動要有編輯結果；改成既有班級要有選定的班級 */
+export function isResolved(d: RosterDiff): boolean {
+  if (d.choice === undefined) return false;
+  if (d.choice === 'manual') return d.edited !== undefined;
+  if (d.choice === 'remap-class') return d.targetClassNo !== undefined;
+  return true;
 }
 
 export interface ResolveResult {
   students: Student[];
   entries: ExamEntry[];
+  /** 選了「新增班級」的班級序號：呼叫端要在班級資料新增這些班（applyDiffs 只處理名單） */
+  addedClasses: number[];
+}
+
+export interface ApplyOptions {
+  /** 組別首字 → 該組別考的科目 id；「組別不同」選以學生名單為準時，用它重算這位考生的考科 */
+  subjectsOfGroup?: (groupKey: string) => readonly string[] | undefined;
 }
 
 /**
@@ -76,15 +117,19 @@ export interface ResolveResult {
  * - only-in-exam：use-exam→學生名單新增此人；use-roster→從考試名單移除；manual→以 edited 新增並修正考試名單
  * - only-in-roster：use-exam→從學生名單移除；use-roster→保留，並補一筆沒有科目的考試名單（subjectIds 空，需另行設定）；manual→以 edited 修正學生
  * - mismatch：use-exam→學生名單改成考試名單的值；use-roster→考試名單改成學生名單的值；manual→兩邊都改成 edited
+ * - group-diff：use-exam→學生名單的組別改成考試名單的；use-roster→考試名單的組別（與考科，查得到才改）改成學生名單的
+ * - new-class：add-class→這班的人加進學生名單（班級由呼叫端新增，見 addedClasses）；remap-class→這班的人改到 targetClassNo（學生名單沒有該編號的人就補上）；skip-class→這班的人從考試名單移除
  */
 export function applyDiffs(
   roster: readonly Student[],
   entries: readonly ExamEntry[],
   diffs: readonly RosterDiff[],
+  opts: ApplyOptions = {},
 ): ResolveResult {
   if (!allResolved(diffs)) throw new Error('還有差異尚未處理');
   let students = roster.map((s) => ({ ...s }));
   let list = entries.map((e) => ({ ...e }));
+  const addedClasses: number[] = [];
   const rm = <T extends Id>(l: T[], x: Id) => l.filter((y) => !(y.classNo === x.classNo && y.seatNo === x.seatNo && y.name === x.name));
   const setStudent = (old: Id | undefined, to: Id) => {
     // 保留原學生的學號／類組／特殊註記（#59）；只改班級、座號、姓名
@@ -102,8 +147,36 @@ export function applyDiffs(
     list = old ? rm(list, old) : list;
     list.push({ ...(cur ?? { subjectIds: [] }), classNo: to.classNo, seatNo: to.seatNo, name: to.name });
   };
+  const hasStudent = (x: Id) => students.some((y) => y.classNo === x.classNo && y.seatNo === x.seatNo);
   for (const d of diffs) {
     const choice = d.choice;
+    if (d.kind === 'new-class') {
+      const members = d.members ?? [];
+      if (choice === 'add-class') {
+        for (const x of members) if (!hasStudent(x)) setStudent(undefined, x);
+        if (members[0]) addedClasses.push(members[0].classNo);
+      } else if (choice === 'remap-class' && d.targetClassNo !== undefined) {
+        const target = d.targetClassNo;
+        for (const x of members) {
+          const to = { ...x, classNo: target };
+          setEntry(x, to);
+          if (!hasStudent(to)) setStudent(undefined, to);
+        }
+      } else if (choice === 'skip-class') {
+        for (const x of members) list = rm(list, x);
+      }
+      continue;
+    }
+    if (d.kind === 'group-diff' && d.exam && d.groups) {
+      const at = d.exam;
+      if (choice === 'use-exam') {
+        students = students.map((s) => (s.classNo === at.classNo && s.seatNo === at.seatNo ? { ...s, groupCode: d.groups?.exam } : s));
+      } else if (choice === 'use-roster') {
+        const subj = opts.subjectsOfGroup?.(d.groups.roster);
+        list = list.map((e) => (e.classNo === at.classNo && e.seatNo === at.seatNo ? { ...e, groupCode: d.groups?.roster, ...(subj ? { subjectIds: [...subj] } : {}) } : e));
+      }
+      continue;
+    }
     if (choice === 'manual' && d.edited) {
       setStudent(d.roster, d.edited);
       setEntry(d.exam, d.edited);
@@ -123,7 +196,7 @@ export function applyDiffs(
   }
   students.sort((a, b) => a.classNo - b.classNo || a.seatNo - b.seatNo);
   list.sort((a, b) => a.classNo - b.classNo || a.seatNo - b.seatNo);
-  return { students, entries: list };
+  return { students, entries: list, addedClasses };
 }
 
 const label = (x: Id): string => `${String(x.classNo).padStart(2, '0')} 班 ${x.seatNo} 號「${x.name}」`;
@@ -132,7 +205,7 @@ const label = (x: Id): string => `${String(x.classNo).padStart(2, '0')} 班 ${x.
  * 套用前驗整份結果（#67）：班級存在、座號 1–99、姓名非空、班級＋座號不重複。
  * 有問題就回傳訊息（指出哪兩人衝突），呼叫端不可寫入任何一份名單。
  */
-export function validateResolved(res: ResolveResult, classNos: ReadonlySet<number>): string | null {
+export function validateResolved(res: Pick<ResolveResult, 'students' | 'entries'>, classNos: ReadonlySet<number>): string | null {
   const check = (list: readonly Id[], where: string): string | null => {
     const seen = new Map<string, Id>();
     for (const x of list) {
@@ -151,7 +224,8 @@ export function validateResolved(res: ResolveResult, classNos: ReadonlySet<numbe
 
 const sig = (d: RosterDiff): string => {
   const f = (x?: Id) => (x ? `${x.classNo}/${x.seatNo}/${x.name.trim()}` : '-');
-  return `${d.kind}|${d.code}|${f(d.exam)}|${f(d.roster)}`;
+  const extra = d.kind === 'group-diff' ? `|${d.groups?.exam}/${d.groups?.roster}` : d.kind === 'new-class' ? `|${(d.members ?? []).map(f).join(',')}` : '';
+  return `${d.kind}|${d.code}|${f(d.exam)}|${f(d.roster)}${extra}`;
 };
 
 /**
@@ -163,11 +237,12 @@ export function refreshDiffs(
   entries: readonly ExamEntry[],
   participation: Participation,
   stored: readonly RosterDiff[],
+  opts: CompareOptions = {},
 ): RosterDiff[] {
   const old = new Map(stored.map((d) => [sig(d), d]));
-  return compareRosters(roster, entries, participation).diffs.map((d) => {
+  return compareRosters(roster, entries, participation, opts).diffs.map((d) => {
     const o = old.get(sig(d));
-    return o?.choice !== undefined ? { ...d, choice: o.choice, ...(o.edited ? { edited: o.edited } : {}) } : d;
+    return o?.choice !== undefined ? { ...d, choice: o.choice, ...(o.edited ? { edited: o.edited } : {}), ...(o.targetClassNo !== undefined ? { targetClassNo: o.targetClassNo } : {}) } : d;
   });
 }
 

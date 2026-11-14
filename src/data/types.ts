@@ -191,8 +191,16 @@ export interface ExamEntry {
 export type RosterDiffKind =
   | 'only-in-exam' // 考試名單有、學生名單沒有
   | 'only-in-roster' // 學生名單有、考試名單沒有（部分參加時不產生）
-  | 'mismatch'; // 同一人班級／座號／姓名不一致
-export type RosterDiffChoice = 'use-exam' | 'use-roster' | 'manual';
+  | 'mismatch' // 同一人班級／座號／姓名不一致
+  | 'group-diff' // 同一人（班級、座號、姓名都相同）但組別不同（稿 v2.34 H-6）
+  | 'new-class'; // 考試名單有這個班級、班級資料沒有（以班級為單位，一班一筆）
+export type RosterDiffChoice =
+  | 'use-exam'
+  | 'use-roster'
+  | 'manual'
+  | 'add-class' // new-class：新增班級
+  | 'remap-class' // new-class：改成既有班級（見 targetClassNo）
+  | 'skip-class'; // new-class：不匯入這班
 
 export interface RosterDiff {
   kind: RosterDiffKind;
@@ -203,6 +211,12 @@ export interface RosterDiff {
   choice?: RosterDiffChoice;
   /** choice 為 manual 時的編輯結果 */
   edited?: Pick<Student, 'classNo' | 'seatNo' | 'name'>;
+  /** group-diff：兩邊的組別代碼（考試名單、學生名單） */
+  groups?: { exam: string; roster: string };
+  /** new-class：這個班在考試名單裡的人（code 為 `new-class-<班級序號>`） */
+  members?: Pick<ExamEntry, 'classNo' | 'seatNo' | 'name'>[];
+  /** new-class + remap-class：改成哪個既有班級（班級序號） */
+  targetClassNo?: number;
 }
 
 /** 覆寫：獨立檔案，重排後重套並走驗證器（D23）。目前只有單人特例（D26） */

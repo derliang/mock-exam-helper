@@ -4,6 +4,7 @@
  */
 import type { ClassInfo, Classroom, ExamConfig, ExamEntry, MarkMode, MarkRule, Override, SeatingResult, SingleOverride, Track } from '../data';
 import { classroomSeats, studentCode } from '../data';
+import { isResolved } from '../import/compare';
 import {
   allocateDetaches,
   applyMarks,
@@ -175,7 +176,7 @@ export function seatingBlockers(doc: Doc, exam: ExamConfig): Blocker[] {
   const out: Blocker[] = [];
   const f = filesOf(doc, exam.id);
   if (!f.entries?.length && exam.kind !== 'bcct') out.push({ step: 2, text: '② 考試名單還沒有匯入' });
-  if ((f.diffs ?? []).some((d) => !d.choice)) out.push({ step: 2, text: '② 名單比對還有沒處理的差異' });
+  if ((f.diffs ?? []).some((d) => !isResolved(d))) out.push({ step: 2, text: '② 名單比對還有沒處理的差異' });
   const rooms = examRooms(doc, exam);
   if (!rooms.some((r) => r.kind === 'class')) out.push({ step: 3, text: '③ 還沒有選班級教室' });
   const noTrack = roomsMissingTrack(rooms, exam.division);
