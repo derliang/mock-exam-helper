@@ -48,14 +48,14 @@ export function RoomList(p: {
   );
   return (
     <div class="rw">
-      <p class="muted small">座位上限依標籤紙張：B4 最多 6 排×8 深位（48 座）、A3 最多 7 排×7 深位（49 座）；目前標籤預設紙張 {p.paper}，每間最多 {lim.rows} 排、{lim.depth} 深位、{cap} 座。點「▸ 編輯座位」調整座位排列。</p>
+      <p class="muted small">座位上限依標籤紙張：A3 49 座（7 排×7 深位）、B4 48 座（6 排×8 深位）（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個：{lim.rows} 排、{lim.depth} 深位）。點「▸ 編輯座位」調整座位排列。</p>
       {addRow}
       {shown.map((r) => {
         const isOpen = open === r.id;
         const on = p.selected?.includes(r.id) ?? false;
         return (
           <div key={r.id} class="rw">
-            <div class={`roomrow${p.selected ? (on ? ' on' : ' off') : ''}${r.kind === 'class' && !junior ? ' hastrack' : ' notrack'}`} onClick={() => setOpen(isOpen ? null : r.id)}>
+            <div class={`roomrow${p.selected && !on ? ' off' : ''}${isOpen ? ' on' : ''}${r.kind === 'class' && !junior ? ' hastrack' : ' notrack'}`} onClick={() => setOpen(isOpen ? null : r.id)}>
               {p.selected && p.onSelect ? (
                 <Switch label={r.kind === 'class' ? '列為考場' : '列為預備'} ariaLabel={`${r.kind === 'class' ? '列為考場' : '列為預備'}：${r.name}`} checked={on}
                   onChange={(v) => p.onSelect!(v ? [...p.selected!, r.id] : p.selected!.filter((x) => x !== r.id))} />
@@ -103,7 +103,7 @@ export function RoomTable(p: {
   const upd = (id: string, f: (r: Classroom) => Classroom) => p.onChange(patchRoom(p.rooms, id, (r) => { const x = f(r); return x.division ? x : { ...x, division: p.division }; }));
   return (
     <div class="stack">
-      <p class="muted small">座位上限依標籤紙張：B4 最多 6 排×8 深位（48 座）、A3 最多 7 排×7 深位（49 座）；目前標籤預設紙張 {p.paper}，每間最多 {lim.rows} 排、{lim.depth} 深位、{cap} 座。點「編輯座位」調整座位排列。</p>
+      <p class="muted small">座位上限依標籤紙張：A3 49 座（7 排×7 深位）、B4 48 座（6 排×8 深位）（目前標籤預設紙張 {p.paper}，每間最多 {cap} 個：{lim.rows} 排、{lim.depth} 深位）。點「編輯座位」調整座位排列。</p>
       <Alert tone="info"><b>所屬部別</b>決定這間教室在高中部或國中部的清單出現。舊資料讀進來時程式會依內容推斷；推斷錯了，直接在這一欄改，改完馬上換到另一個部別的清單。</Alert>
       <div class="scroll">
         <table class="t compact nw">

@@ -40,6 +40,8 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   const [showCmp, setShowCmp] = useState(false);
   const [err, setErr] = useState('');
   const [applyErr, setApplyErr] = useState('');
+  /** 套用後列出「以學生名單為準」而清掉考科與 X／＋ 標示的人（Q5 已知限制） */
+  const [lost, setLost] = useState<string[]>([]);
   const input = useRef<HTMLInputElement>(null);
 
   const fullyAbsent = entries ? entries.filter((e) => e.subjectIds.length === 0).length : 0;
@@ -68,6 +70,7 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
     const settings = { ...doc.settings, markMap };
     const d = compare(list).diffs;
     save({ entries: list, diffs: d }, { settings });
+    setLost([]);
     setSheets(null);
     setShowCmp(d.length > 0); // 有差異就直接進逐筆比對（原型：匯入並比對）
   };
@@ -90,6 +93,8 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       next = added.doc;
     }
     setApplyErr('');
+    setLost(diffs.filter((d) => d.choice === 'use-roster' && (d.kind === 'only-in-exam' || d.kind === 'only-in-roster' || d.kind === 'group-diff'))
+      .map((d) => who(d.exam ?? d.roster)));
     p.onChange({ ...next, examFiles: { ...doc.examFiles, [exam.id]: { ...files, entries: r.entries, diffs: [] } } });
     return true;
   };
@@ -103,6 +108,10 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
   /** 「恭班 45 號　張小翔」：班名＋座號＋姓名（原型寫法） */
   const who = (x?: { classNo: number; seatNo: number; name: string }) => (x ? `${classes.find((c) => c.no === x.classNo)?.name ?? x.classNo}班 ${x.seatNo} 號　${x.name}` : "—");
   const gtext = (g?: string) => (g ? `　組別 ${g}` : '');
+  /** 組別照名單原樣顯示（代碼＋名稱，例「0-全科」），比對用的首字代碼只當找不到原文時的備用（C-2、C-6） */
+  const sameId = (a: { classNo: number; seatNo: number }, b?: { classNo: number; seatNo: number }) => !!b && a.classNo === b.classNo && a.seatNo === b.seatNo;
+  const groupOf = (side: 'exam' | 'roster', x: { classNo: number; seatNo: number }, key?: string) =>
+    gtext((side === 'exam' ? (entries ?? []).find((e) => sameId(x, e))?.groupCode : roster.find((s) => sameId(x, s))?.groupCode) || key);
   const clsLabel = (no: number) => `第${String(no).padStart(2, '0')}班`;
   const perClass = classes.map((c) => ({ c, n: roster.filter((s) => s.classNo === c.no).length }));
   const filePick = (
@@ -139,12 +148,12 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                   </>
                 ) : (
                   <>
-                    <div class="fact"><b>考試名單</b>{d.exam ? who(d.exam) + (d.kind === 'group-diff' ? gtext(d.groups?.exam) : '') : '（沒有這個人）'}</div>
-                    <div class="fact"><b>學生名單</b>{d.roster ? who(d.roster) + (d.kind === 'group-diff' ? gtext(d.groups?.roster) : '') : '（沒有這個人）'}</div>
+                    <div class="fact"><b>考試名單</b>{d.exam ? who(d.exam) + groupOf('exam', d.exam, d.kind === 'group-diff' ? d.groups?.exam : undefined) : '（沒有這個人）'}</div>
+                    <div class="fact"><b>學生名單</b>{d.roster ? who(d.roster) + groupOf('roster', d.roster, d.kind === 'group-diff' ? d.groups?.roster : undefined) : '（沒有這個人）'}</div>
                   </>
                 )}
               </div>
-              <Seg<RosterDiffChoice> label={`第 ${i + 1} 筆處理方式`} value={(d.choice ?? '') as RosterDiffChoice}
+              <Seg<RosterDiffChoice> className="cmpseg" label={`第 ${i + 1} 筆處理方式`} value={(d.choice ?? '') as RosterDiffChoice}
                 onChange={(v) => {
                   setEditing(v === 'manual' ? d.code : null);
                   setChoice(d.code, v, v === 'manual' ? d.edited : undefined, v === 'remap-class' ? (d.targetClassNo ?? classes[0]?.no) : undefined);
@@ -224,6 +233,11 @@ export function Step2(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           {reimport}
         </div>
         {done && !diffs.length ? null : status}
+        {lost.length > 0 && !diffs.length && (
+          <Alert tone="warn" action={<Button small onClick={() => setLost([])}>知道了</Button>}>
+            <b>「以學生名單為準」影響了 {lost.length} 人：</b>{lost.join('、')}。他們在考試名單上原本的考科與 X／＋ 標示已清掉（或沒有考科），請到 ④ 或個別覆寫確認。
+          </Alert>
+        )}
         {filePick}
         {err && <Alert tone="danger">{err}</Alert>}
         <div class="row" style="gap:12px;justify-content:space-between">
