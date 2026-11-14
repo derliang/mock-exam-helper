@@ -37,6 +37,7 @@ import {
   PAPER_MM,
   SEAT_PAGE,
   seatGeometry,
+  SLOT_TIP,
   type CellModel,
   type LabelPageModel,
   type ListPageModel,
@@ -369,7 +370,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
           margins: { top: 0, bottom: 0, left: tw(0.5), right: tw(0.5) },
           shading: c ? { type: ShadingType.CLEAR, fill: pal!.bg, color: 'auto' } : HATCH_FILL,
           borders,
-          children: c ? cellParas(c, g, pal!.fg, mode) : hatchParas(cw - 1.3, ch - 1.4),
+          children: c ? (c.periodLines ? periodParas(c, cw - 1.3, ch, g.coordPt, mode) : cellParas(c, g, pal!.fg, mode)) : hatchParas(cw - 1.3, ch - 1.4),
         }),
       );
     }
@@ -409,7 +410,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
       new TableRow({
         height: { value: tw(8.4), rule: HeightRule.EXACT },
         children: [
-          new TableCell({ width: { size: tw(sideW), type: WidthType.DXA }, verticalAlign: VerticalAlign.CENTER, borders: noBd, margins: { top: 0, bottom: 0, left: 0, right: 0 }, children: [line([run2(`共 ${page.stats.total} 人`, { size: 9 }, mode)], { h: 4.6, align: AlignmentType.LEFT })] }),
+          new TableCell({ width: { size: tw(sideW), type: WidthType.DXA }, verticalAlign: VerticalAlign.CENTER, borders: noBd, margins: { top: 0, bottom: 0, left: 0, right: 0 }, children: [line([run2(`${page.slotMode ? `已使用 ${page.cells.size} 格` : `共 ${page.stats.total} 人`}`, { size: 9 }, mode)], { h: 4.6, align: AlignmentType.LEFT })] }),
           new TableCell({
             width: { size: tw(podW), type: WidthType.DXA },
             verticalAlign: VerticalAlign.CENTER,
@@ -462,7 +463,7 @@ function seatSection(page: SeatPageModel, opts: DocxOptions): ISectionOptions {
       spacer(3),
       bottom,
       spacer(5),
-      stTable,
+      page.slotMode ? line([run2(SLOT_TIP, { size: 11, color: GRAY }, mode)], { h: 14 }) : stTable,
       line([], { h: 0.35 }),
     ],
   };

@@ -57,9 +57,8 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
             })}
           </div>
           <p class="small muted">高中部：學測、分科；國中部：會考。</p>
-        </div>
 
-        <div class="card stack"><div class="lab">2　基本資料</div>
+        <div class="psec"><div class="lab">2　基本資料</div>
           <div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))">
             <div class={`field${!check.ok ? ' err' : ''}`}><label for="exam-name">模擬考名稱</label>
               <input id="exam-name" class="input" value={name} aria-invalid={!check.ok} onInput={(e) => { setName(e.currentTarget.value); setEdited(true); }} />
@@ -79,11 +78,12 @@ export function NewExam(p: { doc: Doc; onCancel: () => void; onCreate: (d: Doc, 
           </div>
         </div>
 
-        <div class="card stack"><div class="lab">3　預設設定</div>
+        <div class="psec"><div class="lab">3　預設設定</div>
           {prev
             ? <Alert tone="info" noIcon><b>會帶入「{prev.name}」的設定</b>：學生名單、教室、{isJ ? '' : '標示與抽離規則、'}名稱以外的選項。每一步都能再改，改了不影響舊的模擬考。</Alert>
             : <Alert tone="warn">還沒有同類型的模擬考，所有步驟從空白開始。</Alert>}
           {isJ && <Alert tone="info">會考不需要標示與抽離，步驟④會顯示「不需要」。</Alert>}
+        </div>
         </div>
 
         {err && <Alert tone="danger">{err}</Alert>}

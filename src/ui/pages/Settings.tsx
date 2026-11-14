@@ -3,7 +3,7 @@ import { syncDiffs } from '../store';
 import { useEffect, useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
 import { DEFAULT_LABEL_NOTES, LABEL_NOTE_MAX_CHARS, LABEL_NOTE_MAX_LINES, noteLineLength, studentCode } from '../../data';
-import { Alert, Badge, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg, Switch } from '../components';
+import { Alert, Badge, Button, ClassChip, ConfirmButton, EmptyState, Modal, More, Seg, Switch } from '../components';
 import { confirmCopy } from '../flow';
 import { RoomTable } from '../components/RoomList';
 import { CLASS_COLOR_COUNT, CLASS_COLOR_NAMES, colorConflicts } from '../colors';
@@ -312,20 +312,20 @@ function Features({ doc, onChange }: Pick<Props, 'doc' | 'onChange'>) {
   const list = allFeatures();
   return (
     <div class="card stack">
-      <div><h3>選用功能</h3><p class="small muted">每所學校需要的不一樣，勾選要用的功能。沒開的功能會從導覽、下載頁與步驟中完全消失，不留灰色入口。</p></div>
+      <div><h3>選用功能</h3><p class="small muted">每所學校需要的不一樣，勾選要用的功能。</p>
+        <More title="說明：關掉的功能與核心功能">沒開的功能會從導覽、下載頁與步驟中完全消失，不留灰色入口。核心功能永遠開啟，不在這裡：排座、標籤、座位表、抽離、下載與防呆提示。設定只存在這台電腦的設定檔，不上傳。</More></div>
       {list.map((f) => {
         const on = doc.settings.features?.[f.id] === true;
         return (
           <div key={f.id} class={`featrow${on ? ' on' : ''}`}>
             <div class="fi">
-              <div class="row" style="gap:8px"><b>{f.name}</b>{f.scope === 'bcct' && <Badge tone="info">會考專用</Badge>}<Badge>預設：關</Badge></div>
+              <div class="row" style="gap:8px"><b>{f.name}</b>{f.scope === 'bcct' && <Badge>會考專用</Badge>}<Badge>預設：關</Badge></div>
               <p class="small muted">{f.desc}</p>
             </div>
             <Switch label="啟用" ariaLabel={`啟用${f.name}`} checked={on} onText="已開啟" offText="未開啟" onChange={(v) => onChange({ ...doc, settings: withFeature(doc.settings, f.id, v) })} />
           </div>
         );
       })}
-      <Alert tone="info"><b>核心功能永遠開啟，不在這裡：</b>排座、標籤、座位表、抽離、下載與防呆提示。設定只存在這台電腦的設定檔，不上傳。</Alert>
     </div>
   );
 }

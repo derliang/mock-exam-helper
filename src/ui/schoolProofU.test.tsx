@@ -117,7 +117,7 @@ describe('校-41 步驟⑤ 的「管理覆寫」「查看」鈕', () => {
   it('源碼層：覆寫卡有「管理覆寫」、預備教室與抽離卡有「查看」', async () => {
     const { Step5 } = await import('./pages/Step5');
     const { d, e } = seated();
-    const html = renderToString(<Step5 doc={d} exam={e} onChange={noop} onStep={noop} />);
+    const html = renderToString(<Step5 doc={d} exam={e} onChange={noop} onStep={noop} onReserve={noop} />);
     expect(html).toContain('管理覆寫');
     expect(html).toContain('>查看<');
   });

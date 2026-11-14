@@ -6,7 +6,7 @@ import { renderPrintHtml } from '../../export/htmlRender';
 import { buildLabelPages, buildSeatPages } from '../../export/model';
 import { defaultOptions, planFiles, preflight, runExport, type ExportFormat, type ExportOptions, type OutputFile } from '../../export/plan';
 import type { FontData } from '../../export/docxRender';
-import { Alert, Badge, Button, FormatPick, Seg, StepHead } from '../components';
+import { Alert, Badge, Button, FormatPick, More, Seg, StepHead } from '../components';
 import { enabledExportItems, useIsEnabled } from '../features';
 import { prepareExport, relevantIssues, unresolvedDiffsOf } from '../exportInput';
 import { afterExport } from '../flow';
@@ -203,7 +203,8 @@ export function Step6(p: {
       <div class="card stack" style="margin-top:12px">
         <div>
           <h3>下載內容</h3>
-          <p class="small muted">每一類合併成<b>一個多頁檔案</b>，不是一個座位表或一個標籤一個檔。Word 方便你編輯，每類下載一個檔；PDF 是先開啟列印用頁面，再用瀏覽器的列印另存成 PDF，適合確定不再編輯、想避免格式跑掉時使用。</p>
+          <p class="small muted">每一類合併成一個多頁檔案，不是一個座位表或一個標籤一個檔。</p>
+          <More title="說明：Word、PDF 與版本碼">Word 方便你編輯，每類下載一個檔；PDF 是先開啟列印用頁面，再用瀏覽器的列印另存成 PDF，適合確定不再編輯、想避免格式跑掉時使用。要列印時，請開啟下載的 Word 檔（或另存的 PDF）再列印，本程式不直接列印。頁尾印有產生時間與資料版本碼，可事後核對表是否對應現在的名單與設定。</More>
         </div>
         <div class="field"><span class="label">格式</span>
           <div class="row"><FormatPick<ExportFormat> label="格式" value={o.format} onChange={(v) => set({ format: v })} options={['word', 'pdf']} /></div>
@@ -224,7 +225,7 @@ export function Step6(p: {
             <span class="hint">兩種紙張的標籤格大小各自固定，不隨班級人數變；用不到的格子空白。</span>
           </div>
           {!junior && ck('study', '抽離自習名單（A4）', '合併成一個檔案，每科一頁；只有名單與人數，不出座位表與標籤')}
-          {!junior && ck('reserve', `預備教室的座位表（A4）與標籤（${o.paper}）`, '抽離考試，每節科目各自排；座位表、標籤各合併成一個檔案')}
+          {!junior && ck('reserve', `預備教室的座位表（A4）與標籤（${o.paper}）`, '抽離考試，一間預備教室一頁、格內每行一個時段；座位表、標籤各合併成一個檔案')}
         </div>
         <div class="row" style="justify-content:space-between">
           <span class="muted">{o.format === 'pdf' ? '將開啟' : '將下載'} <b class="num">{(o.format === 'pdf' && files.length ? 1 : files.length) + chosenExtras.length}</b> {o.format === 'pdf' ? '個列印頁' : '個檔案'}</span>
@@ -232,15 +233,9 @@ export function Step6(p: {
             {busy ? '產生中…' : stale ? '排座過期，先重新排座' : o.format === 'word' ? '下載 Word 文件' : '開啟列印頁（另存 PDF）'}
           </button>
         </div>
-        <p class="small muted">要列印時，請開啟下載的 Word 檔（或另存的 PDF）再列印，本程式不直接列印。頁尾印有產生時間與資料版本碼，可事後核對表是否對應現在的名單與設定。</p>
-      </div>
-
-      {err && <div style="margin-top:12px"><Alert tone="danger">{err}</Alert></div>}
-
-      {prepared.ok && <PreviewCard prepared={prepared} paper={o.paper} pickupOn={pickupOn} attendanceOn={attendanceOn} />}
-
+        {err && <Alert tone="danger">{err}</Alert>}
       {results && (
-        <div class="card stack" style="margin-top:12px">
+        <div class="psec">
           <Alert tone="ok">
             <b>{o.format === 'word' ? `已下載 ${results.length} 個檔案` : '已開啟列印用頁面'}</b>
             {o.format === 'word' ? '，請看瀏覽器的下載資料夾。' : '，請在新視窗選「列印」→ 目的地選「另存為 PDF」。'}
@@ -266,6 +261,9 @@ export function Step6(p: {
           </div>
         </div>
       )}
+      </div>
+
+      {prepared.ok && <PreviewCard prepared={prepared} paper={o.paper} pickupOn={pickupOn} attendanceOn={attendanceOn} />}
     </section>
   );
 }

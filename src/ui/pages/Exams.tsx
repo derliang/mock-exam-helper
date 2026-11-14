@@ -1,4 +1,4 @@
-import { Badge, Button, EmptyState, PageHead } from '../components';
+import { Badge, Button, EmptyState, More, PageHead } from '../components';
 import { examHeadcount, examLevel, examProgress, formatModified, sortExams } from '../examList';
 import { examLabel, lastModified, schoolYear, type Doc } from '../store';
 
@@ -40,9 +40,13 @@ export function Exams(p: {
           })}
         </div>
       )}
-      <div class="plegend" aria-label="進度條圖例">
-        六格＝六個步驟
-        <span><i class="d" />完成</span><span><i class="s" />過期</span><span><i class="c" />目前</span><span><i class="n" />不需要</span><span><i />未開始</span>
+      <div style="margin-top:14px">
+        <More title="說明：進度條怎麼看">
+          <div class="plegend" aria-label="進度條圖例">
+            六格＝六個步驟
+            <span><i class="d" />完成</span><span><i class="s" />過期</span><span><i class="c" />目前</span><span><i class="n" />不需要</span><span><i />未開始</span>
+          </div>
+        </More>
       </div>
     </section>
   );

@@ -346,6 +346,6 @@ export function FormatButton(p: { kind: FormatKind; onClick: () => void; childre
 }
 
 /** 收合說明（稿 v2.31，DESIGN 10.12）：每個區塊只留一行說明，長說明收進這裡 */
-export function More(p: { title: string; children: ComponentChildren }) {
-  return <details class="more"><summary>{p.title}</summary><div>{p.children}</div></details>;
+export function More(p: { title: string; children: ComponentChildren; open?: boolean }) {
+  return <details class="more" {...(p.open ? { open: true } : {})}><summary>{p.title}</summary><div>{p.children}</div></details>;
 }
