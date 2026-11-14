@@ -68,3 +68,38 @@ describe('分科：沒寫科目的考生依文理組帶預設，可加考／不�
     ]);
   });
 });
+
+describe('分科：選填「應試編號」欄（AST-2）', () => {
+  const opts = scanOptionsFor(exam, ['301', '302']);
+  const withNo = [
+    ['班級', '座號', '姓名', '組別', '學號', '應試編號'],
+    ['301', '1', '甲生', '數甲.物理', '1010', 'A001'],
+    ['301', '2', '乙生', '化學、生物', '1011', 'A002'],
+    ['302', '1', '丙生', '歷史 地理', '1012', ''],
+  ];
+  const build = (r: string[][]) => {
+    const scan = scanExamSheet(r, opts);
+    const mapping = Object.fromEntries(scan.groups.map((g) => [g.id, g.suggestion ?? 'ignore']));
+    return { scan, res: buildEntries(scan, opts, { mapping, rows: {} }) };
+  };
+  it('有應試編號欄：對應並存進名單；空白的人沒有；學號不會被當成應試編號', () => {
+    const { scan, res } = build(withNo);
+    expect(scan.columns.examNo).toBe(5);
+    expect(scan.columns.schoolId).toBe(4);
+    expect(res.entries.map((e) => e.examNo)).toEqual(['A001', 'A002', undefined]);
+  });
+  it('沒有應試編號欄：名單不帶 examNo（不猜學號）', () => {
+    const { scan, res } = build(rows);
+    expect(scan.columns.examNo).toBeUndefined();
+    expect(res.entries.every((e) => e.examNo === undefined)).toBe(true);
+    const r2 = build([['班級', '座號', '姓名', '組別', '學號'], ['301', '1', '甲生', '物理', '1010']]);
+    expect(r2.res.entries[0]!.examNo).toBeUndefined();
+  });
+  it('同義表頭「准考證號碼」也認得；重複編號只提醒、不擋匯入', () => {
+    const { scan, res } = build([['班級', '座號', '姓名', '組別', '准考證號碼'], ['301', '1', '甲生', '物理', 'X9'], ['301', '2', '乙生', '化學', 'X9']]);
+    expect(scan.columns.examNo).toBe(4);
+    expect(scan.notices.some((n) => n.message.includes('重複'))).toBe(true);
+    expect(res.entries.map((e) => e.examNo)).toEqual(['X9', 'X9']);
+    expect(res.ready).toBe(true);
+  });
+});

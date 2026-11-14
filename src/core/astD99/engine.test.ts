@@ -249,3 +249,19 @@ describe('效能量測', () => {
     }
   }
 });
+
+describe('無解輸入（AST-2）', () => {
+  it('座位比考生少：回報 infeasible，不丟例外', () => {
+    const students = makeClass(1, 10, () => PHY);
+    const input: PlanInput = { mode: 'fewest-rooms', rooms: [reserveRoom('R1', grid(1, 3))], slots: [{ id: 's1', subjectIds: ['phy'] }], students };
+    let out: PlanOutput | undefined;
+    expect(() => { out = planD99(input); }).not.toThrow();
+    expect(out!.infeasible).toBe(true);
+    expect(out!.exams).toEqual([]);
+    expect(out!.metrics).toBeUndefined();
+  });
+  it('有解時不帶 infeasible', () => {
+    const input: PlanInput = { mode: 'fewest-rooms', rooms: [reserveRoom('R1', grid(3, 7))], slots: [{ id: 's1', subjectIds: ['phy'] }], students: makeClass(1, 10, () => PHY) };
+    expect(planD99(input).infeasible).toBeUndefined();
+  });
+});

@@ -17,7 +17,7 @@ import { defaultLabelLayout } from '../../export/model';
 type Loaded = { fonts: FontData; has: (ch: string) => boolean };
 
 /** 瀏覽器下載一個檔案（存到瀏覽器的下載資料夾） */
-function download(f: OutputFile): void {
+export function download(f: OutputFile): void {
   const blob = new Blob([f.data as BlobPart], { type: f.mime });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -28,7 +28,7 @@ function download(f: OutputFile): void {
 }
 
 /** PDF：開新視窗顯示列印用頁面，使用者選「另存為 PDF」（D29，不直接列印 D69） */
-function openPrintPage(f: OutputFile): boolean {
+export function openPrintPage(f: OutputFile): boolean {
   const w = window.open('', '_blank');
   if (!w) return false;
   w.document.open();
@@ -88,7 +88,7 @@ function PreviewCard(p: { prepared: Extract<ReturnType<typeof prepareExport>, { 
   );
 }
 
-const kb = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
+export const kb = (n: number) => (n >= 1048576 ? `${(n / 1048576).toFixed(1)} MB` : `${Math.max(1, Math.round(n / 1024))} KB`);
 
 /** ⑥ 匯出（DESIGN 10.4、D29、D57、D69）：Word 為主、PDF 為輔；每類合併成一個多頁檔 */
 export function Step6(p: {

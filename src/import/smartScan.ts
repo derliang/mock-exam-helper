@@ -39,6 +39,8 @@ export interface ScanRow {
   name: string;
   groupCode?: string;
   note?: string;
+  /** 應試編號（選填欄位；沒有這欄或空白就沒有） */
+  examNo?: string;
   marks: ScanMark[];
 }
 
@@ -50,6 +52,7 @@ export interface ReviewItem {
   cells: string[];
   draft: { classNo?: number; seatNo?: number; name: string; groupCode?: string };
   note?: string;
+  examNo?: string;
   marks: ScanMark[];
 }
 
@@ -159,24 +162,28 @@ export function scanExamSheet(rows: readonly (readonly string[])[], opts: ScanOp
     if (filled === 1) { out.skipped.push({ row: rowNo, cells, reason: '非考生資料（僅有單一欄位）' }); continue; }
     const base = { name, ...(classNo !== null ? { classNo } : {}), ...(seatNo !== null ? { seatNo } : {}), ...(get(r, 'group') ? { groupCode: get(r, 'group') } : {}) };
     if (classNo === null || seatNo === null) {
-      out.review.push({ row: rowNo, kind: 'bad-id', message: `${classNo === null ? '班級' : '座號'}無法辨識`, cells, draft: base, marks, ...(note ? { note } : {}) });
+      out.review.push({ row: rowNo, kind: 'bad-id', message: `${classNo === null ? '班級' : '座號'}無法辨識`, cells, draft: base, marks, ...(note ? { note } : {}), ...(get(r, 'examNo') ? { examNo: get(r, 'examNo') } : {}) });
       continue;
     }
     const key = `${classNo}-${seatNo}`;
     if (seen.has(key)) {
-      out.review.push({ row: rowNo, kind: 'dup', message: `班級 ${classNo} 座號 ${seatNo} 重複`, cells, draft: base, marks, ...(note ? { note } : {}) });
+      out.review.push({ row: rowNo, kind: 'dup', message: `班級 ${classNo} 座號 ${seatNo} 重複`, cells, draft: base, marks, ...(note ? { note } : {}), ...(get(r, 'examNo') ? { examNo: get(r, 'examNo') } : {}) });
       continue;
     }
     const gk = codeKey(get(r, 'group'), opts);
     if (col.group !== undefined && gk && opts.groupTable && !opts.groupTable[gk]) {
-      out.review.push({ row: rowNo, kind: 'bad-group', message: `組別「${get(r, 'group')}」不在對照表中`, cells, draft: base, marks, ...(note ? { note } : {}) });
+      out.review.push({ row: rowNo, kind: 'bad-group', message: `組別「${get(r, 'group')}」不在對照表中`, cells, draft: base, marks, ...(note ? { note } : {}), ...(get(r, 'examNo') ? { examNo: get(r, 'examNo') } : {}) });
       seen.add(key);
       continue;
     }
     seen.add(key);
     if (gk && gk !== rawCodeKey(get(r, 'group'), opts)) out.notices.push({ row: rowNo, message: `組別「${get(r, 'group')}」不在大考中心代碼表，已視為 ${gk} 號組別；若不是筆誤請改正名單。` });
-    out.rows.push({ row: rowNo, classNo, seatNo, name, ...(get(r, 'group') ? { groupCode: get(r, 'group') } : {}), ...(note ? { note } : {}), marks });
+    out.rows.push({ row: rowNo, classNo, seatNo, name, ...(get(r, 'group') ? { groupCode: get(r, 'group') } : {}), ...(note ? { note } : {}), ...(get(r, 'examNo') ? { examNo: get(r, 'examNo') } : {}), marks });
   }
+  // 應試編號要唯一（規格 §10）：重複只提醒，不擋匯入
+  const noCount = new Map<string, number[]>();
+  for (const x of out.rows) if (x.examNo) noCount.set(x.examNo, [...(noCount.get(x.examNo) ?? []), x.row]);
+  for (const [no, rs] of noCount) if (rs.length > 1) out.notices.push({ row: rs[1]!, message: `應試編號「${no}」在第 ${rs.join('、')} 列重複；標籤與清冊會照名單印，請確認是不是填錯。` });
   const all = [...out.rows, ...out.review].flatMap((x) => x.marks.filter((m) => m.present));
   out.groups = groupMarks(all, opts.subjects);
   return out;
@@ -211,7 +218,7 @@ export function buildEntries(scan: ExamScan, opts: ScanOptions, dec: Decisions):
   for (const x of [...scan.rows, ...scan.review]) for (const m of x.marks) if (m.present) used.add(groupOf.get(m.key) ?? '');
   const pendingGroups = scan.groups.filter((g) => used.has(g.id) && dec.mapping[g.id] === undefined);
 
-  const toEntry = (r: Pick<ScanRow, 'classNo' | 'seatNo' | 'name' | 'groupCode' | 'note' | 'marks'>): { e: ExamEntry; badGroup: boolean } => {
+  const toEntry = (r: Pick<ScanRow, 'classNo' | 'seatNo' | 'name' | 'groupCode' | 'note' | 'examNo' | 'marks'>): { e: ExamEntry; badGroup: boolean } => {
     const gk = r.groupCode ? codeKey(r.groupCode, opts) : '';
     const table = opts.groupTable?.[gk];
     const explicit = !!opts.groupAsSubjects && r.marks.some((m) => {
@@ -230,6 +237,7 @@ export function buildEntries(scan: ExamScan, opts: ScanOptions, dec: Decisions):
     if (tr) e.track = tr;
     if (r.groupCode) e.groupCode = r.groupCode;
     if (r.note) e.note = r.note;
+    if (r.examNo) e.examNo = r.examNo;
     return { e, badGroup: !!gk && !!opts.groupTable && !table };
   };
 
@@ -251,7 +259,7 @@ export function buildEntries(scan: ExamScan, opts: ScanOptions, dec: Decisions):
     if (d.action === 'skip') { skippedByUser++; continue; }
     const valid = Number.isInteger(d.classNo) && d.classNo > 0 && Number.isInteger(d.seatNo) && d.seatNo > 0 && d.name.trim() !== '';
     if (!valid) { pendingReview.push(it); continue; }
-    const t = toEntry({ classNo: d.classNo, seatNo: d.seatNo, name: d.name.trim(), ...(d.groupCode ? { groupCode: d.groupCode } : it.draft.groupCode ? { groupCode: it.draft.groupCode } : {}), ...(it.note ? { note: it.note } : {}), marks: it.marks });
+    const t = toEntry({ classNo: d.classNo, seatNo: d.seatNo, name: d.name.trim(), ...(d.groupCode ? { groupCode: d.groupCode } : it.draft.groupCode ? { groupCode: it.draft.groupCode } : {}), ...(it.note ? { note: it.note } : {}), ...(it.examNo ? { examNo: it.examNo } : {}), marks: it.marks });
     if (t.badGroup || !add(t.e)) pendingReview.push(it);
   }
   entries.sort((a, b) => a.classNo - b.classNo || a.seatNo - b.seatNo);
@@ -263,7 +271,7 @@ export interface EntryChange {
   before: ExamEntry;
   after: ExamEntry;
   /** 哪些欄位不同 */
-  fields: ('name' | 'subjects' | 'group')[];
+  fields: ('name' | 'subjects' | 'group' | 'examNo')[];
 }
 export interface EntryDiff {
   added: ExamEntry[];
@@ -287,6 +295,7 @@ export function diffEntries(prev: readonly ExamEntry[] | undefined, next: readon
     if (b.name !== e.name) fields.push('name');
     if (!same(b.subjectIds, e.subjectIds)) fields.push('subjects');
     if ((b.groupCode ?? '') !== (e.groupCode ?? '')) fields.push('group');
+    if ((b.examNo ?? '') !== (e.examNo ?? '')) fields.push('examNo');
     if (fields.length) d.changed.push({ code: k, before: b, after: e, fields });
     else d.unchanged++;
   }

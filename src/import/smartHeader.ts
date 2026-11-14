@@ -16,6 +16,7 @@ export function normalizeHeader(s: string): string {
 const CONTAINS: [Field, RegExp][] = [
   ['seatNo', /座號|座位號|號數/],
   ['name', /姓名|名字/],
+  ['examNo', /應試編號|應試號|准考證|准考號/],
   ['schoolId', /學號|學籍/],
   ['group', /組別/],
   ['extra', /加考/],
