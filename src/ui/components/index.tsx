@@ -16,9 +16,9 @@ export function Button(p: {
 }
 
 /** 分段按鈕（與一般按鈕同高 40px，UI-11） */
-export function Seg<T extends string>(p: { value: T; options: { value: T; label: string; disabled?: boolean }[]; onChange: (v: T) => void; label: string }) {
+export function Seg<T extends string>(p: { value: T; options: { value: T; label: string; disabled?: boolean }[]; onChange: (v: T) => void; label: string; /** 額外類別，例：名單比對用 cmpseg（375 寬直排） */ className?: string }) {
   return (
-    <div class="seg" role="group" aria-label={p.label}>
+    <div class={p.className ? `seg ${p.className}` : 'seg'} role="group" aria-label={p.label}>
       {p.options.map((o) => (
         <button type="button" key={o.value} aria-pressed={o.value === p.value} disabled={o.disabled} onClick={() => p.onChange(o.value)}>{o.label}</button>
       ))}
@@ -37,7 +37,7 @@ export function Badge(p: { tone?: 'ok' | 'warn' | 'danger' | 'info'; children: C
 export function Alert(p: { tone?: 'ok' | 'warn' | 'danger' | 'info'; children: ComponentChildren; action?: ComponentChildren; noIcon?: boolean }) {
   return (
     <div class={`alert${p.tone ? ` a-${TONE_CLS[p.tone]}` : ''}`} role={p.tone === 'danger' ? 'alert' : 'status'}>
-      {!p.noIcon && <span aria-hidden="true">{p.tone === 'danger' ? '⛔' : p.tone === 'warn' ? '⚠' : p.tone === 'ok' ? '✓' : 'ℹ'}</span>}
+      {!p.noIcon && <span class="ico" aria-hidden="true" data-i={p.tone === 'danger' || p.tone === 'warn' ? '!' : p.tone === 'ok' ? '✓' : 'i'} />}
       <div>{p.children}</div>
       {p.action}
     </div>

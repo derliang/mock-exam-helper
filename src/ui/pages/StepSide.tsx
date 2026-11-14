@@ -44,9 +44,12 @@ function Side4(p: { doc: Doc; exam: ExamConfig }) {
   }
   const rows = markRows(doc, exam);
   const undecided = rows.filter((r) => r.state === 'undecided').length;
-  const stu = seatableEntries(doc, exam)[0];
-  const cls = stu && examClasses(doc, exam).find((c) => c.no === stu.classNo);
   const sample = rows.find((r) => r.mode === 'mark-absent' || r.mode === 'mark-extra');
+  // A-9：範例挑一位真的被這個標示標到的考生（X＝這科不考的人、＋＝加考這科的人）；挑不到才用第一位，標示字樣仍保留
+  const all = seatableEntries(doc, exam);
+  const marked = sample && all.find((e) => (sample.mode === 'mark-absent') !== e.subjectIds.includes(sample.subjectId) && (!sample.track || e.track === sample.track));
+  const stu = marked ?? all[0];
+  const cls = stu && examClasses(doc, exam).find((c) => c.no === stu.classNo);
   const mark = sample ? `${sample.mode === 'mark-absent' ? 'X' : '＋'}${subjectShort(sample.subjectName)}` : '';
   const code = stu ? `${String(stu.classNo).padStart(2, '0')}${String(stu.seatNo).padStart(2, '0')}` : '';
   const papers = [{ p: 'B4', kind: '小標籤', w: 250, h: 353 }, { p: 'A3', kind: '大標籤', w: 297, h: 420 }];

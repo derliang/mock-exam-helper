@@ -62,7 +62,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
       {/* 稿 v2.31：三張卡合成一張卡，區塊內上下分區：基本資料（含次別）／考科表／沿用上次 */}
       <div class="psec">
         <div class="row" style="justify-content:space-between">
-          <div><h3>考科表</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除</p></div>
+          <div><h3>本次考科</h3><p class="small muted">依類型與次別自動帶出，可以新增、編輯、刪除</p></div>
           {!fixed && (
             <div class="row">
               {custom && <ConfirmButton kind="default" copy={confirmCopy.resetSubjects()} onConfirm={() => set({ subjects: defaultSubjects(exam.kind, exam.round) })}>還原本次考科</ConfirmButton>}
@@ -71,9 +71,9 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           )}
         </div>
         {fixed && <Alert tone="info"><b>會考科目固定為七科</b>：國文、英語閱讀、英語聽力、數學、社會、自然、寫作測驗，不能新增、刪除或修改。</Alert>}
-        {gsat && mathSplit(round) && <Alert tone="info"><b>第{CN[round] ?? round}次起數學分為數學A、數學B</b>；第 1、2 次數學只有一科，另有英聽。</Alert>}
+        {gsat && <More title="說明：這個類型的考科規則">第 1、2 次：數學、英聽；第 3、4 次：數 A、數 B（無英聽）。{mathSplit(round) ? `目前第${CN[round] ?? round}次，數學分為數學A、數學B。` : ''}</More>}
         {custom && <Alert tone="warn">考科表已自訂：切換次別不會重設考科；④ 的組別對照表要重新確認。</Alert>}
-        <div class="scroll"><table class="t compact">
+        <div class="scroll"><table class="t compact subj-t">
           <thead><tr><th>科目</th><th>誰要考</th><th /></tr></thead>
           <tbody>
             {exam.subjects.map((s) => (
@@ -90,7 +90,7 @@ export function Step1(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             ))}
           </tbody>
         </table></div>
-        <More title="說明：「誰要考」的意思">{fixed ? '會考每科都考，沒有選考。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</More>
+        <More title="說明：「誰要考」怎麼決定">{fixed ? '會考每科都考，沒有選考。' : '「依組別代碼決定」的科目，在步驟④用組別對照表設定誰考、誰不考。'}</More>
       </div>
 
       <div class="psec">

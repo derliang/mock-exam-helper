@@ -129,7 +129,7 @@ export function App() {
   const barFrom = { route: r, label: pageName(r, hist.present) };
   const barItems: AppBarItem[] = [
     { id: 'init', label: '資料夾設定', current: r.page === 'init', onClick: () => go({ page: 'init' }) },
-    { id: 'exams', label: '模擬考列表', current: ['exams', 'new', 'step', 'lookup', 'reconcile', 'override', 'reserve'].includes(r.page), disabled: !hasFolder, onClick: () => go({ page: 'exams' }) },
+    { id: 'exams', label: '模擬考列表', current: ['exams', 'new', 'step', 'reconcile', 'override', 'reserve'].includes(r.page), disabled: !hasFolder, onClick: () => go({ page: 'exams' }) },
     ...(hasFolder ? enabledNav({ settings: hist.present.settings }).map((n) => ({ id: n.id, label: n.label, current: r.page === n.route.page, onClick: () => go2(n.route, barFrom) })) : []),
     { id: 'features', label: '選用功能', current: inSettings && r.tab === 'features', disabled: !hasFolder, onClick: () => toSettings({ page: 'settings', tab: 'features' }) },
     { id: 'settings', label: '共用設定', current: inSettings && r.tab !== 'features', disabled: !hasFolder, onClick: () => toSettings({ page: 'settings', ...(lastExam && r.page === 'step' ? { division: lastExam.division } : {}) }) },
@@ -210,7 +210,7 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <div class="stack" style="min-width:0">
         {p.ret && (
-          <div class="row wsret"><Button onClick={p.onRet}>↩ 回到 {stepTitle(p.ret)}</Button><span class="small muted">你是從那一步過來處理問題的</span></div>
+          <div class="row wsret"><Button onClick={p.onRet}>↩ 回到「{exam.name}」{stepTitle(p.ret)}</Button><span class="small muted">你是從那一步過來處理問題的</span></div>
         )}
         <SummaryBar flow={flow} onGo={p.onFix} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
