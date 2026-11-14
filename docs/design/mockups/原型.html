@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>模擬考原型 稿 v2.34</title>
+<title>模擬考原型 稿 v2.35</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -436,6 +436,9 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .sumbar .sn{display:inline-flex;gap:14px;white-space:nowrap}.sumbar .sn span{display:inline-flex;align-items:baseline;gap:4px;color:var(--muted)}
 .sumbar .sgo{color:var(--accent-ink);font-weight:700;white-space:nowrap}
 @media (max-width:760px){.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
+/* v2.35（對稿 A-1）：摘要列依「自身寬度」切窄版；820 寬左側有步驟條時中欄只有約 470px，四欄版會把逐項文字擠成細欄 */
+.sumbar{container-type:inline-size}
+@container (max-width:620px){.sumbar .si{grid-template-columns:minmax(0,1fr) auto}.sumbar .sstep{grid-column:1}.sumbar .sti{grid-column:1/-1}.sumbar .sn{grid-column:1/-1;flex-wrap:wrap}.sumbar .sgo{grid-column:2;grid-row:1}}
 @media (max-width:760px){.ws.wide{grid-template-columns:minmax(0,1fr)}}
 .ws .chart{--cw:90px;--ch:104px}
 .cell.dim{opacity:.25}
@@ -885,7 +888,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 </style>
 
 <div class="pbar">
-  <span class="brand">原型工具列</span><span class="badge b-warn">原型專用，實作沒有</span><span class="badge b-acc vbadge">稿 v2.34・2026-11-13</span>
+  <span class="brand">原型工具列</span><span class="badge b-warn">原型專用，實作沒有</span><span class="badge b-acc vbadge">稿 v2.35・2026-11-14</span>
   <nav class="nav" id="pnav" aria-label="原型導覽"></nav>
   <div class="seg" role="group" aria-label="深淺色">
     <button type="button" id="thSys" aria-pressed="true">跟隨系統</button>
@@ -893,7 +896,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     <button type="button" id="thDark" aria-pressed="false">深色</button>
   </div>
 </div>
-<header class="appbar" id="appbar"><button type="button" class="ab-brand" data-ab="list" aria-label="模擬考小幫手，回模擬考列表"><span class="ab-logo" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><rect x="2" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="2" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="2" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="23.5" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="2" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="12.75" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/></svg></span>模擬考小幫手<span class="ab-ver">v1.0.0</span></button><nav class="ab-nav" id="abnav" aria-label="主導覽"></nav><div class="ab-tools"><button type="button" class="btn btn-sm ab-theme" id="abTheme" aria-label="切換外觀（跟隨系統、淺色、深色）">◐ <span class="t">外觀</span></button><button type="button" class="btn btn-sm ab-menu" id="abMenu" aria-expanded="false" aria-controls="abnav">選單</button></div></header>
+<header class="appbar" id="appbar"><button type="button" class="ab-brand" data-ab="list" aria-label="模擬考小幫手，回模擬考列表"><span class="ab-logo" aria-hidden="true"><svg viewBox="0 0 34 34" fill="none"><rect x="2" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="2" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="2" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="2" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="12.75" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="23.5" y="12.75" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="2" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor"/><rect x="12.75" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/><rect x="23.5" y="23.5" width="8.5" height="8.5" rx="2" fill="currentColor" opacity=".55"/></svg></span>模擬考小幫手<span class="ab-ver">v1.0.0</span></button><nav class="ab-nav" id="abnav" aria-label="主導覽"></nav><div class="ab-tools"><button type="button" class="btn btn-sm ab-theme" id="abTheme" aria-label="外觀（按一下切換：跟隨系統、淺色、深色）">◐ <span class="t">跟隨系統</span></button><button type="button" class="btn btn-sm ab-menu" id="abMenu" aria-expanded="false" aria-controls="abnav">選單</button></div></header>
 <main class="wrap" id="app"></main>
 <footer class="appfoot"><span>模擬考小幫手</span><button type="button" class="btn btn-sm" data-ft="ver" title="關於：版本與建置日期">v1.0.0</button><a href="#" data-ft="copy">© 版權所有</a><a href="#" data-ft="priv">隱私權</a></footer>
 <div class="toasts" id="toasts" aria-live="polite"></div>
@@ -903,7 +906,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
 (function(){
   /* ---------- 主題 ---------- */
   var root=document.documentElement, tb={sys:document.getElementById('thSys'),light:document.getElementById('thLight'),dark:document.getElementById('thDark')};
-  function setTheme(m){if(m==='sys')root.removeAttribute('data-theme');else root.setAttribute('data-theme',m);for(var k in tb)tb[k].setAttribute('aria-pressed',String(k===m))}
+  function setTheme(m){if(m==='sys')root.removeAttribute('data-theme');else root.setAttribute('data-theme',m);for(var k in tb)tb[k].setAttribute('aria-pressed',String(k===m));var abt=document.querySelector('#abTheme .t');if(abt)abt.textContent={sys:'跟隨系統',light:'淺色',dark:'深色'}[m]}
   tb.sys.onclick=function(){setTheme('sys')};tb.light.onclick=function(){setTheme('light')};tb.dark.onclick=function(){setTheme('dark')};
 
   /* ---------- 假資料與狀態 ---------- */
@@ -1462,7 +1465,8 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var e=S.cur,d=D(),part=e.part==='part',isJ=e.type==='會考',pend=!!e.cmpPending;
     if(demoIs('v2','empty'))return v2empty(e);
     var per=d.cls.map(function(c,i){return d.stu.filter(function(s){return s.c===i}).length});
-    var head='<div class="row" style="justify-content:space-between;gap:10px"><div class="row" style="gap:10px"><h3>考試名單</h3>'+(pend?'<span class="badge b-warn">尚未匯入</span>':'<span class="badge b-ok">✓ 已比對，沒有差異</span>')+'</div><button class="btn'+(pend?' btn-primary':'')+'" data-act="cmpstart">'+(pend?'匯入並比對':'再匯入一次')+'</button></div>';
+    var cnote=(S.cmpNote&&S.cmpNote.length)?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>已套用名單比對；'+S.cmpNote.length+' 人的考科改用學生名單組別的預設，原本的 X／＋ 標示已清掉：</b>'+esc(S.cmpNote.join('、'))+'。請到 ④ 標示與抽離規則或「個別覆寫」確認他們實際要考的科目。</span><button class="btn btn-sm" data-act="cmpnoteok">知道了</button></div>':'';
+    var head=cnote+'<div class="row" style="justify-content:space-between;gap:10px"><div class="row" style="gap:10px"><h3>考試名單</h3>'+(pend?'<span class="badge b-warn">尚未匯入</span>':'<span class="badge b-ok">✓ 已比對，沒有差異</span>')+'</div><button class="btn'+(pend?' btn-primary':'')+'" data-act="cmpstart">'+(pend?'匯入並比對':'再匯入一次')+'</button></div>';
     var file='<div class="row" style="gap:12px;justify-content:space-between"><div class="row" style="gap:10px"><span class="badge">考試名單.xlsx（模擬檔）</span><span class="muted small">'+(pend?'尚未匯入':'已匯入 '+d.stu.length+' 筆')+'</span></div>'+
       '<div class="row" style="gap:8px"><span class="label" style="margin:0">誰會參加</span><div class="seg fmtseg" role="group" aria-label="參加模式"><button type="button" data-act="part" data-v="all" aria-pressed="'+(!part)+'">全員參加</button><button type="button" data-act="part" data-v="part" aria-pressed="'+part+'">部分參加</button></div></div></div>'+
       '<p class="small muted">'+(part?'沒報名的人不算差異，不排座、不出現在座位表。':'學生名單有、考試名單沒有的人，列為差異，逐筆處理。')+'</p>';
@@ -1526,11 +1530,10 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     if(s1)items.push({k:'del',title:'學生名單有，考試名單沒有',exam:'（沒有這個人）',stu:CNAME[0]+'班 12 號　'+s1.name,data:{id:s1.id}});
     if(s2)items.push({k:'cls',title:'同一人的班級或座號不同',exam:CNAME[4]+'班 45 號　'+s2.name,stu:CNAME[3]+'班 17 號　'+s2.name,data:{id:s2.id,c:4,no:45}});
     if(s3)items.push({k:'name',title:'同一人的姓名不同',exam:CNAME[1]+'班 5 號　'+s3.name.charAt(0)+'小婭',stu:CNAME[1]+'班 5 號　'+s3.name,data:{id:s3.id,name:s3.name.charAt(0)+'小婭'}});
-    if(s4&&!isJ&&e.type!=='分科'){var defs=codeDef(e),ks=Object.keys(defs),to=ks.filter(function(k){return k!==s4.code})[0];items.push({k:'code',title:'同一人的組別不同',exam:CNAME[2]+'班 21 號　'+s4.name+'　'+defs[to].n,stu:CNAME[2]+'班 21 號　'+s4.name+'　'+defs[s4.code].n,data:{id:s4.id,code:to}})}
+    if(s4&&!isJ&&e.type!=='分科'){var defs=codeDef(e),ks=Object.keys(defs),to=ks.filter(function(k){return k!==s4.code})[0];items.push({k:'code',opts:[['exam','以考試名單為準'],['stu','以學生名單為準']],hint:'選「以學生名單為準」：這位考生的考科改用學生名單組別的預設，考試名單上原本的 X／＋ 標示（例：X英聽、＋自然）會清掉；套用後會列出受影響的人。',title:'同一人的組別不同',exam:CNAME[2]+'班 21 號　'+s4.name+'　'+defs[to].n,stu:CNAME[2]+'班 21 號　'+s4.name+'　'+defs[s4.code].n,data:{id:s4.id,code:to}})}
     items.push({k:'ncls',data:{},title:'考試名單有這個班級，班級資料沒有',exam:'勇班 2 人（3 號　陳小宇、7 號　林小安）',stu:'（班級資料沒有「勇」班）',opts:[['exam','新增班級「勇」'],['edit','改成既有班級'],['stu','不匯入這班（2 人）']],hint:'選「新增班級」會當場在班級資料多一班，不用先離開去設定頁。'});
     var a1=find(0,3),a2=find(5,8),ab=[a1,a2].filter(Boolean);
-    if(ab.length)items.push({k:'absent',data:{},title:ab.length+' 人全科缺考',exam:ab.map(function(x){return CNAME[x.c]+'班 '+x.no+' 號　'+x.name}).join('、')+'（備註：全科缺考）',stu:'目前在學生名單，會被排座',opts:[['exam','列入缺考清單，不排座'],['stu','仍排座']],hint:'全科缺考的人不佔座位，座位表與領卷份數都不含；也可以改成仍排座。'});
-    S.cmp={items:items,pick:{},edit:{}};S.screen='cmp';render()}
+    S.cmp={items:items,pick:{},edit:{},absent:ab,abs:'exam'};S.screen='cmp';render()}
   var CMPOPTS=[['exam','以考試名單為準'],['stu','以學生名單為準'],['edit','手動編輯']];
   function cmpOpts(it){return it.opts||CMPOPTS}
   function cmpEditHTML(it,i){
@@ -1541,11 +1544,12 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     var cards=c.items.map(function(it,i){var p=c.pick[i];
       return '<div class="card stack" style="gap:12px"><div class="row" style="justify-content:space-between"><span class="badge b-warn">'+(i+1)+'／'+all+'　'+it.title+'</span>'+(p?'<span class="badge b-ok">已選：'+cmpOpts(it).filter(function(o){return o[0]===p})[0][1]+'</span>':'<span class="badge">未處理</span>')+'</div>'+
         '<div class="grid" style="grid-template-columns:repeat(auto-fit,minmax(min(100%,240px),1fr))"><div class="fact"><b>考試名單</b>'+esc(it.exam)+'</div><div class="fact"><b>學生名單</b>'+esc(it.stu)+'</div></div>'+
-        '<div class="seg cmpseg" role="group" aria-label="第'+(i+1)+'筆處理方式" style="justify-self:start">'+cmpOpts(it).map(function(o){return '<button type="button" data-act="cmppick" data-i="'+i+'" data-v="'+o[0]+'" aria-pressed="'+(p===o[0])+'">'+o[1]+'</button>'}).join('')+'</div>'+(it.hint?'<span class="hint">'+it.hint+'</span>':'')+(p==='edit'?cmpEditHTML(it,i):'')+'</div>'}).join('');
+        '<div class="seg cmpseg" role="group" aria-label="第'+(i+1)+'筆處理方式" style="justify-self:start">'+cmpOpts(it).map(function(o){return '<button type="button" data-act="cmppick" data-i="'+i+'" data-v="'+o[0]+'" aria-pressed="'+(p===o[0])+'">'+o[1]+'</button>'}).join('')+'</div>'+(it.hint?'<span class="hint">'+it.hint+'</span>':'')+(it.k==='code'&&p==='stu'?'<div class="alert a-warn"><span class="ico" data-i="!"></span><span><b>這位考生原本的 X／＋ 標示會清掉。</b>套用後請到 ④ 標示與抽離規則或「個別覆寫」確認他實際要考的科目。</span><span></span></div>':'')+(p==='edit'?cmpEditHTML(it,i):'')+'</div>'}).join('');
+    var ab=c.absent||[];if(ab.length)cards+='<div class="card stack" style="gap:12px"><div class="row" style="justify-content:space-between"><span class="badge b-warn">'+ab.length+' 人全科缺考</span><span class="badge b-ok">目前：'+(c.abs==='stu'?'仍排座':'列入缺考清單，不排座')+'</span></div><div class="fact"><b>考試名單</b>'+esc(ab.map(function(x){return CNAME[x.c]+'班 '+x.no+' 號　'+x.name}).join('、'))+'（備註：全科缺考）</div><div class="seg cmpseg" role="group" aria-label="全科缺考處理方式" style="justify-self:start"><button type="button" data-act="cmpabs" data-v="exam" aria-pressed="'+(c.abs!=='stu')+'">列入缺考清單，不排座</button><button type="button" data-act="cmpabs" data-v="stu" aria-pressed="'+(c.abs==='stu')+'">仍排座</button></div><span class="hint">全科缺考的人不佔座位，座位表與領卷份數都不含；也可以改成仍排座。這一項已有預設，不算差異、不必選也能繼續。</span></div>';
     return PH({crumbs:crs(crList(),crExam(),crRet()),title:'名單比對',badge:'<span class="badge">'+esc(S.cur.name)+'</span>',tools:undoBtn()})+
       '<div class="stack" style="max-width:860px"><div class="card stack"><p>匯入「'+S.cur.name+'」考試名單（模擬檔：考試名單.xlsx）後，和'+SN(S.cur)+'比對，找到 <b>'+all+'</b> 筆差異；全部處理完才能繼續排座。</p><details class="more"><summary>說明：每一筆怎麼處理</summary><div>每一筆選一種處理方式（多數是：以考試名單為準、以學生名單為準，或兩邊都不對就手動編輯）。</div></details>'+
       '<div class="stats"><div><small>差異</small><strong>'+all+'</strong></div><div><small>已處理</small><strong>'+done+'</strong></div><div class="'+(all-done?'bad':'')+'"><small>未處理</small><strong>'+(all-done)+'</strong></div></div></div>'+cards+
-      '<div class="row" style="justify-content:flex-end"><button class="btn" data-act="backws" data-n="2">先不處理</button><button class="btn btn-primary btn-lg" data-act="cmpapply"'+(done<all?' disabled':'')+'>'+(done<all?'還有 '+(all-done)+' 筆沒選':'套用選擇')+'</button></div><p class="small muted">按鈕在全部選完前停用。<span class="pending">待使用者確認：比對畫面的呈現方式</span></p></div>'}
+      '<div class="row" style="justify-content:flex-end"><button class="btn" data-act="backws" data-n="2">先不處理</button><button class="btn btn-primary btn-lg" data-act="cmpapply"'+(done<all?' disabled':'')+'>'+(done<all?'還有 '+(all-done)+' 筆沒選':'套用 '+all+' 筆核對結果')+'</button></div><p class="small muted">按鈕在全部選完前停用。<span class="pending">待使用者確認：比對畫面的呈現方式</span></p></div>'}
   function applyCmp(){
     var d=D(),c=S.cmp;pushUndo('套用名單比對');
     c.items.forEach(function(it,i){
@@ -1560,6 +1564,7 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
         if(it.k==='cls'){s.c=x.c;s.no=x.no;s.id=pad2(x.c+1)+pad2(x.no)}
         if(it.k==='name')s.name=x.name;
         if(it.k==='code')s.code=x.code}});
+    S.cmpNote=c.items.filter(function(it,i){return it.k==='code'&&c.pick[i]==='stu'}).map(function(it){return it.exam.split('　').slice(0,2).join('　')});
     S.cur.cmpPending=false;markStale();S.cmp=null;S.screen='ws';S.step=2;toast('比對完成，已套用選擇；排座結果標為過期');render()}
 
   /* ---------- ③ 教室設定 ---------- */
@@ -1573,7 +1578,8 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     function rrow(r,key,lab,kind){var n=seatsOf(r).length,off=r.cols*r.rows-n,open=ex===key,on=(S.rsw&&key in S.rsw)?!!S.rsw[key]:kind!=='p',badge=kind==='p'?'備':(!isJ&&d.cls[r.c]&&r.name.indexOf(d.cls[r.c].name)===0?r.name.charAt(0):String(lab));
       return '<div class="rw"><div class="roomrow'+(sel===key?' on':'')+(on?'':' off')+'" data-act="rexp" data-s="'+key+'"><label class="sw swcol" data-act="rsw"><span class="cap">'+(kind==='p'?'列為預備':'列為考場')+'</span><span class="swrow"><input type="checkbox" data-sw="'+key+'"'+((S.rsw&&key in S.rsw)?(S.rsw[key]?' checked':''):(kind==='p'?'':' checked'))+'><span class="trk"></span><span class="st">'+(on?'已列入':'未列入')+'</span></span></label><div class="field" style="gap:2px"><label class="small muted" for="rn'+key+'">教室名稱（可改）</label><div class="row" style="flex-wrap:nowrap;gap:8px"><span class="no rbadge" '+(kind==='p'?'':'data-c="'+cc(r.c)+'" ')+'title="'+(kind==='p'?'預備教室':'班級教室')+'" aria-hidden="true">'+badge+'</span><input class="input" id="rn'+key+'" data-rn="'+key+'" value="'+esc(r.name)+'"></div></div>'+
         '<div class="field" style="gap:2px"><span class="small muted">橫排（左右）</span>'+stp(key,'cols','橫排',r.cols)+'</div><div class="field" style="gap:2px"><span class="small muted">深位（前後）</span>'+stp(key,'rows','深位',r.rows)+'</div>'+
-        '<div class="info">座位 <b>'+(r.cols*r.rows)+'</b>・不排 <b>'+off+'</b>・可排 <b>'+n+'</b>'+(kind==='p'?'<br>預備教室，不計入班級教室':(isJ?'':'<br>'+(d.cls[r.c].grp==='sci'?'理組':'文組')))+'</div>'+
+        (kind==='p'||isJ?'':'<div class="field" style="gap:2px"><span class="small muted">組別（高中部必選）</span><div class="seg" role="group" aria-label="'+esc(r.name)+'組別"><button type="button" data-act="rtrk" data-s="'+key+'" data-g="sci" aria-pressed="'+((r.grp||d.cls[r.c].grp)==='sci')+'">理組</button><button type="button" data-act="rtrk" data-s="'+key+'" data-g="art" aria-pressed="'+((r.grp||d.cls[r.c].grp)==='art')+'">文組</button></div></div>')+
+        '<div class="info">座位 <b>'+(r.cols*r.rows)+'</b>・不排 <b>'+off+'</b>・可排 <b>'+n+'</b>'+(kind==='p'?'<br>預備教室，不計入班級教室':(isJ?'':'<br>'+((r.grp||d.cls[r.c].grp)==='sci'?'理組':'文組')))+'</div>'+
         '<div class="row" style="flex-wrap:nowrap"><button class="btn btn-sm'+(open?' btn-primary':'')+'" data-act="rexp" data-s="'+key+'" aria-expanded="'+open+'">'+(open?'收合座位表':'編輯座位表')+'</button>'+(kind==='p'?'<button class="btn btn-sm btn-danger" data-act="pdel" data-s="'+key+'">刪除</button>':'')+'</div></div>'+(open?roomEditorHTML(key,false):'')+'</div>'}
     var rooms=d.rooms.map(function(r,i){return rrow(r,'r'+i,i+1,'r')}).join('');
     var preps=isJ?'':d.prep.map(function(r,i){return rrow(r,'p'+i,'備','p')}).join('');
@@ -1936,6 +1942,9 @@ details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:poin
     else if(a==='impgo'){if(S.imp.mark||S.cur.type==='分科'){startCmp()}}
     else if(a==='cmppick'){S.cmp.pick[+g('i')]=g('v');render()}
     else if(a==='cmpapply')applyCmp();
+    else if(a==='cmpabs'){S.cmp.abs=g('v');render()}
+    else if(a==='cmpnoteok'){S.cmpNote=null;render()}
+    else if(a==='rtrk'){var rk=g('s'),ri=+rk.slice(1),rr=D().rooms[ri];if(rr){pushUndo('改教室組別');rr.grp=g('g');render()}}
     else if(a==='backws'){S.screen='ws';S.step=+g('n');render()}
     else if(a==='grp'){pushUndo('文理組');D().cls[+g('c')].grp=g('g');markStale();render()}
     else if(a==='rsel'){S.rsel=g('s');render()}
