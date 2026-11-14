@@ -1,6 +1,6 @@
 import { DEFAULT_LABEL_HEADER, DEFAULT_SEAT_HEADER, headerTemplates } from '../header';
 import { syncDiffs } from '../store';
-import { useState } from 'preact/hooks';
+import { useEffect, useState } from 'preact/hooks';
 import type { Division, LabelPaper, Student, Track } from '../../data';
 import { DEFAULT_LABEL_NOTES, LABEL_NOTE_MAX_CHARS, LABEL_NOTE_MAX_LINES, noteLineLength, studentCode } from '../../data';
 import { Alert, Badge, Button, ClassChip, ConfirmButton, EmptyState, Modal, Seg, Switch } from '../components';
@@ -19,8 +19,11 @@ const TABS: { value: Tab; label: string }[] = [
 ];
 
 /** 設定頁（D61）：部別切換（UI-07/08）；改動都走 onChange，由 App 記入復原 */
-export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; division?: Division }) {
-  const [tab, setTab] = useState<Tab>(p.tab ?? 'roster');
+export function Settings(p: { doc: Doc; onChange: (d: Doc) => void; tab?: Tab; division?: Division; onTab?: (t: Tab) => void }) {
+  const [tab, setTab0] = useState<Tab>(p.tab ?? 'roster');
+  const setTab = (t: Tab) => { setTab0(t); p.onTab?.(t); };
+  // 品牌列「選用功能／共用設定」在同一頁切換分頁時，路由的 tab 變了，內部狀態要跟著變
+  useEffect(() => { setTab0(p.tab ?? 'roster'); }, [p.tab]);
   const [division, setDivision] = useState<Division>(p.division ?? 'senior');
   return (
     <section>

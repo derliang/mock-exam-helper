@@ -5,8 +5,9 @@ import './featureRegister/attendance';
 import './featureRegister/alignment';
 import './featureRegister/quick';
 import { Footer } from './components/Footer';
+import { AppBar, type AppBarItem, type Theme } from './components/AppBar';
 import { StepSide, hasSide } from './pages/StepSide';
-import { Alert, Button, EmptyState, PageHead, Seg, StepNav, StepNextContext, SummaryBar, UndoGroup } from './components';
+import { Alert, Button, EmptyState, PageHead, StepNav, StepNextContext, SummaryBar, UndoGroup } from './components';
 import { enabledNav, enabledStepPanels, FeatureContext } from './features';
 import { flowOf, nextAction } from './flow';
 import { backLabel, goBack, guardNav, goTo, initialNav, pushTo, stepTitle, type NavState, type Route } from './nav';
@@ -30,7 +31,6 @@ import { APP_VERSION, formatVersion } from './version';
 import { describeChange } from './describeChange';
 import { canUndo, commit, newHistory, nextUndoLabel, undo, undoSteps, undoTo, type History } from './undo';
 
-type Theme = 'system' | 'light' | 'dark';
 // 支援資料夾授權的瀏覽器用真實存檔；不支援（非 Chrome）時用記憶體實作，並在初始化頁提示
 const fsSupported = isFsAccessSupported();
 const fsRepo = fsSupported ? createFsRepository() : null;
@@ -119,6 +119,21 @@ export function App() {
     return [{ label: last.label, onClick: back }];
   };
   const pathCrumbs = [listCrumb, ...retCrumbs()];
+  // 全站品牌列導覽（稿 v2.31）：資料夾設定、模擬考列表、（已開啟的選用功能頁）、選用功能、共用設定
+  const inSettings = r.page === 'settings';
+  // 已在共用設定時只換分頁，不再疊一筆「回到」
+  const toSettings = (to: Route) => (inSettings ? setNav((s) => ({ ...s, route: to })) : go2(to, barFrom));
+  const barFrom = { route: r, label: pageName(r, hist.present) };
+  const barItems: AppBarItem[] = [
+    { id: 'init', label: '資料夾設定', current: r.page === 'init', onClick: () => go({ page: 'init' }) },
+    { id: 'exams', label: '模擬考列表', current: ['exams', 'new', 'step', 'lookup', 'reconcile', 'override', 'reserve'].includes(r.page), disabled: !hasFolder, onClick: () => go({ page: 'exams' }) },
+    ...(hasFolder ? enabledNav({ settings: hist.present.settings }).map((n) => ({ id: n.id, label: n.label, current: r.page === n.route.page, onClick: () => go2(n.route, barFrom) })) : []),
+    { id: 'features', label: '選用功能', current: inSettings && r.tab === 'features', disabled: !hasFolder, onClick: () => toSettings({ page: 'settings', tab: 'features' }) },
+    { id: 'settings', label: '共用設定', current: inSettings && r.tab !== 'features', disabled: !hasFolder, onClick: () => toSettings({ page: 'settings', ...(lastExam && r.page === 'step' ? { division: lastExam.division } : {}) }) },
+  ];
+  // 「↩ 回到 ○ 步」附條（稿 wsRet）：從別的步驟按「前往處理」過來才有，來源步驟與目前不同時顯示
+  const lastBack = gnav.back[gnav.back.length - 1]?.route;
+  const retStep = r.page === 'step' && lastBack?.page === 'step' && lastBack.examId === r.examId && lastBack.step !== r.step ? lastBack.step : undefined;
   const undoCtl = <UndoGroup undoLabel={nextUndoLabel(hist)} onUndo={() => { setStaleNote(undefined); onUndo(); }} steps={undoSteps(hist)} onUndoTo={onUndoTo} />;
 
   useEffect(() => {
@@ -132,21 +147,7 @@ export function App() {
 
   return (
     <FeatureContext.Provider value={hist.present.settings}>
-      <header class="pbar">
-        <div class="pbar-in">
-          <span class="brand">模擬考小幫手 <span class="ver" title="目前版本">{formatVersion(APP_VERSION)}</span></span>
-          <nav class="nav" aria-label="主要導覽">
-            <button type="button" onClick={() => go({ page: 'init' })} aria-current={r.page === 'init'}>資料夾設定</button>
-            <button type="button" disabled={!hasFolder} onClick={() => go({ page: 'exams' })} aria-current={r.page === 'exams'}>模擬考列表</button>
-            {hasFolder && enabledNav({ settings: hist.present.settings }).map((n) => (
-              <button key={n.id} type="button" onClick={() => go2(n.route, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === n.route.page}>{n.label}</button>
-            ))}
-            <button type="button" disabled={!hasFolder} onClick={() => go2({ page: 'settings', ...(lastExam && r.page === 'step' ? { division: lastExam.division } : {}) }, { route: r, label: pageName(r, hist.present) })} aria-current={r.page === 'settings'}>共用設定</button>
-          </nav>
-          <span class="spacer" />
-          <Seg<Theme> label="深淺色" value={theme} onChange={setTheme} options={[{ value: 'system', label: '跟隨系統' }, { value: 'light', label: '淺色' }, { value: 'dark', label: '深色' }]} />
-        </div>
-      </header>
+      <AppBar version={formatVersion(APP_VERSION)} theme={theme} onTheme={setTheme} onHome={() => go({ page: 'exams' })} homeDisabled={!hasFolder} items={barItems} />
       <main class="wrap">
         {stepExam && r.page === 'step' && (
           <PageHead crumbs={[listCrumb]} title={stepExam.name} badge={examLabel(stepExam)} status="已儲存到資料夾">
@@ -168,8 +169,8 @@ export function App() {
         {r.page === 'exams' && <Exams doc={hist.present} folder={repo.folderName?.()} onOpen={(examId) => go({ page: 'step', examId, step: 1 })} onNew={() => go({ page: 'new' })} onSettings={() => go2({ page: 'settings' }, { route: r, label: pageName(r, hist.present) })} onChangeFolder={() => void changeFolder()} />}
         {r.page === 'new' && <NewExam doc={hist.present} onCancel={() => go({ page: 'exams' })} onCreate={(d, examId) => { edit(d); go({ page: 'step', examId, step: 1 }); }} />}
         {r.page === 'lookup' && <Lookup doc={hist.present} examId={r.examId} crumbs={pathCrumbs} onGoStep={(examId, step) => go({ page: 'step', examId, step })} onExams={() => go({ page: 'exams' })} />}
-        {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} {...(r.division ? { division: r.division } : {})} />}
-        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRooms={(division) => go2({ page: 'settings', tab: 'rooms', division }, { route: r, label: pageName(r, hist.present) })} onToRoster={(division) => go2({ page: 'settings', tab: 'roster', division }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onExams={() => go({ page: 'exams' })} />}
+        {r.page === 'settings' && <Settings doc={hist.present} onChange={edit} tab={r.tab} onTab={(tab) => setNav((s) => (s.route.page === 'settings' ? { ...s, route: { ...s.route, tab } } : s))} {...(r.division ? { division: r.division } : {})} />}
+        {r.page === 'step' && <Workspace route={r} doc={hist.present} onToRooms={(division) => go2({ page: 'settings', tab: 'rooms', division }, { route: r, label: pageName(r, hist.present) })} onToRoster={(division) => go2({ page: 'settings', tab: 'roster', division }, { route: r, label: pageName(r, hist.present) })} onChange={edit} onStep={(step) => go({ page: 'step', examId: r.examId, step })} onFix={(step) => go2({ page: 'step', examId: r.examId, step }, { route: r, label: pageName(r, hist.present) })} ret={retStep} onRet={back} onExams={() => go({ page: 'exams' })} />}
         {(r.page === 'reconcile' || r.page === 'override' || r.page === 'reserve') && <section><h2>{r.page}</h2><p class="muted">施工中</p></section>}
       </main>
       <Footer onCopyright={() => r.page !== 'copyright' && go2({ page: 'copyright' }, { route: r, label: pageName(r, hist.present) })} onPrivacy={() => r.page !== 'privacy' && go2({ page: 'privacy' }, { route: r, label: pageName(r, hist.present) })} />
@@ -191,7 +192,7 @@ export function pageName(r: Route, doc: Doc): string {
   }
 }
 
-function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: (division: 'senior' | 'junior') => void; onToRooms: (division: 'senior' | 'junior') => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onExams: () => void }) {
+function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToRoster: (division: 'senior' | 'junior') => void; onToRooms: (division: 'senior' | 'junior') => void; onChange: (d: Doc) => void; onStep: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; onFix: (n: 1 | 2 | 3 | 4 | 5 | 6) => void; ret?: number | undefined; onRet: () => void; onExams: () => void }) {
   const exam = p.doc.exams.find((e) => e.id === p.route.examId);
   if (!exam) {
     return <section><h2>{stepTitle(p.route.step)}</h2><EmptyState title="找不到這個模擬考" action={<Button kind="primary" onClick={p.onExams}>回模擬考列表</Button>}>它可能已被刪除，或資料夾換了。</EmptyState></section>;
@@ -203,14 +204,17 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
       <div class={`ws${hasSide(step) ? '' : ' wide'}`}>
       <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <div class="stack" style="min-width:0">
-        <SummaryBar flow={flow} onGo={p.onStep} />
+        {p.ret && (
+          <div class="row wsret"><Button onClick={p.onRet}>↩ 回到 {stepTitle(p.ret)}</Button><span class="small muted">你是從那一步過來處理問題的</span></div>
+        )}
+        <SummaryBar flow={flow} onGo={p.onFix} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
           : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
           : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />
-          : step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
-          : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onStep} />
-          : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onStep(n)} onExams={p.onExams} />}
-        {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange, onStep: p.onStep })}</div>)}
+          : step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} />
+          : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} />
+          : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onFix(n)} onExams={p.onExams} />}
+        {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange, onStep: p.onFix })}</div>)}
       </div>
       {hasSide(step) && <aside class="side side-r"><StepSide step={step} doc={p.doc} exam={exam} /></aside>}
       </div>

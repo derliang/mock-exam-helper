@@ -869,3 +869,23 @@ table.t{border-collapse:collapse;width:100%;min-width:560px}
 .sh{font-size:17px;margin:0}
 .pmode .opt{display:grid;gap:2px;padding:10px 12px;border:1px solid var(--line);border-radius:var(--r-md);background:var(--surface);cursor:pointer;text-align:left;font:inherit;color:inherit;width:100%}
 .pmode .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+
+/* ===== I-2a 全站品牌列（稿 v2.31，DESIGN 10.18）：不黏頂；摘要列成為唯一黏頂元素；≤600px 導覽收進「選單」 ===== */
+.appbar{position:relative;display:flex;align-items:center;gap:6px 14px;background:var(--surface);border-bottom:1px solid var(--line);margin-inline:calc(-1 * max(16px,env(safe-area-inset-left,0px)));padding:0 max(16px,env(safe-area-inset-left,0px));min-height:56px}
+.ab-brand{display:inline-flex;align-items:center;gap:10px;font:700 17px/1 var(--f-head);color:var(--text);white-space:nowrap;background:none;border:0;padding:8px 0;cursor:pointer;min-height:44px}
+.ab-brand:disabled{cursor:default}
+.ab-brand:focus-visible,.ab-nav button:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.ab-logo{width:28px;height:28px;border-radius:var(--r-md);background:var(--accent);color:var(--accent-on);display:grid;place-items:center;flex:none}
+.ab-logo svg{width:18px;height:18px;display:block}
+.ab-ver{font:400 12px var(--f-ui);color:var(--text-3)}
+.ab-nav{display:flex;gap:2px;flex:1;min-width:0;margin-left:8px}
+.ab-nav button{font:inherit;font-weight:500;font-size:14px;white-space:nowrap;min-height:40px;padding:0 12px;border-radius:var(--r-sm);border:1px solid transparent;background:transparent;color:var(--text-2);cursor:pointer}
+.ab-nav button:hover:not(:disabled){background:var(--sunken);color:var(--text)}
+.ab-nav button[aria-current="true"]{background:var(--sunken);color:var(--text);font-weight:700;box-shadow:inset 0 -2px 0 var(--text)}
+.ab-nav button:disabled{color:var(--text-3);cursor:not-allowed;background:repeating-linear-gradient(135deg,transparent 0 5px,var(--line) 5px 10px)}
+.ab-tools{display:flex;gap:6px;align-items:center;margin-left:auto}
+.ab-menu{display:none}
+.sumbar{top:0}
+@media (max-width:600px){.appbar{min-height:52px}.ab-nav{display:none;position:absolute;left:0;right:0;top:100%;flex-direction:column;gap:2px;margin:0;padding:8px max(16px,env(safe-area-inset-left,0px));background:var(--surface);border-bottom:1px solid var(--line);box-shadow:var(--shadow-2);z-index:30}.appbar.open .ab-nav{display:flex}.ab-nav button{min-height:44px;text-align:left;font-size:15px}.ab-menu{display:inline-flex}.ab-ver{display:none}.ab-theme .t{display:none}.ab-theme{padding-inline:10px}}
+details.more{font-size:14px;color:var(--text-2)}details.more summary{cursor:pointer;font-weight:700;color:var(--accent-ink);min-height:32px;display:flex;align-items:center}details.more>div{padding:6px 0 2px}
+.wsret{margin-bottom:12px;gap:10px;align-items:center}

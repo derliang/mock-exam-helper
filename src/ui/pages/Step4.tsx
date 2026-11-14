@@ -1,6 +1,7 @@
 import type { ExamConfig, MarkMode, Track } from '../../data';
-import { Alert, Badge, Button, Seg, StepHead } from '../components';
+import { Alert, Badge, Button, More, Seg, StepHead } from '../components';
 import { detachPreview, examEntries, examRooms, groupTable, markRows, needsMarks, setMarkChoice, type MarkRow, type StepNo } from '../seating';
+import { subjectShort } from '../../core/subjectShort';
 import { updateExam, type Doc } from '../store';
 
 const TRACK: Record<Track, string> = { science: '理組', liberal: '文組' };
@@ -11,15 +12,15 @@ const NoBreakList = (p: { items: string[] }) => (
 );
 
 function markText(r: MarkRow): string {
-  if (r.mode === 'mark-absent') return `X${r.subjectName}（不考的 ${r.notTaking} 人）`;
-  if (r.mode === 'mark-extra') return `＋${r.subjectName}（考的 ${r.taking} 人）`;
+  if (r.mode === 'mark-absent') return `X${subjectShort(r.subjectName)}（不考的 ${r.notTaking} 人）`;
+  if (r.mode === 'mark-extra') return `＋${subjectShort(r.subjectName)}（考的 ${r.taking} 人）`;
   return r.state === 'undecided' ? '待選擇' : '不用標';
 }
 
-/** 狀態徽章三種（稿 v2.22，校-36）：已採用系統建議（可改）綠／已鎖定藍／接近一半琥珀 */
+/** 狀態徽章三種（稿 v2.31，裁決顏色分工）：已採用系統建議（可改）綠／已鎖定中性（藍是操作色）／接近一半琥珀 */
 function StateBadge(p: { r: MarkRow }) {
   if (p.r.state === 'undecided') return <Badge tone="warn">接近一半</Badge>;
-  if (p.r.state === 'locked') return <Badge tone="info">已鎖定</Badge>;
+  if (p.r.state === 'locked') return <Badge>已鎖定</Badge>;
   return <Badge tone="ok">已採用系統建議（可改）</Badge>;
 }
 
@@ -73,6 +74,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           </Alert>
         )}
 
+      {/* 稿 v2.31：學測三張卡合成一張卡三區（對照表／各科標示／抽離人數），X、＋說明收合 */}
       <div class="card stack">
         <div><h3>組別對照表</h3><p class="small muted">組別代碼對應考科；第 {(exam.round ?? 1) >= 3 ? '3、4' : '1、2'} 次的對照（跟 ① 的次別連動）。</p></div>
         <div class="scroll">
@@ -85,12 +87,12 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
             </tbody>
           </table>
         </div>
-      </div>
 
-      <div class="card stack">
+      <div class="psec">
         <div>
           <h3>各科標示（標少數）</h3>
-          <p class="small muted">標示只由組別決定，與特殊生需求無關；被標「X」的人抽離自習，被標「＋」的人抽離考試。英聽不標示。{allSame > 0 && `全組都考或都不考的 ${allSame} 項不用標示，未列出。`}</p>
+          <p class="small muted">標示只由組別決定。{allSame > 0 && `全組都考或都不考的 ${allSame} 項不用標示，未列出。`}</p>
+          <More title="說明：X 與 ＋ 的意思">與特殊生需求無關；被標「X」的人抽離自習，被標「＋」的人抽離考試。英聽不標示。</More>
         </div>
         {shown.length === 0
           ? <Alert tone="ok">每一組每一科都是全考或全不考，不用標示，也沒有人要抽離。</Alert>
@@ -112,7 +114,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         {rows.filter((r) => r.nearHalf).map((r) => (
           <div class="stack" style="gap:8px" key={`near-${r.track}/${r.subjectId}`}>
             <Alert tone={r.state === 'undecided' ? 'warn' : 'info'}>
-              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊，選完會鎖定，不由程式替你決定。{r.state === 'locked' && r.mode && <><br />已鎖定：標「{r.mode === 'mark-absent' ? 'X' : '＋'}{r.subjectName}」。</>}
+              <b>{r.track ? TRACK[r.track] : ''}「{r.subjectName}」：</b>考 {r.taking} 人、不考 {r.notTaking} 人，接近一半。請選要標哪一邊，選完會鎖定，不由程式替你決定。{r.state === 'locked' && r.mode && <><br />已鎖定：標「{r.mode === 'mark-absent' ? 'X' : '＋'}{subjectShort(r.subjectName)}」。</>}
             </Alert>
             <div class="btnrow">
               <Seg<MarkMode | ''>
@@ -120,8 +122,8 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
                 value={r.state === 'locked' && r.mode ? r.mode : ''}
                 onChange={(v) => choose(r, v || undefined)}
                 options={[
-                  { value: 'mark-absent', label: `標「X${r.subjectName}」不考的 ${r.notTaking} 人` },
-                  { value: 'mark-extra', label: `標「＋${r.subjectName}」考的 ${r.taking} 人` },
+                  { value: 'mark-absent', label: `標「X${subjectShort(r.subjectName)}」不考的 ${r.notTaking} 人` },
+                  { value: 'mark-extra', label: `標「＋${subjectShort(r.subjectName)}」考的 ${r.taking} 人` },
                 ]}
               />
               {r.state === 'locked' && <Button kind="ghost" small onClick={() => choose(r, undefined)}>解除鎖定</Button>}
@@ -130,7 +132,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
         ))}
       </div>
 
-      <div class="card stack">
+      <div class="psec">
         <div><h3>抽離人數</h3><p class="small muted">標示一變，這裡立即重算。抽離考試的人依序排進 ③ 勾選的預備教室；抽離自習只出名單。</p></div>
         {!preview.ok
           ? (
@@ -162,6 +164,7 @@ export function Step4(p: { doc: Doc; exam: ExamConfig; onChange: (d: Doc) => voi
           )}
         {exam.kind === 'gsat' && <p class="small muted">國文標示整個一起：國綜、國寫兩節一起抽離（節次見共用設定「節次與時長」）。</p>}
         <div class="row"><Button onClick={() => p.onStep(5)}>查看預備教室與抽離</Button></div>
+      </div>
       </div>
     </section>
   );
