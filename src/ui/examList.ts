@@ -1,7 +1,7 @@
 /** 模擬考列表的純邏輯：六格進度、「N／M 步完成・進行中：…」、學年與人數、排序。畫面只負責畫。 */
 import type { ExamConfig } from '../data';
 import { flowOf } from './flow';
-import { STEP_NAMES } from './nav';
+import { stepNamesOf } from './nav';
 import { examEntries, needsMarks, type StepNo } from './seating';
 import { lastModified, type Doc } from './store';
 
@@ -21,7 +21,7 @@ export interface ExamProgress {
 }
 
 const NO = '①②③④⑤⑥';
-const stepLabel = (i: number): string => `${NO[i]} ${STEP_NAMES[i]}`;
+const stepLabel = (i: number, kind?: string): string => `${NO[i]} ${stepNamesOf(kind)[i]}`;
 
 export function examProgress(doc: Doc, exam: ExamConfig): ExamProgress {
   // 傳 0：不把任何一步當成「目前正在看」，拿到純粹的完成狀態
@@ -34,7 +34,7 @@ export function examProgress(doc: Doc, exam: ExamConfig): ExamProgress {
   const done = cells.filter((c) => c === 'd').length;
   const total = cells.filter((c) => c !== 'n').length;
   const all = done === total;
-  const detail = stale > -1 ? `${stepLabel(stale)}已過期` : cur > -1 ? `進行中：${STEP_NAMES[cur]}` : '已完成';
+  const detail = stale > -1 ? `${stepLabel(stale, exam.kind)}已過期` : cur > -1 ? `進行中：${stepNamesOf(exam.kind)[cur]}` : '已完成';
   return {
     cells, done, total, headline: `${done}／${total} 步完成`, detail,
     tone: stale > -1 ? 'amb' : 'mut', status: stale > -1 ? 'stale' : all ? 'done' : 'doing',
