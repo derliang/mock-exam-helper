@@ -135,7 +135,7 @@ describe('步驟③ 教室設定', () => {
     const entries = doc.rosters.senior.map((s) => ({ classNo: s.classNo, seatNo: s.seatNo, name: s.name, subjectIds: ['chi'] }));
     const withList: Doc = { ...doc, examFiles: { [second.id]: { entries, diffs: [] } } };
     const html = renderToString(<Step3 doc={withList} exam={second} onChange={noop} />);
-    for (const t of ['狀態檢核', '理組教室座位', '文組教室座位', '預備教室容量', '班級', '理組</button>', '文組</button>', '教室與座位']) expect(html).toContain(t);
+    for (const t of ['狀態檢核', '理組教室座位', '文組教室座位', '預備教室座位', '需要 0・已列入 0／1 間', '不需要', '班級', '理組</button>', '文組</button>', '教室與座位']) expect(html).toContain(t);
   });
   it('分組容量：理組座位不夠擋下、文組夠；預備教室不足給 warn', () => {
     const { doc, second } = twoGsat();

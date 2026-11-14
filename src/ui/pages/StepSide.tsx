@@ -1,3 +1,4 @@
+import { subjectShort } from '../../core/subjectShort';
 import type { ExamConfig } from '../../data';
 import { Alert } from '../components';
 import { examClasses, markRows, seatableEntries } from '../seating';
@@ -46,7 +47,7 @@ function Side4(p: { doc: Doc; exam: ExamConfig }) {
   const stu = seatableEntries(doc, exam)[0];
   const cls = stu && examClasses(doc, exam).find((c) => c.no === stu.classNo);
   const sample = rows.find((r) => r.mode === 'mark-absent' || r.mode === 'mark-extra');
-  const mark = sample ? `${sample.mode === 'mark-absent' ? 'X' : '+'}${sample.subjectName}` : '';
+  const mark = sample ? `${sample.mode === 'mark-absent' ? 'X' : '＋'}${subjectShort(sample.subjectName)}` : '';
   const code = stu ? `${String(stu.classNo).padStart(2, '0')}${String(stu.seatNo).padStart(2, '0')}` : '';
   const papers = [{ p: 'B4', kind: '小標籤', w: 250, h: 353 }, { p: 'A3', kind: '大標籤', w: 297, h: 420 }];
   const sheetW = (w: number) => (w / 6) * 2.4;
@@ -81,7 +82,7 @@ function Side4(p: { doc: Doc; exam: ExamConfig }) {
             </figure>
           ))}
         </div>
-        <p class="small muted">標籤上的樣子（用文字加粗框）。兩張依實際尺寸等比例並排；座位表上的樣子相同，只是不分紙張。</p>
+        <p class="small muted">標籤上的樣子（用文字加粗框）。兩張依實際尺寸等比例並排：A3 的格子比 B4 大約寬 19%、高 19%。座位表另外使用班級底色，其餘相同，只是不分紙張。</p>
       </div>
     </>
   );

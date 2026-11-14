@@ -3,6 +3,7 @@
  * 純函式、不碰畫面、不讀檔；輸入是 src/data 型別。
  * 統計（D40）暫由本檔 computeStats 計算；施工B 若提供正式統計，替換此函式即可。
  */
+import { subjectShort } from '../core/subjectShort';
 import {
   classroomSeats,
   labelNoteLines,
@@ -205,7 +206,7 @@ function makeCell(code: string, seat: { row: number; depth: number }, ctx: Ctx):
     tags,
     marks: ctx.input.result.marks
       .filter((m) => m.code === code)
-      .map((m) => ({ kind: m.mode, head: m.mode === 'absent' ? 'X' : '＋', subject: ctx.subjectName.get(m.subjectId) ?? '' })),
+      .map((m) => ({ kind: m.mode, head: m.mode === 'absent' ? 'X' : '＋', subject: subjectShort(ctx.subjectName.get(m.subjectId) ?? '') })),
   };
 }
 

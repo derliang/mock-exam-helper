@@ -4,6 +4,7 @@
  */
 import type { ClassInfo, Classroom, ExamConfig, ExamEntry, MarkMode, MarkRule, Override, SeatingResult, SingleOverride, Track } from '../data';
 import { classroomSeats, studentCode } from '../data';
+import { subjectShort } from '../core/subjectShort';
 import {
   allocateDetaches,
   applyMarks,
@@ -326,7 +327,7 @@ function studentCtx(doc: Doc, exam: ExamConfig, result: SeatingResult) {
   const absent = new Set<string>();
   for (const m of result.marks) {
     if (m.mode === 'absent') absent.add(m.code);
-    marksBy.set(m.code, [...(marksBy.get(m.code) ?? []), `${m.mode === 'absent' ? 'X' : '＋'}${subjName.get(m.subjectId) ?? m.subjectId}`]);
+    marksBy.set(m.code, [...(marksBy.get(m.code) ?? []), `${m.mode === 'absent' ? 'X' : '＋'}${subjectShort(subjName.get(m.subjectId) ?? m.subjectId)}`]);
   }
   const over = new Map(result.overrides.map((o) => [o.code, o]));
   return (code: string, co: string): ChartCell => {
