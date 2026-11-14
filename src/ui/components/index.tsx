@@ -2,7 +2,6 @@
 import { createContext, type ComponentChildren, type JSX } from 'preact';
 import { useContext, useEffect, useState } from 'preact/hooks';
 import { classColorVars } from '../colors';
-import { STEP_NAMES } from '../nav';
 import { STEP_BLURBS, UNDO_HINT, type ConfirmCopy, type Flow, type NextAction } from '../flow';
 import type { StepNo } from '../seating';
 
@@ -233,7 +232,7 @@ export function SummaryBar(p: { flow: Flow; onGo: (step: StepNo) => void }) {
         <div class="slist">
           {issues.map((i, k) => (
             <button type="button" key={k} class={`si${i.todo ? ' todo' : ''}`} onClick={() => p.onGo(i.step)}>
-              <span class="sstep">{'①②③④⑤⑥'[i.step - 1]} {STEP_NAMES[i.step - 1]}</span>
+              <span class="sstep">{'①②③④⑤⑥'[i.step - 1]} {p.flow.steps.find((x) => x.no === i.step)?.name}</span>
               <span class="sti">{i.text.replace(/^[①-⑥]\s*/, '')}{i.sub && <small>{i.sub}</small>}</span>
               {i.need != null && <span class="sn"><span>需要 <b>{i.need}</b></span><span>可用 <b>{i.have}</b></span><span class="bad">缺少 <b>{i.lack}</b></span></span>}
               <span class="sgo">{i.fix} ›</span>
@@ -252,12 +251,12 @@ export const StepNextContext = createContext<{ action: NextAction; onGo: (step: 
  * 步驟標題卡（稿 v2.22）：左 h2＋一句短語（類型、次別、考科…），右側放「完成此步，前往 …」主按鈕（⑥ 顯示「最後一步」）。
  * 按鈕永遠可以按；前面還有沒做完的事由上方摘要列逐項標示，不禁止（D47）。
  */
-export function StepHead(p: { title: string; children?: ComponentChildren }) {
+export function StepHead(p: { title: string; children?: ComponentChildren; /** 分科 ③④⑤ 的短語（與一般考試不同） */ blurb?: string }) {
   const ctx = useContext(StepNextContext);
   const a = ctx?.action;
   const n = '①②③④⑤⑥'.indexOf(p.title.charAt(0));
   // 會考的 ④（不需要）不顯示「組別對照表」短語
-  const blurb = n < 0 || (n === 3 && p.children === undefined) ? undefined : STEP_BLURBS[n];
+  const blurb = p.blurb ?? (n < 0 || (n === 3 && p.children === undefined) ? undefined : STEP_BLURBS[n]);
   return (
     <div class="card stephead">
       <div><h2>{p.title}</h2>{(blurb ?? p.children) && <p class="small muted">{blurb ?? p.children}</p>}</div>

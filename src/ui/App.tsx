@@ -21,9 +21,13 @@ import { Settings } from './pages/Settings';
 import { Step1 } from './pages/Step1';
 import { Step2 } from './pages/Step2';
 import { Step3 } from './pages/Step3';
+import { AstStep3 } from './ast/AstStep3';
+import { AstStep4 } from './ast/AstStep4';
+import { AstStep5 } from './ast/AstStep5';
 import { Step4 } from './pages/Step4';
 import { Step5 } from './pages/Step5';
 import { Step6 } from './pages/Step6';
+import { AstStep6 } from './ast/AstStep6';
 import { ReservePage } from './pages/ReservePage';
 import { createFsRepository, isFsAccessSupported, SwitchBlockedError } from '../data';
 import { createMemoryRepository, emptyDoc, withDefaults, type Repository } from './repository';
@@ -115,13 +119,13 @@ export function App() {
     if (!last || last.route.page === 'exams') return [];
     if (last.route.page === 'step') {
       const lr = last.route;
-      return [{ label: hist.present.exams.find((e) => e.id === lr.examId)?.name ?? '模擬考', onClick: () => go({ page: 'step', examId: lr.examId, step: 1 }) }, { label: stepTitle(lr.step), onClick: back }];
+      return [{ label: hist.present.exams.find((e) => e.id === lr.examId)?.name ?? '模擬考', onClick: () => go({ page: 'step', examId: lr.examId, step: 1 }) }, { label: stepTitle(lr.step, hist.present.exams.find((e) => e.id === lr.examId)?.kind), onClick: back }];
     }
     return [{ label: last.label, onClick: back }];
   };
   const pathCrumbs = [listCrumb, ...retCrumbs()];
   // 預備教室與抽離（H-9）：模擬考列表 › 考試名稱 › ⑤ 排座與預覽；最後一個連結＝返回（回到 ⑤）
-  const reserveCrumbs = (examId: string) => [listCrumb, { label: hist.present.exams.find((e) => e.id === examId)?.name ?? '模擬考', onClick: () => go({ page: 'step', examId, step: 1 }) }, { label: stepTitle(5), onClick: () => go({ page: 'step', examId, step: 5 }) }];
+  const reserveCrumbs = (examId: string) => [listCrumb, { label: hist.present.exams.find((e) => e.id === examId)?.name ?? '模擬考', onClick: () => go({ page: 'step', examId, step: 1 }) }, { label: stepTitle(5, hist.present.exams.find((e) => e.id === examId)?.kind), onClick: () => go({ page: 'step', examId, step: 5 }) }];
   // 全站品牌列導覽（稿 v2.31）：資料夾設定、模擬考列表、（已開啟的選用功能頁）、選用功能、共用設定
   const inSettings = r.page === 'settings';
   // 已在共用設定時只換分頁，不再疊一筆「回到」
@@ -192,7 +196,7 @@ export function pageName(r: Route, doc: Doc): string {
     case 'copyright': return '使用授權';
     case 'privacy': return '隱私權政策';
     case 'reserve': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」預備教室與抽離`;
-    case 'step': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」${stepTitle(r.step)}`;
+    case 'step': return `「${doc.exams.find((e) => e.id === r.examId)?.name ?? '模擬考'}」${stepTitle(r.step, doc.exams.find((e) => e.id === r.examId)?.kind)}`;
     default: return '上一頁';
   }
 }
@@ -206,22 +210,23 @@ function Workspace(p: { route: Extract<Route, { page: 'step' }>; doc: Doc; onToR
   const step = p.route.step;
   return (
     <StepNextContext.Provider value={{ action: nextAction(flow, step), onGo: p.onStep }}>
-      <div class={`ws${hasSide(step) ? '' : ' wide'}`}>
+      <div class={`ws${hasSide(step, exam.kind) ? '' : ' wide'}`}>
       <aside class="side"><StepNav steps={flow.steps} onGo={(n) => p.onStep(n as 1 | 2 | 3 | 4 | 5 | 6)} /></aside>
       <div class="stack" style="min-width:0">
         {p.ret && (
-          <div class="row wsret"><Button onClick={p.onRet}>↩ 回到「{exam.name}」{stepTitle(p.ret)}</Button><span class="small muted">你是從那一步過來處理問題的</span></div>
+          <div class="row wsret"><Button onClick={p.onRet}>↩ 回到「{exam.name}」{stepTitle(p.ret, exam.kind)}</Button><span class="small muted">你是從那一步過來處理問題的</span></div>
         )}
         <SummaryBar flow={flow} onGo={p.onFix} />
         {step === 1 ? <Step1 doc={p.doc} exam={exam} onChange={p.onChange} />
           : step === 2 ? <Step2 doc={p.doc} exam={exam} onChange={p.onChange} onToRoster={() => p.onToRoster(exam.division)} />
-          : step === 3 ? <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />
-          : step === 4 ? <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} />
-          : step === 5 ? <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} onReserve={p.onReserve} />
+          : step === 3 ? (exam.kind === 'ast' ? <AstStep3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} onStep={p.onFix} /> : <Step3 doc={p.doc} exam={exam} onChange={p.onChange} onToRooms={() => p.onToRooms(exam.division)} />)
+          : step === 4 ? (exam.kind === 'ast' ? <AstStep4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} /> : <Step4 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} />)
+          : step === 5 ? (exam.kind === 'ast' ? <AstStep5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} /> : <Step5 doc={p.doc} exam={exam} onChange={p.onChange} onStep={p.onFix} onReserve={p.onReserve} />)
+          : exam.kind === 'ast' ? <AstStep6 doc={p.doc} exam={exam} onGoStep={(n) => p.onFix(n)} onExams={p.onExams} />
           : <Step6 doc={p.doc} exam={exam} onGoStep={(n) => p.onFix(n)} onExams={p.onExams} />}
         {enabledStepPanels({ settings: p.doc.settings, examKind: exam.kind }, step).map((s) => <div key={s.featureId}>{s.render({ doc: p.doc, exam, onChange: p.onChange, onStep: p.onFix })}</div>)}
       </div>
-      {hasSide(step) && <aside class="side side-r"><StepSide step={step} doc={p.doc} exam={exam} /></aside>}
+      {hasSide(step, exam.kind) && <aside class="side side-r"><StepSide step={step} doc={p.doc} exam={exam} /></aside>}
       </div>
     </StepNextContext.Provider>
   );

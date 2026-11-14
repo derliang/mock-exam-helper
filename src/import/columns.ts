@@ -1,13 +1,15 @@
 /**
  * 欄位智慧對應：表頭文字 → 內部欄位。寬鬆比對（去空白、全半形、常見同義詞）。
  */
-export type Field = 'school' | 'grade' | 'classNo' | 'seatNo' | 'name' | 'group' | 'schoolId' | 'note' | 'extra';
+export type Field = 'school' | 'grade' | 'classNo' | 'seatNo' | 'name' | 'group' | 'schoolId' | 'examNo' | 'note' | 'extra';
 
 const SYNONYMS: [Field, RegExp][] = [
   ['seatNo', /^(座號|座位號|座位號碼|號數|號碼)$/],
   ['classNo', /^(班級|班別|班|班級代碼)$/],
   ['name', /^(姓名|學生姓名|考生姓名|名字|名稱)$/],
   ['group', /^(組別|組別代碼|考試組別|科目組別|組)$/],
+  // 應試編號（分科輸出用，選填）：不把「學號」當它（R2：兩者是不同概念）
+  ['examNo', /^(應試編號|應試號碼|應試號|准考證號碼|准考證號|准考證編號|准考證)$/],
   ['schoolId', /^(學號|學生學號|學籍號碼)(\(選填\))?$/],
   ['note', /^(特殊生需求註明|特殊生需求|特殊需求註明|特殊需求|缺考科目|備註|註記)$/],
   ['extra', /^(加考|加考科目)$/],

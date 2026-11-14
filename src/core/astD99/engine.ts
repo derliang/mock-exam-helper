@@ -130,12 +130,17 @@ class Ctx {
     const slots = this.input.slots;
     const chosen: (SlotPlan | undefined)[] = slots.map(() => undefined);
     // 初排：依時段順序，每次考慮已選時段用到的教室
-    for (let s = 0; s < slots.length; s++) chosen[s] = this.bestFor(s, chosen);
+    for (let s = 0; s < slots.length; s++) {
+      const first = this.bestFor(s, chosen);
+      // 某時段考生比可用座位多、沒有任何候選：回報無解，不丟例外
+      if (!first) return { usage: {}, exams: [], study: [], mixedRows: [], proposals: [], infeasible: true };
+      chosen[s] = first;
+    }
     // 逐時段輪流改選，直到不再變好
     for (let pass = 0; pass < MAX_PASSES; pass++) {
       let changed = false;
       for (let s = 0; s < slots.length; s++) {
-        const best = this.bestFor(s, chosen);
+        const best = this.bestFor(s, chosen)!;
         if (best.key !== chosen[s]!.key) {
           chosen[s] = best;
           changed = true;
@@ -147,7 +152,7 @@ class Ctx {
   }
 
   /** 第 s 時段的最佳候選（其他時段固定） */
-  private bestFor(s: number, chosen: readonly (SlotPlan | undefined)[]): SlotPlan {
+  private bestFor(s: number, chosen: readonly (SlotPlan | undefined)[]): SlotPlan | undefined {
     const usedElsewhere = new Set<number>();
     chosen.forEach((p, i) => {
       if (p && i !== s) for (const r of p.used) usedElsewhere.add(r);
@@ -166,7 +171,7 @@ class Ctx {
         bestVec = v;
       }
     }
-    return best!;
+    return best;
   }
 
   /** 全部時段的順位向量（未選的時段略過） */

@@ -110,6 +110,8 @@ export interface PlanOutput {
   unplaced?: readonly { slotId: string; code: string }[];
   /** 方案指標（引擎輸出時一併附上） */
   metrics?: PlanMetrics;
+  /** 無解（例如某時段考生比可用座位多）：其他欄位皆空，請使用者先補座位 */
+  infeasible?: boolean;
 }
 
 export type Planner = (input: PlanInput) => PlanOutput;

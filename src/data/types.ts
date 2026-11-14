@@ -167,6 +167,12 @@ export interface ExamConfig {
   seatFullyAbsent?: boolean;
   /** 預備教室排座方式（D94-4）：peer＝① 同學優先（沒設＝預設）、proctor＝② 監考優先 */
   reserveSeatMode?: 'peer' | 'proctor';
+  /** 分科排座模式（D99）：fewest-rooms＝少教室優先（沒設＝預設）、least-movement＝少移動優先 */
+  astMode?: 'fewest-rooms' | 'least-movement';
+  /** 分科：允許自習去他班未徵用的原班教室（沒設＝關，D99 一-2） */
+  astAllowOtherStudy?: boolean;
+  /** 分科：管理者已核可的替代方案（某時段改用某班原班教室給抽離者自習）；只有列在這裡的才生效 */
+  astApprovals?: { slotId: string; roomId: string }[];
   subjects: Subject[];
   markRules: MarkRule[];
   /** 本次勾選的教室 id（D65） */
@@ -190,6 +196,8 @@ export interface ExamEntry {
   subjectIds: string[];
   /** 特殊生需求等備註（D15） */
   note?: string;
+  /** 應試編號（分科輸出用，選填；名單有匯入才印，AST-2）。不等於學號 */
+  examNo?: string;
   /**
    * 這位考生所屬的文理組（分科專用）：分科的組別是每位考生自己報的，與班級無關
    * （真實名單中理組班也有社會組的人），排座、驗證、標示以它為準；沒設就看班級的文理組。

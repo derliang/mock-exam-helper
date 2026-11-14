@@ -48,7 +48,11 @@ export function goBack(s: NavState): NavState {
 export const backLabel = (s: NavState): string | undefined => s.back[s.back.length - 1]?.label;
 
 export const STEP_NAMES = ['考試設定', '考試名單', '教室設定', '標示與抽離規則', '排座與預覽', '下載'] as const;
-export const stepTitle = (step: number): string => `${'①②③④⑤⑥'[step - 1] ?? ''} ${STEP_NAMES[step - 1] ?? ''}`;
+/** 分科（稿 v2.34）③④⑤ 的名稱與步驟欄短語；① ② ⑥ 不變 */
+export const AST_STEP_NAMES = ['考試設定', '考試名單', '教室與自習空間', '排座模式與方案', '時段教室與座位', '下載'] as const;
+export const AST_STEP_BLURBS = ['類型、次別、考科', '匯入、比對、參加者', '座位圖、自習容量、綜合教室', '少教室／少移動、方案比較', '教室用途表、座位圖、替代方案', 'Word、PDF'] as const;
+export const stepNamesOf = (kind?: string): readonly string[] => (kind === 'ast' ? AST_STEP_NAMES : STEP_NAMES);
+export const stepTitle = (step: number, kind?: string): string => `${'①②③④⑤⑥'[step - 1] ?? ''} ${stepNamesOf(kind)[step - 1] ?? ''}`;
 
 /** 路由防護（驗收 D-4）：已關閉的選用功能頁不可顯示，也不可出現在「← 回到」堆疊；目前頁被擋就回模擬考列表 */
 export function guardNav(s: NavState, allowed: (r: Route) => boolean): NavState {

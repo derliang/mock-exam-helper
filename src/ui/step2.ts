@@ -42,7 +42,7 @@ export function parseRosterWorkbook(sheets: readonly Sheet[], classNames: readon
 }
 
 export const FIELD_LABEL: Record<string, string> = {
-  classNo: '班級', seatNo: '座號', name: '姓名', group: '組別', schoolId: '學號', note: '特殊生需求註明', extra: '加考', school: '校代碼', grade: '年級',
+  classNo: '班級', seatNo: '座號', name: '姓名', group: '組別', schoolId: '學號', examNo: '應試編號', note: '特殊生需求註明', extra: '加考', school: '校代碼', grade: '年級',
 };
 
 export const rosterOf = (students: readonly Student[]): number => students.length;
