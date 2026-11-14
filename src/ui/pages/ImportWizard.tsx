@@ -112,7 +112,7 @@ export function ImportWizard(p: {
       {scan.notices.length > 0 && (
         <div style="margin-top:16px"><Alert tone="info">
           <b>已自動處理（請確認）</b>
-          <ul>{scan.notices.map((n) => <li key={n.row}>第 {n.row} 列：{n.message}</li>)}</ul>
+          <ul>{scan.notices.map((n, i) => <li key={`${n.row}-${i}`}>第 {n.row} 列：{n.message}</li>)}</ul>
         </Alert></div>
       )}
 
@@ -147,7 +147,7 @@ export function ImportWizard(p: {
       {p.previous && p.previous.length > 0 && <p class="muted small" style="margin-top:8px">和目前的考試名單（{p.previous.length} 人）相比。確認匯入後可用「復原」回到匯入前。</p>}
       {diff.changed.length > 0 && <details style="margin-top:8px"><summary>查看 {diff.changed.length} 筆變更</summary>
         <table class="t"><thead><tr><th>班級-座號</th><th>姓名</th><th>變動</th><th>科目（前→後）</th></tr></thead><tbody>
-          {diff.changed.slice(0, 50).map((c) => <tr key={c.code}><td>{c.code}</td><td>{c.after.name}</td><td>{c.fields.map((f) => ({ name: '姓名', subjects: '科目', group: '組別' })[f]).join('、')}</td>
+          {diff.changed.slice(0, 50).map((c) => <tr key={c.code}><td>{c.code}</td><td>{c.after.name}</td><td>{c.fields.map((f) => ({ name: '姓名', subjects: '科目', group: '組別', examNo: '應試編號' })[f]).join('、')}</td>
             <td>{c.fields.includes('subjects') ? `${c.before.subjectIds.map(name).join('、') || '無'} → ${c.after.subjectIds.map(name).join('、') || '無'}` : '—'}</td></tr>)}
         </tbody></table></details>}
       {diff.removed.length > 0 && <div style="margin-top:8px"><Alert tone="warn">本次名單將移除 {diff.removed.length} 人。請先確認是否漏列考生。</Alert></div>}

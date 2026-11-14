@@ -106,11 +106,14 @@ export function runAstPlan(input: PlanInput): AstPlan | undefined {
   const key = JSON.stringify(input);
   const hit = cache.get(key);
   if (hit) return hit;
-  let out: PlanOutput;
+  let out: PlanOutput | undefined;
   try {
     out = planD99(input);
   } catch {
-    // 座位比考生少等無解情況：引擎沒有可選的方案；畫面改請使用者先回 ③ 補座位（回報調度員：引擎對無解輸入應回報而不是丟例外）
+    out = undefined; // 保險：引擎現在無解會回報 infeasible，這裡只防意外例外
+  }
+  if (!out || out.infeasible) {
+    // 座位比考生少等無解情況：畫面改請使用者先回 ③ 補座位
     const empty: AstPlan = { input, out: { usage: {}, exams: [], study: [], mixedRows: [], proposals: [] }, errors: ['座位不夠，排不出方案'], pending: [], approved: [], unplaced: 0, infeasible: true };
     cache.set(key, empty);
     return empty;

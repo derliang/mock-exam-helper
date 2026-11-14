@@ -124,6 +124,8 @@ export function parseExamList(rows: readonly (readonly string[])[], opts: ExamLi
     if (gk) e.groupCode = get(r, 'group').trim();
     const note = get(r, 'note').trim();
     if (note) e.note = note;
+    const examNo = get(r, 'examNo').trim();
+    if (examNo) e.examNo = examNo;
     entries.push(e);
   }
   const columns = Object.fromEntries(Object.entries(col).filter(([, v]) => v !== undefined)) as Record<string, number>;
