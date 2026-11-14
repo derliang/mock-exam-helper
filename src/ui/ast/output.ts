@@ -242,6 +242,7 @@ export function astOutputBlockers(plan: AstPlan | undefined, hasList: boolean): 
   const b: { text: string; step: 2 | 3 | 5 }[] = [];
   if (plan.pending.length > 0) b.push({ text: `還有 ${plan.pending.length} 個時段的替代方案待核可，請先到 ⑤ 核可。`, step: 5 });
   if (plan.unplaced > 0 && plan.pending.length === 0) b.push({ text: `有 ${plan.unplaced} 人排不進自習空間：請到 ③ 調整自習空間。`, step: 3 });
+  if (plan.conflicts.length > 0) b.push({ text: `鎖定有 ${plan.conflicts.length} 項衝突，請到 ⑤ 處理（程式不會自己解除鎖定）。`, step: 5 });
   if (plan.errors.length > 0 && plan.pending.length === 0 && plan.unplaced === 0) b.push({ text: `硬性限制驗證有 ${plan.errors.length} 項不通過，請到 ⑤ 看詳情。`, step: 5 });
   return b;
 }

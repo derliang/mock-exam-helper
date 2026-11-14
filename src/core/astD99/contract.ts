@@ -4,7 +4,7 @@
  * 全部假資料；不碰學測、會考。規格出處：docs/decisions.md D99、docs/ast-spec.md。
  * 欄位擴充原則（docs/ast-spec-gap-2026-11-13.md G-30）：只加選填欄位；請假、鎖定、公告狀態留給 AST-3。
  */
-import type { SeatPos, Track } from '../../data/types';
+import type { AstLocks, PrevSeat, SeatPos, Track } from '../../data/types';
 
 export type PlanMode = 'fewest-rooms' | 'least-movement';
 
@@ -46,6 +46,10 @@ export interface PlanInput {
   allowOtherClassStudy?: boolean;
   /** 管理者已核可的替代方案（某時段改用某班原班教室給抽離者自習）；只有列在這裡的才生效 */
   approvals?: readonly { slotId: string; roomId: string }[];
+  /** AST-3：鎖定（引擎之後套用，鎖定值重排時不可改）；算進輸入，所以相同輸入、設定、鎖定得相同結果（T-21） */
+  locks?: AstLocks;
+  /** AST-3：跨次沿用的上次定案座位；排在標籤張數之後，不破壞硬性規則才套用 */
+  carry?: readonly PrevSeat[];
 }
 
 export interface ExamPlacement { slotId: string; code: string; subjectId: string; roomId: string; row: number; depth: number }

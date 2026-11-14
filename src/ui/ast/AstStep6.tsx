@@ -9,6 +9,8 @@ import { AST_STEP_BLURBS } from '../nav';
 import { examEntries } from '../seating';
 import type { Doc } from '../store';
 import { download, kb, openPrintPage } from '../pages/Step6';
+import { phaseOf } from '../../core/astD99/release';
+import { PhaseCard, VersionCard } from './AstRelease';
 import { astPlan } from './model';
 import { AST_OUTPUT_ITEMS, astOutputBlockers, astOutputs, type AstOutputKey, type AstOutputs } from './output';
 
@@ -42,7 +44,7 @@ export async function runAstExport(o: AstOutputs, keys: AstOutputKey[], format: 
 }
 
 /** ⑥ 分科下載（DESIGN 10.19、D101；AST-2）：五份輸出共用同一份方案，頁尾同一個版本碼；預覽用與下載相同的頁面模型 */
-export function AstStep6(p: { doc: Doc; exam: ExamConfig; onGoStep: (n: 2 | 3 | 5) => void; onExams?: () => void; loadFonts?: () => Promise<Loaded> }) {
+export function AstStep6(p: { doc: Doc; exam: ExamConfig; onGoStep: (n: 2 | 3 | 5) => void; onChange?: (d: Doc) => void; onExams?: () => void; loadFonts?: () => Promise<Loaded> }) {
   const { doc, exam } = p;
   const [format, setFormat] = useState<ExportFormat>('word');
   const [paper, setPaper] = useState<LabelPaper>('B4');
@@ -61,6 +63,7 @@ export function AstStep6(p: { doc: Doc; exam: ExamConfig; onGoStep: (n: 2 | 3 | 
   }, [doc, exam, plan, paper, blockers.length]);
   const outs = built?.ok ? built.o : undefined;
   const loader = p.loadFonts ?? (async () => (await import('../../export/fontLoader')).loadFonts());
+  const planning = phaseOf(exam) === 'planning';
   const keys = AST_OUTPUT_ITEMS.map((i) => i.key).filter((k) => on[k]);
   const hasExamNo = examEntries(doc, exam).some((e) => e.examNo);
 
@@ -97,7 +100,9 @@ export function AstStep6(p: { doc: Doc; exam: ExamConfig; onGoStep: (n: 2 | 3 | 
         <Alert key={b.text} tone="danger" action={<Button small kind="primary" onClick={() => p.onGoStep(b.step)}>{b.step === 2 ? '去 ② 考試名單' : b.step === 3 ? '去 ③ 教室' : '去 ⑤ 看方案'}</Button>}><b>還不能下載：</b>{b.text}</Alert>
       ))}
       {built && !built.ok && <Alert tone="danger"><b>這份方案的標籤排不出來</b>：{built.error}。請回 ③ 調整教室的橫排或深位。</Alert>}
-      {outs && <Alert tone="ok"><b>方案通過驗證，可以下載。</b>五份輸出共用同一份方案，頁尾印同一個版本碼 <Badge>{outs.version}</Badge>，標籤與班級公告不會混用不同版本。<span class="small muted">（定案、公告與版本清單屬下一批「鎖定與版本」，目前以現在的方案即時輸出。）</span></Alert>}
+      {p.onChange && <PhaseCard doc={doc} exam={exam} onChange={p.onChange} />}
+      {outs && planning && <Alert tone="warn"><b>規劃中：只能預覽，不能下載正式檔。</b>標籤與班級公告要用同一版，所以要先在上面「目前階段」按「確認定案」，才能下載。五份輸出共用同一份方案，頁尾印同一個版本碼 <Badge>{outs.version}</Badge>。</Alert>}
+      {outs && !planning && <Alert tone="ok"><b>方案通過驗證，可以下載。</b>五份輸出共用同一份方案，頁尾印同一個版本碼 <Badge>{outs.version}</Badge>，標籤與班級公告不會混用不同版本。</Alert>}
 
       <div class="card stack">
         <div><h3>下載內容</h3><p class="small muted">每一類合併成一個多頁檔案。座位一律寫「排－深位」；標籤與清冊不印鐘點，也不排監考人力。{hasExamNo ? '名單有匯入應試編號，標籤、公告與清冊都會印。' : '名單沒有匯入應試編號，所以不印這一欄。'}</p></div>
@@ -116,7 +121,7 @@ export function AstStep6(p: { doc: Doc; exam: ExamConfig; onGoStep: (n: 2 | 3 | 
         </div>
         <div class="row" style="justify-content:space-between">
           <span class="muted">{format === 'pdf' ? '將開啟 1 個列印頁' : `將下載 ${keys.filter((k) => outs && pagesOf(outs, k) > 0).length} 個檔案`}，共 <b class="num">{total}</b> 頁</span>
-          <button type="button" class="btn btn-primary btn-lg" disabled={!outs || busy || keys.length === 0} onClick={go}>{busy ? '產生中…' : format === 'word' ? '下載 Word 文件' : '開啟列印頁（另存 PDF）'}</button>
+          <button type="button" class="btn btn-primary btn-lg" disabled={!outs || planning || busy || keys.length === 0} onClick={go}>{busy ? '產生中…' : format === 'word' ? '下載 Word 文件' : '開啟列印頁（另存 PDF）'}</button>
         </div>
         {err && <Alert tone="danger">{err}</Alert>}
         {results && (
@@ -143,6 +148,7 @@ export function AstStep6(p: { doc: Doc; exam: ExamConfig; onGoStep: (n: 2 | 3 | 
             : <Alert tone="info">這一份沒有內容：{tab === 'study' ? '所有考生都留在原班自習，不用布置自習教室。' : '沒有可預覽的頁面。'}</Alert>}
         </div>
       )}
+      {p.onChange && <VersionCard doc={doc} exam={exam} onChange={p.onChange} />}
     </section>
   );
 }

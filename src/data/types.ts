@@ -173,6 +173,24 @@ export interface ExamConfig {
   astAllowOtherStudy?: boolean;
   /** 分科：管理者已核可的替代方案（某時段改用某班原班教室給抽離者自習）；只有列在這裡的才生效 */
   astApprovals?: { slotId: string; roomId: string }[];
+  /** 分科時程（AST-3，D101④）：選定的候選與各天各時段的科目；沒設＝用共用設定的分科節次表（候選 A 基準）。approved＝管理者核准（非基準候選要核准才能定案） */
+  astSchedule?: AstSchedule;
+  /** 分科每間考場監考人數（預設 1，1～6，只算人數不排人；H-14） */
+  astInvigilators?: number;
+  /** 分科鎖定（教室用途、班級考場、單一學生座位；H-09）。重排時鎖定值不可改，衝突只回報、不自動解鎖 */
+  astLocks?: AstLocks;
+  /** 分科請假輸入（只用來估算自習人數；容量檢核與排座仍用報名全數） */
+  astLeave?: AstLeave;
+  /** 分科階段（沒設＝規劃中）：planning 規劃中、final 確認定案、announced 已公告 */
+  astPhase?: AstPhase;
+  /** 解除定案時填的理由，下次公告寫進版本清單（D101③） */
+  astReopenReason?: string;
+  /** 分科版本清單（每次公告一版，含座位快照供比對舊新差異） */
+  astVersions?: AstVersion[];
+  /** 定案當下的座位（跨次沿用的來源；存本機、可匯出入） */
+  astFinalSeats?: PrevSeat[];
+  /** 跨次座位沿用：開關與匯入的上次座位（沒匯入就找本機上一場有定案座位的分科考試） */
+  astCarry?: { on: boolean; seats?: PrevSeat[] };
   subjects: Subject[];
   markRules: MarkRule[];
   /** 本次勾選的教室 id（D65） */
@@ -314,4 +332,32 @@ export interface Settings {
 export interface FileEnvelope<T> {
   schemaVersion: number;
   data: T;
+}
+
+// ───── 分科時程、鎖定、請假、版本（AST-3） ─────
+export type AstPhase = 'planning' | 'final' | 'announced';
+export interface AstSchedule { cand: 'A' | 'B' | 'C' | 'D'; days: string[][][]; approved?: boolean }
+export interface AstLocks {
+  /** 教室用途鎖定：某時段某教室一定是考場或自習 */
+  rooms?: { slotId: string; roomId: string; use: 'exam' | 'study' }[];
+  /** 班級考場鎖定：某時段某班的應考者一定在某間教室 */
+  classes?: { slotId: string; classNo: number; roomId: string }[];
+  /** 單一學生座位鎖定 */
+  seats?: { slotId: string; code: string; roomId: string; row: number; depth: number }[];
+}
+export interface AstLeave { mode: 'estimate' | 'actual'; byClass: Record<string, number> }
+export interface PrevSeat { code: string; roomId: string; row: number; depth: number }
+export interface AstVersion {
+  n: number;
+  /** 公告時間（ISO） */
+  at: string;
+  /** 修改項目（與上一版的差異摘要） */
+  changes: string;
+  /** 受影響考生數與教室 */
+  affected: { students: number; rooms: string[] };
+  reason: string;
+  /** 座位快照：考試 `時段|代號|教室|排-深位`、自習 `時段|代號|教室` */
+  snap: { exams: string[]; study: string[] };
+  /** 這一版的資料版本碼 */
+  code: string;
 }

@@ -12,6 +12,9 @@ import { dayName, slotName, examSubjectPeriods } from '../../core/periods';
 import { planD99 } from '../../core/astD99/engine';
 import { checkPlan, codeOf, homeRoomIds, type PlanInput, type PlanMode, type PlanOutput, type PlanRoom, type PlanSlot, type PlanStudent, type Proposal } from '../../core/astD99/contract';
 import { toPlanRooms } from '../../core/astD99/rooms';
+import { refinePlan, type CarrySummary, type LockConflict } from '../../core/astD99/refine';
+import { buildCandidates, scheduleConflicts, scheduleNeedsApproval, type Candidate, type Days } from '../../core/astD99/schedule';
+import type { PrevSeat } from '../../data/types';
 import { examRooms, seatableEntries } from '../seating';
 import type { Doc } from '../store';
 
@@ -30,6 +33,15 @@ export interface AstSlot extends PlanSlot {
 
 /** 本次考試的時段（依節次排序）。節次表沒有的科目排在最後各自一節（與 subjectPeriods 一致） */
 export function astSlots(doc: Doc, exam: ExamConfig): AstSlot[] {
+  const name0 = new Map(exam.subjects.map((x) => [x.id, x.name]));
+  if (exam.astSchedule && exam.astSchedule.days.length > 0) {
+    // AST-3：選定的時程（候選 B～D）取代節次表；時段 id 仍是 p1、p2…（依序）
+    let n = 0;
+    return exam.astSchedule.days.flatMap((d, di) => d.map((ids, si) => {
+      n++;
+      return { id: `p${n}`, subjectIds: ids, day: di, slot: si + 1, label: `${dayName(di)} ${slotName(si + 1)}`, subjectLabel: ids.map((i) => name0.get(i) ?? i).join('、') };
+    }));
+  }
   const map = examSubjectPeriods(exam, doc.settings);
   const byPeriod = new Map<number, { day?: number; slot?: number; ids: string[] }>();
   for (const [id, list] of map) {
@@ -74,8 +86,29 @@ export function astRooms(doc: Doc, exam: ExamConfig): PlanRoom[] {
   return toPlanRooms(doc.settings.classrooms, exam.classroomIds, doc.settings.classes.filter((c) => c.division === exam.division));
 }
 
+/** 基準時程（候選 A）：共用設定的分科節次表，同節的科目放同一時段 */
+export function astBaseDays(doc: Doc, exam: ExamConfig): Days {
+  const { astSchedule: _s, ...plain } = exam;
+  void _s;
+  const slots = astSlots(doc, plain as ExamConfig);
+  const days: Days = [];
+  for (const s of slots) { (days[s.day] ??= []).push([...s.subjectIds]); }
+  return days.filter(Boolean);
+}
+
+/** 跨次沿用的來源：匯入的座位優先，沒有就找本機上一場有定案座位的分科考試（最近建立的） */
+export function carrySource(doc: Doc, exam: ExamConfig): { seats: PrevSeat[]; from: string } | undefined {
+  if (!exam.astCarry?.on) return undefined;
+  if (exam.astCarry.seats?.length) return { seats: exam.astCarry.seats, from: '匯入的上次座位' };
+  const prev = doc.exams.filter((e) => e.id !== exam.id && e.kind === 'ast' && e.astFinalSeats?.length).sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
+  return prev ? { seats: prev.astFinalSeats!, from: prev.name } : undefined;
+}
+
 export function astInput(doc: Doc, exam: ExamConfig, mode: PlanMode = astModeOf(exam)): PlanInput {
   const slots = astSlots(doc, exam);
+  const carry = carrySource(doc, exam);
+  const L = exam.astLocks;
+  const hasLocks = !!L && ((L.seats?.length ?? 0) + (L.classes?.length ?? 0) + (L.rooms?.length ?? 0) > 0);
   return {
     mode,
     rooms: astRooms(doc, exam),
@@ -83,6 +116,8 @@ export function astInput(doc: Doc, exam: ExamConfig, mode: PlanMode = astModeOf(
     students: astStudents(doc, exam, slots),
     ...(exam.astAllowOtherStudy ? { allowOtherClassStudy: true } : {}),
     ...(exam.astApprovals?.length ? { approvals: exam.astApprovals } : {}),
+    ...(hasLocks ? { locks: L } : {}),
+    ...(carry ? { carry: carry.seats } : {}),
   };
 }
 
@@ -96,6 +131,9 @@ export interface AstPlan {
   unplaced: number;
   /** 引擎排不出方案（例如某時段考生比座位多）：out 是空的，畫面請使用者先回 ③ */
   infeasible?: boolean;
+  /** AST-3：鎖定衝突（只回報、不自動解鎖）與跨次沿用結果 */
+  conflicts: LockConflict[];
+  carry?: CarrySummary;
 }
 
 const cache = new Map<string, AstPlan>();
@@ -114,13 +152,17 @@ export function runAstPlan(input: PlanInput): AstPlan | undefined {
   }
   if (!out || out.infeasible) {
     // 座位比考生少等無解情況：畫面改請使用者先回 ③ 補座位
-    const empty: AstPlan = { input, out: { usage: {}, exams: [], study: [], mixedRows: [], proposals: [] }, errors: ['座位不夠，排不出方案'], pending: [], approved: [], unplaced: 0, infeasible: true };
+    const empty: AstPlan = { input, out: { usage: {}, exams: [], study: [], mixedRows: [], proposals: [] }, errors: ['座位不夠，排不出方案'], pending: [], approved: [], unplaced: 0, infeasible: true, conflicts: [] };
     cache.set(key, empty);
     return empty;
   }
+  const refined = refinePlan(input, out);
+  out = refined.out;
   const plan: AstPlan = {
     input,
     out,
+    conflicts: refined.conflicts,
+    ...(refined.carry ? { carry: refined.carry } : {}),
     errors: checkPlan(input, out),
     pending: out.proposals.filter((p) => p.status === 'pending'),
     approved: out.proposals.filter((p) => p.status === 'approved'),
@@ -221,3 +263,34 @@ export const withApproval = (exam: ExamConfig, slotId: string, roomId: string): 
   [...(exam.astApprovals ?? []).filter((a) => !(a.slotId === slotId && a.roomId === roomId)), { slotId, roomId }];
 export const withoutApproval = (exam: ExamConfig, slotId: string, roomId?: string): { slotId: string; roomId: string }[] =>
   (exam.astApprovals ?? []).filter((a) => !(a.slotId === slotId && (roomId === undefined || a.roomId === roomId)));
+
+// ───── AST-3：時程推薦、能不能定案 ─────
+
+/** 每位考生考的科目（時程推薦算共同考生用） */
+export const astSubjectSets = (doc: Doc, exam: ExamConfig): string[][] => seatableEntries(doc, exam).map((e) => [...e.subjectIds]);
+
+export const astInvigilators = (exam: ExamConfig): number => Math.min(6, Math.max(1, Math.floor(exam.astInvigilators ?? 1)));
+
+/** 四個候選時程（基準永遠是共用設定的節次表，不受已選候選影響） */
+export function astCandidates(doc: Doc, exam: ExamConfig): Candidate[] {
+  const rooms = examRooms(doc, exam).filter((r) => r.kind === 'class');
+  const seats = rooms.length ? Math.round(rooms.reduce((n, r) => n + classroomSeats(r).length, 0) / rooms.length) : 45;
+  return buildCandidates({ base: astBaseDays(doc, exam), subjectSets: astSubjectSets(doc, exam), seatsPerRoom: seats, invigilators: astInvigilators(exam) });
+}
+
+/** 目前選定的時程有沒有「同節兩科有共同考生」的衝突 */
+export const astScheduleConflicts = (doc: Doc, exam: ExamConfig) => (exam.astSchedule ? scheduleConflicts(exam.astSchedule.days, astSubjectSets(doc, exam)) : []);
+
+/** 定案前還有哪些事沒處理（空＝可以定案） */
+export function astFinalizeBlockers(doc: Doc, exam: ExamConfig, plan: AstPlan | undefined): string[] {
+  const b: string[] = [];
+  if (!plan) return ['還沒有可排的方案（名單或教室沒設好）'];
+  if (plan.infeasible) return ['座位不夠，排不出方案'];
+  if (plan.pending.length > 0) b.push(`有 ${plan.pending.length} 個時段的替代方案待核可`);
+  if (plan.unplaced > 0 && plan.pending.length === 0) b.push(`有 ${plan.unplaced} 人排不進自習空間`);
+  if (plan.conflicts.length > 0) b.push(`有 ${plan.conflicts.length} 項鎖定衝突`);
+  if (plan.errors.length > 0 && plan.pending.length === 0 && plan.unplaced === 0) b.push(`硬性限制有 ${plan.errors.length} 項不通過`);
+  if (scheduleNeedsApproval(exam.astSchedule)) b.push('選的時程不是基準，要管理者核准');
+  if (astScheduleConflicts(doc, exam).length > 0) b.push('選的時程有同節兩科共同考生');
+  return b;
+}

@@ -34,8 +34,9 @@ export function astFlow(doc: Doc, exam: ExamConfig, s2: boolean, classSeats: num
   } else if (!plan.infeasible) {
     for (const pr of plan.pending) issues.push({ step: 5, text: `⑤ ${slots.find((s) => s.id === pr.slotId)?.label ?? pr.slotId}自習容量不足，替代方案待核可`, fix: '去 ⑤ 核可', level: 'block' });
     if (plan.unplaced > 0 && plan.pending.length === 0) issues.push({ step: 3, text: `③ 有 ${plan.unplaced} 人排不進自習空間，也沒有可用的替代教室`, fix: '去 ③ 調整自習空間', level: 'block' });
+    if (plan.conflicts.length > 0) issues.push({ step: 5, text: `⑤ 鎖定有 ${plan.conflicts.length} 項衝突`, fix: '去 ⑤ 處理鎖定', level: 'block' });
     if (plan.errors.length > 0 && plan.pending.length === 0 && plan.unplaced === 0) issues.push({ step: 5, text: `⑤ 驗證有 ${plan.errors.length} 項不通過`, fix: '去 ⑤ 看驗證', level: 'block' });
-    if (plan.pending.length === 0 && plan.unplaced === 0 && plan.errors.length === 0) s5 = 'done';
+    if (plan.pending.length === 0 && plan.unplaced === 0 && plan.errors.length === 0 && plan.conflicts.length === 0) s5 = 'done';
   }
   return { issues, s3, s4, s5, spare };
 }
