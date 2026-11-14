@@ -3,7 +3,7 @@ import type { ClassInfo, Division, ExamConfig, ExamKind, Semester, Settings, Stu
 import { studentCode } from '../data';
 import type { ExamFiles } from '../data/folder';
 import { defaultLabelLayout } from '../export/model';
-import { diffsStale, refreshDiffs } from '../import/compare';
+import { diffsStale, refreshDiffs, type CompareOptions } from '../import/compare';
 import { defaultSubjects, isCustomized } from './subjects';
 
 export interface Doc {
@@ -77,13 +77,21 @@ export function setClassTrack(doc: Doc, division: Division, no: number, track: T
  * 共用名單、班級或參加方式改動後，重算每次考試的名單比對（#60）。
  * 沒有變動的考試維持原物件（不會被蓋上修改時間）；已處理的差異只在內容相同時保留選擇。
  */
+/** 名單比對的偵測選項：班級資料有哪些班、這次考試要不要比組別（學測類的高中部才比） */
+export function diffOptions(doc: Doc, exam: ExamConfig): CompareOptions {
+  return {
+    classNos: new Set(doc.settings.classes.filter((c) => c.division === exam.division).map((c) => c.no)),
+    groups: exam.kind === 'gsat' && exam.division === 'senior',
+  };
+}
+
 export function syncDiffs(doc: Doc): Doc {
   if (!doc.examFiles) return doc;
   let files = doc.examFiles;
   for (const e of doc.exams) {
     const f = files[e.id];
     if (!f?.entries) continue;
-    const fresh = refreshDiffs(doc.rosters[e.division], f.entries, e.participation, f.diffs ?? []);
+    const fresh = refreshDiffs(doc.rosters[e.division], f.entries, e.participation, f.diffs ?? [], diffOptions(doc, e));
     if (!diffsStale(f.diffs ?? [], fresh)) continue;
     files = { ...files, [e.id]: { ...f, diffs: fresh } };
   }
