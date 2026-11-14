@@ -6,7 +6,7 @@ import { examLabel, schoolYear, type Doc } from '../store';
 import { mathSplit } from '../subjects';
 
 /** 右側欄（原型 v1side／v4side）：只有 ① 與 ④ 有，其餘步驟沒有右側欄（原型 stepView） */
-export function hasSide(step: number): boolean { return step === 1 || step === 4; }
+export function hasSide(step: number, kind?: string): boolean { return step === 1 || (step === 4 && kind !== 'ast'); }
 
 export function StepSide(p: { step: number; doc: Doc; exam: ExamConfig }) {
   return p.step === 1 ? <Side1 {...p} /> : p.step === 4 ? <Side4 {...p} /> : null;

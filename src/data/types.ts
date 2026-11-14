@@ -167,6 +167,12 @@ export interface ExamConfig {
   seatFullyAbsent?: boolean;
   /** 預備教室排座方式（D94-4）：peer＝① 同學優先（沒設＝預設）、proctor＝② 監考優先 */
   reserveSeatMode?: 'peer' | 'proctor';
+  /** 分科排座模式（D99）：fewest-rooms＝少教室優先（沒設＝預設）、least-movement＝少移動優先 */
+  astMode?: 'fewest-rooms' | 'least-movement';
+  /** 分科：允許自習去他班未徵用的原班教室（沒設＝關，D99 一-2） */
+  astAllowOtherStudy?: boolean;
+  /** 分科：管理者已核可的替代方案（某時段改用某班原班教室給抽離者自習）；只有列在這裡的才生效 */
+  astApprovals?: { slotId: string; roomId: string }[];
   subjects: Subject[];
   markRules: MarkRule[];
   /** 本次勾選的教室 id（D65） */
